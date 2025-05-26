@@ -65,12 +65,16 @@ function App() {
       <Stack flexDirection="row" bg="bg.panel" flex="1" boxShadow="sm" gap="0" overflow="hidden">
         <Stack flex="1" overflow="auto">
           <PanelHeader>
-            <HStack spacing={2} width="100%" justifyContent="space-between">
-              <SearchInput />
-              <HStack spacing={2}>
-                <LanguageSwapButton /> {/* Updated Language Button */}
+            <HStack width="100%" alignItems="center" position="relative">
+              {/* Center: Search bar absolutely centered */}
+              <Box position="absolute" left="50%" top="50%" transform="translate(-50%, -50%)">
+                <SearchInput />
+              </Box>
+              {/* Right: UserMenu and LanguageSwapButton */}
+              <Box marginLeft="auto" display="flex" alignItems="center" gap={2}>
+                <LanguageSwapButton />
                 <UserMenu />
-              </HStack>
+              </Box>
             </HStack>
           </PanelHeader>
           <Box flex="1" px="4" py="2">
@@ -90,15 +94,10 @@ function LanguageSwapButton() {
     const newLanguage = language === "English" ? "Vietnamese" : "English";
     setLanguage(newLanguage);
     console.log(`Language swapped to: ${newLanguage}`);
-    // Implement additional logic to change the application's language here
   };
 
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={handleLanguageChange}
-    >
+    <Button variant="ghost" size="sm" onClick={handleLanguageChange}>
       {language} {/* Display the current language */}
     </Button>
   );
@@ -173,7 +172,13 @@ function PanelHeader(props: { children: React.ReactNode }) {
 function SearchInput() {
   return (
     <InputGroup startElement={<RiSearchLine />} endElement={<Kbd size="sm">⌘K</Kbd>}>
-      <Input placeholder="Search products..." size="sm" bg="transparent" ps="8" />
+      <Input 
+        placeholder="Search products..." 
+        size="sm" 
+        bg="transparent" 
+        ps="8" 
+        width="300px" 
+      />
     </InputGroup>
   );
 }
