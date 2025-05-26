@@ -27,7 +27,7 @@ import {
 } from "./components/ui/menu.tsx";
 import { Avatar } from "./components/ui/avatar.tsx";
 import { InputGroup } from "./components/ui/input-group.tsx";
-import { Tooltip } from "./components/ui/tooltip.tsx";
+import React from "react";
 
 function App() {
   const username = "Admin"; // Replace with dynamic username from user context
@@ -63,34 +63,14 @@ function App() {
         </Box>
       </Stack>
       <Stack flexDirection="row" bg="bg.panel" flex="1" boxShadow="sm" gap="0" overflow="hidden">
-        <Stack
-          width="300px"
-          borderRightWidth="1px"
-          gap="0"
-          overflow="auto"
-        >
-          <PanelHeader>
-            <Heading size="sm" fontWeight="medium">
-              Products
-            </Heading>
-            <IconButton size="sm" variant="ghost" aria-label="Filter" borderRadius="full">
-              <Icon as={RiSettingsLine} />
-            </IconButton>
-          </PanelHeader>
-          <Box flex="1" px="2" py="2">
-            {/* Product items go here */}
-          </Box>
-        </Stack>
-        <Stack
-          flex="1"
-          overflow="auto"
-        >
+        <Stack flex="1" overflow="auto">
           <PanelHeader>
             <HStack spacing={2} width="100%" justifyContent="space-between">
-              <Tooltip content="Search" openDelay={0}>
-                <SearchInput />
-              </Tooltip>
-              <UserMenu />
+              <SearchInput />
+              <HStack spacing={2}>
+                <LanguageSwapButton /> {/* Updated Language Button */}
+                <UserMenu />
+              </HStack>
             </HStack>
           </PanelHeader>
           <Box flex="1" px="4" py="2">
@@ -99,6 +79,28 @@ function App() {
         </Stack>
       </Stack>
     </Stack>
+  );
+}
+
+function LanguageSwapButton() {
+  const [language, setLanguage] = React.useState("English"); // Default language
+
+  const handleLanguageChange = () => {
+    // Toggle between languages
+    const newLanguage = language === "English" ? "Vietnamese" : "English";
+    setLanguage(newLanguage);
+    console.log(`Language swapped to: ${newLanguage}`);
+    // Implement additional logic to change the application's language here
+  };
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={handleLanguageChange}
+    >
+      {language} {/* Display the current language */}
+    </Button>
   );
 }
 
