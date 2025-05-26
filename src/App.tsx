@@ -7,13 +7,13 @@ import {
   Input,
   Kbd,
   Stack,
+  Text,
 } from "@chakra-ui/react";
 import {
   RiDashboardLine,
   RiShoppingCartLine,
   RiUserLine,
   RiCodeLine,
-  RiProductHuntLine,
   RiSettingsLine,
   RiSearchLine,
 } from "react-icons/ri";
@@ -30,6 +30,8 @@ import { InputGroup } from "./components/ui/input-group.tsx";
 import { Tooltip } from "./components/ui/tooltip.tsx";
 
 function App() {
+  const username = "Admin"; // Replace with dynamic username from user context
+
   return (
     <Stack flexDirection="row" height="100vh" alignItems="stretch" bg="bg.muted">
       <Stack
@@ -39,23 +41,13 @@ function App() {
         borderColor="border.emphasized"
         bg="bg.muted"
       >
+        <Box px="2" py="4" textAlign="center">
+          <Avatar size="lg" name={username} />
+          <Text fontWeight="bold" mt="2">
+            Welcome, {username}!
+          </Text>
+        </Box>
         <Box flex="1" overflow="auto">
-          <HStack px="2" alignItems="center" justifyContent="space-between" gap="1">
-            <UserMenu />
-            <IconButton
-              variant="surface"
-              bg="bg.panel"
-              size="sm"
-              boxSize="7"
-              minW="7"
-              boxShadow="sm"
-              aria-label="New product"
-              borderRadius="lg"
-              _hover={{ bg: "bg.muted" }}
-            >
-              <Icon as={RiProductHuntLine} />
-            </IconButton>
-          </HStack>
           <Heading size="xs" fontWeight="semibold" color="fg.muted" px="4" py="2">
             Dashboard
           </Heading>
@@ -94,9 +86,12 @@ function App() {
           overflow="auto"
         >
           <PanelHeader>
-            <Tooltip content="Search" openDelay={0}>
-              <SearchInput />
-            </Tooltip>
+            <HStack spacing={2} width="100%" justifyContent="space-between">
+              <Tooltip content="Search" openDelay={0}>
+                <SearchInput />
+              </Tooltip>
+              <UserMenu />
+            </HStack>
           </PanelHeader>
           <Box flex="1" px="4" py="2">
             {/* Main content goes here, e.g., charts, stats */}
