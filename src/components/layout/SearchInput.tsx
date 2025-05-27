@@ -1,9 +1,8 @@
-import { Input } from "@chakra-ui/react";
-import { Kbd } from "@chakra-ui/react";
-import { RiSearchLine } from "react-icons/ri";
-import { InputGroup } from "../ui/input-group";
 
-export function SearchInput() {
+import { InputGroup, Input, Kbd } from "@chakra-ui/react";
+import { RiSearchLine } from "react-icons/ri";
+
+const SearchInput = () => {
   return (
     <InputGroup startElement={<RiSearchLine />} endElement={<Kbd size="sm">⌘K</Kbd>}>
       <Input 
@@ -15,4 +14,6 @@ export function SearchInput() {
       />
     </InputGroup>
   );
-}
+};
+
+export default SearchInput;

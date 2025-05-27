@@ -122,6 +122,7 @@ function UserMenu() {
 }
 
 function NavLink(props: ButtonProps & { icon: React.ReactNode; active?: boolean }) {
+  const { icon, active, children, ...rest } = props;
   return (
     <Button
       variant="ghost"
@@ -131,12 +132,13 @@ function NavLink(props: ButtonProps & { icon: React.ReactNode; active?: boolean 
       width="full"
       justifyContent="flex-start"
       _active={{ bg: "bg.emphasized" }}
-      data-active={props.active ? "true" : undefined}
+      data-active={active ? "true" : undefined}
+      {...rest}
     >
       <Icon color="blue.500" boxSize="4">
-        {props.icon}
+        {icon}
       </Icon>
-      {props.children}
+      {children}
     </Button>
   );
 }

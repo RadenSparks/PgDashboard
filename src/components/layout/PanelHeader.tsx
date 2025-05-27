@@ -1,7 +1,6 @@
-import { Stack } from "@chakra-ui/react";
-import React from "react";
+import { Stack , type StackProps } from "@chakra-ui/react";
 
-export function PanelHeader({ children }: { children: React.ReactNode }) {
+export function PanelHeader(props: StackProps) {
   return (
     <Stack
       position="sticky"
@@ -23,8 +22,7 @@ export function PanelHeader({ children }: { children: React.ReactNode }) {
         bg: "bg.muted/90",
         boxShadow: "0px 1px 2px rgba(0, 0, 0, 0.08)",
       }}
-    >
-      {children}
-    </Stack>
+      {...props}
+    />
   );
 }

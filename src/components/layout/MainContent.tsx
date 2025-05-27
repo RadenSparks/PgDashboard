@@ -1,10 +1,10 @@
 import { Box, HStack, Stack } from "@chakra-ui/react";
 import { PanelHeader } from "./PanelHeader";
-import { SearchInput }from "./SearchInput";
+import SearchInput from "./SearchInput";
 import { LanguageSwapButton } from "./LanguageSwapButton";
-import { UserMenu } from "./UserMenu";
+import UserMenu  from "./UserMenu";
 
-function MainContent() {
+export function MainContent() {
   return (
     <Stack flexDirection="row" bg="bg.panel" flex="1" boxShadow="sm" gap="0" overflow="hidden">
       <Stack flex="1" overflow="auto">
@@ -26,5 +26,3 @@ function MainContent() {
     </Stack>
   );
 }
-
-export default MainContent;

@@ -1,21 +1,14 @@
-import { MenuContent, MenuItem, MenuRoot, MenuSeparator, MenuTrigger } from "../ui/menu";
-import { IconButton } from "@chakra-ui/react";
-import { Avatar } from "../ui/avatar";
+import { Stack } from "@chakra-ui/react";
+import { Sidebar } from "./Sidebar";
+import { MainContent } from "./MainContent";
 
-export function UserMenu() {
+function App() {
   return (
-    <MenuRoot>
-      <MenuTrigger asChild>
-        <IconButton variant="ghost" size="sm" px="0" borderRadius="full" aria-label="User menu">
-          <Avatar size="sm" name="Admin" />
-        </IconButton>
-      </MenuTrigger>
-      <MenuContent>
-        <MenuItem value="profile">Profile</MenuItem>
-        <MenuItem value="settings">Settings</MenuItem>
-        <MenuSeparator />
-        <MenuItem value="signout">Sign out</MenuItem>
-      </MenuContent>
-    </MenuRoot>
+    <Stack flexDirection="row" height="100vh" alignItems="stretch" bg="bg.muted">
+      <Sidebar />
+      <MainContent />
+    </Stack>
   );
 }
+
+export default App;

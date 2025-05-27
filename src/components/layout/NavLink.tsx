@@ -1,8 +1,13 @@
-import { Button, type ButtonProps } from "../ui/button";
+import { Button, type ButtonProps } from "../ui/button.tsx";
 import { Icon } from "@chakra-ui/react";
-import React from "react";
 
-export function NavLink(props: ButtonProps & { icon: React.ReactNode; active?: boolean }) {
+interface NavLinkProps extends ButtonProps {
+  icon: React.ReactNode;
+  active?: boolean;
+}
+
+export function NavLink(props: NavLinkProps) {
+  const { icon, active, children, ...rest } = props;
   return (
     <Button
       variant="ghost"
@@ -12,12 +17,13 @@ export function NavLink(props: ButtonProps & { icon: React.ReactNode; active?: b
       width="full"
       justifyContent="flex-start"
       _active={{ bg: "bg.emphasized" }}
-      data-active={props.active ? "true" : undefined}
+      data-active={active ? "true" : undefined}
+      {...rest}
     >
       <Icon color="blue.500" boxSize="4">
-        {props.icon}
+        {icon}
       </Icon>
-      {props.children}
+      {children}
     </Button>
   );
 }

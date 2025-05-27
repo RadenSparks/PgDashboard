@@ -1,8 +1,8 @@
-import { Button } from "../ui/button";
-import React from "react";
+import { Button } from "../ui/button.tsx";
+import { useState } from "react"; 
 
 export function LanguageSwapButton() {
-  const [language, setLanguage] = React.useState("English");
+  const [language, setLanguage] = useState("English");
 
   const handleLanguageChange = () => {
     const newLanguage = language === "English" ? "Vietnamese" : "English";
@@ -16,4 +16,3 @@ export function LanguageSwapButton() {
     </Button>
   );
 }
-  
