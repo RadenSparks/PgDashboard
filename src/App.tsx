@@ -1,35 +1,73 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import { Provider } from './components/ui/provider'
+import { ChakraProvider } from '@chakra-ui/react';
+import './App.css';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { routes } from './components/route/routes';
+import PublicRoute from './components/route/public-route';
+import ProtectedRoute from './components/route/protected-route';
+import SignIn from './components/page/signin/signin';
+import Dashboard from './components/page/dashboard/dashboard';
 
-function App() {
-  const [count, setCount] = useState(0)
+
+const App = () => {
+  const Component = (route: any) => {
+    return route.layout ?
+      <route.layout>
+        <route.component></route.component>
+      </route.layout>
+      :
+      <route.component></route.component>;
+  }
+
+  // const RouteElement = (route: any) => {
+  //   return route.public ?
+  //     <PublicRoute>
+  //       <Component route={route}></Component>
+  //     </PublicRoute>
+  //     :
+  //     <ProtectedRoute>
+  //       <Component route={route}></Component>
+  //     </ProtectedRoute>
+  // }
 
   return (
-    <Provider>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </Provider>
+    <ChakraProvider>
+      <BrowserRouter>
+        <Routes>
+          {routes.map((route, index) => {
+            const Component = route.component;
+            if (route.public) {
+              return (
+                <Route
+                  key={index}
+                  path={route.path}
+                  element={
+                    <PublicRoute>
+                      {
+                        route.layout ? <route.layout><Component /></route.layout> : <Component />
+                      }
+                    </PublicRoute>
+                  }
+                />
+              );
+            } else {
+              return (
+                <Route
+                  key={index}
+                  path={route.path}
+                  element={
+                    <ProtectedRoute>
+                      {
+                        route.layout ? <route.layout><Component /></route.layout> : <Component />
+                      }
+                    </ProtectedRoute>
+                  }
+                />
+              );
+            }
+          })}
+        </Routes>
+      </BrowserRouter>
+    </ChakraProvider >
   )
 }
 
