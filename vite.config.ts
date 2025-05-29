@@ -1,18 +1,13 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc'
-import * as dotenv from 'dotenv'
-import { loadEnv } from 'vite';
-
-export default defineConfig(({ mode }) => {
-  dotenv.config(); // Load .env variables
-
-  return {
-    plugins: [react()],
-    server: {
-      port: parseInt(process.env.PORT || '4000'),
+import react from '@vitejs/plugin-react'
+import path from 'path'
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
     },
-    define: {
-      'process.env': loadEnv(mode, process.cwd(), '')
-    },
-  }
+  },
 })
+
