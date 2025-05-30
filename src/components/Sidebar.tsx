@@ -12,6 +12,7 @@ import {
   MdSettings,
   MdInventory2,
 } from "react-icons/md";
+import { useNavigate } from "react-router-dom";
 
 // Mock user data (replace with your auth/user context as needed)
 const user = {
@@ -34,6 +35,7 @@ const tabs = [
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState("Dashboard");
+  const navigate = useNavigate();
 
   return (
     <div className="relative">
@@ -117,7 +119,10 @@ const Sidebar = () => {
                     ? "bg-blue-100 text-blue-800 font-semibold" // Changed highlight to blue
                     : "hover:bg-gray-100 text-primary"}
                 `}
-                onClick={() => setActiveTab(tab.label)}
+                onClick={() => {
+                  setActiveTab(tab.label);
+                  navigate(tab.route);
+                }}
               >
                 {tab.icon}
                 {!collapsed && <span>{tab.label}</span>}
