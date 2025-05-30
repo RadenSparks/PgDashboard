@@ -1,5 +1,5 @@
 // import { navLinks } from "@/utils/navLinks"
-import { Button } from "@/components/widgets/button";
+import { Button } from "../widgets/button";
 import { useState } from "react";
 
 import {

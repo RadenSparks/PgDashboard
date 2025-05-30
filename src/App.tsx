@@ -11,6 +11,9 @@ import ProductsPage from './components/pages/products/ProductsPage';
 import SettingsPage from './components/pages/settings/SettingsPage';
 import UsersPage from './components/pages/users/UsersPage';
 import VoucherPage from './components/pages/vouchers/VoucherPage';
+import ProtectedRoute from './components/pages/route/protected-route';
+import PublicRoute from './components/pages/route/public-route';
+import SignIn from './components/pages/signin/signin';
 
 
 const App: React.FC = () => {
@@ -19,17 +22,19 @@ const App: React.FC = () => {
       <main className="h-screen w-full">
         <Router>
           <Routes>
-            <Route element={<RootLayout />}>
-              <Route path="/" element={<DashboardContent />} />
-              <Route path="/products" element={<ProductsPage />} />
-              <Route path="/categories" element={<CategoriesPage />} />
-              <Route path="/voucher" element={<VoucherPage />} />
-              <Route path="/posts" element={<PostsPage />} />
-              <Route path="/orders" element={<OrdersPage />} />
-              <Route path="/contacts" element={<ContactsPage />} />
-              <Route path="/users" element={<UsersPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-            </Route>
+
+            <Route element={<RootLayout />}>              
+                <Route path="/" element={<ProtectedRoute><DashboardContent /></ProtectedRoute>} />
+                <Route path="/products" element={<ProtectedRoute><ProductsPage /></ProtectedRoute>} />
+                <Route path="/categories" element={<ProtectedRoute><CategoriesPage /></ProtectedRoute>} />
+                <Route path="/voucher" element={<ProtectedRoute><VoucherPage /></ProtectedRoute>} />
+                <Route path="/posts" element={<ProtectedRoute><PostsPage /></ProtectedRoute>} />
+                <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
+                <Route path="/contacts" element={<ProtectedRoute><ContactsPage /></ProtectedRoute>} />
+                <Route path="/users" element={<ProtectedRoute><UsersPage /></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />                
+          </Route>           
+            <Route path="/signin" element={<PublicRoute><SignIn /></PublicRoute>} />
           </Routes>
         </Router>
       </main>
