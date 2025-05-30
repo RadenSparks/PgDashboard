@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { FaSearch } from "react-icons/fa";
-import { Input } from "./ui/input";
+import { Input } from "@/components/widgets/input";
 import { MdOutlineKeyboardArrowDown } from "react-icons/md";
 import { FaMoon, FaSun } from "react-icons/fa"; // Add icons for dark/light
 

@@ -1,7 +1,8 @@
 import { Box, Flex } from "@chakra-ui/react";
 import { Outlet } from "react-router-dom";
-import Navbar from "@/components/Navbar";
-import Sidebar from "@/components/Sidebar";
+import Navbar from "@/components/layout/Navbar";
+import Sidebar from "@/components/layout/Sidebar";
+
 const RootLayout = () => {
   return (
     <Flex w="full" h="100vh" flexDir={{ base: "column", md: "row" }}>
@@ -17,3 +18,4 @@ const RootLayout = () => {
 };
 
 export default RootLayout;
+

@@ -1,16 +1,17 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import RootLayout from "./layout/RootLayout";
-import DashboardContent from "./pages/DashboardContent";
-import ProductsPage from "./pages/ProductsPage";
-import CategoriesPage from "./pages/CategoriesPage";
-import VoucherPage from "./pages/VoucherPage";
-import PostsPage from "./pages/PostsPage";
-import OrdersPage from "./pages/OrdersPage";
-import ContactsPage from "./pages/ContactsPage";
-import UsersPage from "./pages/UsersPage";
-import SettingsPage from "./pages/SettingsPage";
-import ChakraProvider from './components/ui/provider';
+import RootLayout from "./components/layout/RootLayout";
+import { ChakraProvider } from '@chakra-ui/react';
+import CategoriesPage from './components/pages/categories/CategoriesPage';
+import ContactsPage from './components/pages/contacts/ContactsPage';
+import DashboardContent from './components/pages/dashboard/DashboardContent';
+import OrdersPage from './components/pages/orders/OrdersPage';
+import PostsPage from './components/pages/posts/PostsPage';
+import ProductsPage from './components/pages/products/ProductsPage';
+import SettingsPage from './components/pages/settings/SettingsPage';
+import UsersPage from './components/pages/users/UsersPage';
+import VoucherPage from './components/pages/vouchers/VoucherPage';
+
 
 const App: React.FC = () => {
   return (

@@ -1,10 +1,10 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/widgets/button";
 import { MdOutlineKeyboardArrowDown } from "react-icons/md";
 import { FaShoppingCart, FaUsers, FaDollarSign, FaBoxOpen,} from "react-icons/fa";
 import { IoMdAdd } from "react-icons/io";
-import SalesChart from "@/components/SalesChart"; 
-import OrdersTable from "@/components/OrdersTable"; 
-import TopProducts from "@/components/TopProducts"; 
+import SalesChart from "@/components/pages/dashboard/SalesChart"; 
+import OrdersTable from "@/components/pages/dashboard/OrdersTable"; 
+import TopProducts from "@/components/pages/dashboard/TopProducts"; 
 
 const DashboardContent = () => {
   return (
