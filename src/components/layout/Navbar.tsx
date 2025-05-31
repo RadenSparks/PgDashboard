@@ -3,6 +3,7 @@ import { FaSearch } from "react-icons/fa";
 import { Input } from "../widgets/input"
 import { MdOutlineKeyboardArrowDown } from "react-icons/md";
 import { FaMoon, FaSun } from "react-icons/fa"; // Add icons for dark/light
+import { clearAuth } from "../../utils/auth";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -50,6 +51,11 @@ const Navbar = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  function handleSignout(): void {
+    clearAuth();
+    window.location.href = "/signin"; // Redirect to sign-in page
+  }
 
   return (
     <div className="w-full">
@@ -189,7 +195,7 @@ const Navbar = () => {
               <div className="absolute right-0 top-14 z-50 min-w-[160px] bg-white border border-gray-200 rounded-lg shadow-lg py-2">
                 <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">Profile</button>
                 <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">Settings</button>
-                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">Logout</button>
+                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100" onClick={handleSignout}>Signout</button>
               </div>
             )}
           </div>
