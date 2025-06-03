@@ -10,7 +10,7 @@ const mockProducts = [
 		price: 19.99,
 		stock: 120,
 		status: "Active",
-		image: "/assets/products/uno.jpg",
+		image: "https://i5.walmartimages.com/seo/Giant-UNO-Card-Game-for-Kids-Adults-and-Family-Night-108-Oversized-Cards-for-2-10-Players_a31dca6f-015a-4cd5-91f0-599908967b6c.04906de4d872e31806f519775b77ad4e.jpeg",
 	},
 	{
 		id: 2,
@@ -19,7 +19,7 @@ const mockProducts = [
 		price: 59.99,
 		stock: 45,
 		status: "Active",
-		image: "/assets/products/7wonders.jpg",
+		image: "https://bizweb.dktcdn.net/100/316/286/articles/81v6x774i3l.jpeg?v=1671187787903",
 	},
 	{
 		id: 3,
@@ -28,7 +28,7 @@ const mockProducts = [
 		price: 29.99,
 		stock: 0,
 		status: "Out of Stock",
-		image: "/assets/products/zooking.jpg",
+		image: "https://m.media-amazon.com/images/I/61+yRmkcTVL.jpg",
 	},
 ];
 
