@@ -12,6 +12,8 @@ import {
     Stack,
     InputRightElement,
     InputGroup,
+    Box,
+    useColorModeValue,
 } from '@chakra-ui/react'
 import { useState } from 'react';
 import { BsEye, BsEyeSlash } from 'react-icons/bs';
@@ -26,7 +28,6 @@ const SignIn = () => {
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        //TODO: call sign in api here , get the token and store it in localStorage, then navigate to the dashboard;
         const formData = new FormData(event.currentTarget);
         const username = formData.get('username') as string;
         const password = formData.get('password') as string;
@@ -48,42 +49,84 @@ const SignIn = () => {
     }
 
     return (
-        <Stack minH={'100vh'} direction={{ base: 'row', md: 'row', lg: 'row', xl: 'row' }} >
-            <Flex p={8} flex={1} align={'center'} justify={'center'} border={'1px solid #e2e8f0'}>
+        <Flex minH="100vh" align="center" justify="center" bg={useColorModeValue('blue.50', 'gray.900')}>
+            <Box
+                bg={useColorModeValue('white', 'gray.800')}
+                p={{ base: 6, md: 10 }}
+                rounded="2xl"
+                shadow="xl"
+                w="full"
+                maxW="md"
+                border="1px solid"
+                borderColor={useColorModeValue('gray.200', 'gray.700')}
+            >
                 <form onSubmit={handleSubmit}>
-                    <Stack spacing={4} w={'full'} maxW={'md'} >
-                        <Heading fontSize={'2xl'}>Sign in to your account</Heading>
-                        <FormControl id="username">
+                    <Stack spacing={6} w="full">
+                        <Heading fontSize="2xl" textAlign="center" color="blue.700" mb={2}>
+                            Sign in to your account
+                        </Heading>
+                        <FormControl id="username" isRequired>
                             <FormLabel>Username</FormLabel>
-                            <Input type="text" name='username' />
+                            <Input type="text" name="username" placeholder="Enter your username" size="lg" />
                         </FormControl>
-                        <FormControl id="password">
+                        <FormControl id="password" isRequired>
                             <FormLabel>Password</FormLabel>
                             <InputGroup>
-                                <Input type="password" name="password" />
-                                <InputRightElement width="4.5rem">
-                                    <Button h="1.75rem" size="sm" onClick={toggleRevealPassword}>
+                                <Input
+                                    type={revealPwd ? "text" : "password"}
+                                    name="password"
+                                    placeholder="Enter your password"
+                                    size="lg"
+                                />
+                                <InputRightElement width="3rem">
+                                    <Button
+                                        h="1.75rem"
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={toggleRevealPassword}
+                                        tabIndex={-1}
+                                    >
                                         {revealPwd ? <BsEye /> : <BsEyeSlash />}
                                     </Button>
                                 </InputRightElement>
                             </InputGroup>
                         </FormControl>
-                        <Stack spacing={6}>
-                            <Stack
-                                direction={{ base: 'column', sm: 'row' }}
-                                align={'start'}
-                                justify={'space-between'}>
-                                <Checkbox>Remember me</Checkbox>
-                                <Text color={'blue.500'}>Forgot password?</Text>
-                            </Stack>
-                            <Button colorScheme={'blue'} variant={'solid'} type='submit'>
+                        <Stack spacing={4}>
+                            <Flex align="center" justify="space-between">
+                                <Checkbox colorScheme="blue">Remember me</Checkbox>
+                                <Text color="blue.500" fontWeight="medium" cursor="pointer" _hover={{ textDecoration: "underline" }}>
+                                    Forgot password?
+                                </Text>
+                            </Flex>
+                            <Button
+                                colorScheme="blue"
+                                size="lg"
+                                type="submit"
+                                rounded="lg"
+                                fontWeight="bold"
+                                shadow="md"
+                                _hover={{ bg: "blue.600" }}
+                            >
                                 Sign in
                             </Button>
+                            <Text textAlign="center" color="gray.500">
+                                Don't have an account?{" "}
+                                <Text
+                                    as="span"
+                                    color="blue.500"
+                                    fontWeight="medium"
+                                    cursor="pointer"
+                                    _hover={{ textDecoration: "underline" }}
+                                    onClick={() => navigate('/signup')}
+                                >
+                                    Sign up
+                                </Text>
+                            </Text>
                         </Stack>
                     </Stack>
                 </form>
-            </Flex>
-        </Stack>
+            </Box>
+        </Flex>
     )
 }
 
