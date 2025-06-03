@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Box, Heading, Text, Flex, BoxProps } from "@chakra-ui/react"
+import { Box, Heading, Text, Flex, type BoxProps } from "@chakra-ui/react"
 import { cn } from "@/lib/utils"
 
 const Card = React.forwardRef<HTMLDivElement, BoxProps>(
