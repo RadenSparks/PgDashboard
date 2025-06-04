@@ -101,3 +101,10 @@ body {
 .pagination .active {
   background-color: rgb(192, 219, 219);
 }
+.signin-transition {
+    transition: opacity 0.3s;
+    opacity: 1;
+}
+.signin-transition.fade-out {
+    opacity: 0;
+}

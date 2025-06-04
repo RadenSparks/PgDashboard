@@ -14,8 +14,9 @@ import {
     InputGroup,
     Box,
     useColorModeValue,
+    useToast,
 } from '@chakra-ui/react'
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { BsEye, BsEyeSlash } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
 import type { SignInRequestDTO, SignInResponseDTO } from '@/entity/dto';
@@ -23,6 +24,9 @@ import type { SignInRequestDTO, SignInResponseDTO } from '@/entity/dto';
 const SignIn = () => {
     const navigate = useNavigate();
     const [revealPwd, setRevealPwd] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const toast = useToast();
+    const containerRef = useRef<HTMLDivElement>(null);
 
     const toggleRevealPassword = () => setRevealPwd(!revealPwd);
 
@@ -31,9 +35,23 @@ const SignIn = () => {
         const formData = new FormData(event.currentTarget);
         const username = formData.get('username') as string;
         const password = formData.get('password') as string;
+
+        if (!username || !password) {
+            toast({
+                title: 'Missing fields',
+                description: 'Please enter both username and password.',
+                status: 'warning',
+                duration: 4000,
+                isClosable: true,
+                position: 'top',
+            });
+            return;
+        }
+
+        setLoading(true);
         const signInRequestDTO: SignInRequestDTO = {
-            username : username,
-            password : password
+            username,
+            password
         };
 
         api.post<SignInResponseDTO>('/auth/signin', signInRequestDTO)
@@ -44,13 +62,36 @@ const SignIn = () => {
                 navigate('/');
             })
             .catch((error : AxiosError) => {
+                toast({
+                    title: 'Sign in failed',
+                    description: (typeof error.response?.data === 'object' && error.response?.data && 'message' in error.response.data)
+                        ? (error.response.data as { message?: string }).message
+                        : 'Invalid username or password.',
+                    status: 'error',
+                    duration: 5000,
+                    isClosable: true,
+                    position: 'top',
+                });
                 console.error('Sign in failed:', error.response?.data || error.message);
-            });
+            })
+            .finally(() => setLoading(false));
     }
+
+    const handleNavigateSignup = () => {
+        if (containerRef.current) {
+            containerRef.current.classList.add('fade-out');
+            setTimeout(() => {
+                navigate('/signup');
+            }, 300); // duration matches the CSS transition
+        } else {
+            navigate('/signup');
+        }
+    };
 
     return (
         <Flex minH="100vh" align="center" justify="center" bg={useColorModeValue('blue.50', 'gray.900')}>
             <Box
+                ref={containerRef}
                 bg={useColorModeValue('white', 'gray.800')}
                 p={{ base: 6, md: 10 }}
                 rounded="2xl"
@@ -59,6 +100,7 @@ const SignIn = () => {
                 maxW="md"
                 border="1px solid"
                 borderColor={useColorModeValue('gray.200', 'gray.700')}
+                className="signin-transition"
             >
                 <form onSubmit={handleSubmit}>
                     <Stack spacing={6} w="full">
@@ -85,6 +127,7 @@ const SignIn = () => {
                                         variant="ghost"
                                         onClick={toggleRevealPassword}
                                         tabIndex={-1}
+                                        aria-label={revealPwd ? "Hide password" : "Show password"}
                                     >
                                         {revealPwd ? <BsEye /> : <BsEyeSlash />}
                                     </Button>
@@ -94,7 +137,20 @@ const SignIn = () => {
                         <Stack spacing={4}>
                             <Flex align="center" justify="space-between">
                                 <Checkbox colorScheme="blue">Remember me</Checkbox>
-                                <Text color="blue.500" fontWeight="medium" cursor="pointer" _hover={{ textDecoration: "underline" }}>
+                                <Text
+                                    color="blue.500"
+                                    fontWeight="medium"
+                                    cursor="pointer"
+                                    _hover={{ textDecoration: "underline" }}
+                                    onClick={() => toast({
+                                        title: "Forgot password?",
+                                        description: "Password reset is not implemented yet.",
+                                        status: "info",
+                                        duration: 4000,
+                                        isClosable: true,
+                                        position: "top",
+                                    })}
+                                >
                                     Forgot password?
                                 </Text>
                             </Flex>
@@ -106,6 +162,7 @@ const SignIn = () => {
                                 fontWeight="bold"
                                 shadow="md"
                                 _hover={{ bg: "blue.600" }}
+                                isLoading={loading}
                             >
                                 Sign in
                             </Button>
@@ -117,7 +174,7 @@ const SignIn = () => {
                                     fontWeight="medium"
                                     cursor="pointer"
                                     _hover={{ textDecoration: "underline" }}
-                                    onClick={() => navigate('/signup')}
+                                    onClick={handleNavigateSignup}
                                 >
                                     Sign up
                                 </Text>
