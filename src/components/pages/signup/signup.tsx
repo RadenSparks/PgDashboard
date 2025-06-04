@@ -14,8 +14,9 @@ import {
     InputGroup,
     Box,
     useColorModeValue,
+    useToast,
 } from '@chakra-ui/react'
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { BsEye, BsEyeSlash } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
 
@@ -23,36 +24,89 @@ const SignUp = () => {
     const navigate = useNavigate();
     const [revealPwd, setRevealPwd] = useState(false);
     const [revealConfirmPwd, setRevealConfirmPwd] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const toast = useToast();
+    const containerRef = useRef<HTMLDivElement>(null);
 
     const toggleRevealPassword = () => setRevealPwd(!revealPwd);
     const toggleRevealConfirmPassword = () => setRevealConfirmPwd(!revealConfirmPwd);
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        // TODO: call sign up api here, then navigate to sign in or dashboard;
         const formData = new FormData(event.currentTarget);
         const username = formData.get('username') as string;
         const password = formData.get('password') as string;
         const confirmPassword = formData.get('confirmPassword') as string;
         const email = formData.get('email') as string;
 
-        if (password !== confirmPassword) {
-            alert("Passwords do not match!");
+        if (!username || !email || !password || !confirmPassword) {
+            toast({
+                title: 'Missing fields',
+                description: 'Please fill in all required fields.',
+                status: 'warning',
+                duration: 4000,
+                isClosable: true,
+                position: 'top',
+            });
             return;
         }
 
+        if (password !== confirmPassword) {
+            toast({
+                title: "Passwords do not match!",
+                description: "Please make sure your passwords match.",
+                status: "error",
+                duration: 4000,
+                isClosable: true,
+                position: "top",
+            });
+            return;
+        }
+
+        setLoading(true);
         api.post('/auth/signup', { username, password, email })
             .then(() => {
-                navigate('/signin');
+                toast({
+                    title: "Account created!",
+                    description: "You can now sign in with your new account.",
+                    status: "success",
+                    duration: 4000,
+                    isClosable: true,
+                    position: "top",
+                });
+                setTimeout(() => navigate('/signin'), 500);
             })
             .catch((error: AxiosError) => {
+                toast({
+                    title: "Sign up failed",
+                    description: (typeof error.response?.data === 'object' && error.response?.data && 'message' in error.response.data)
+                        ? (error.response.data as { message?: string }).message
+                        : 'An error occurred during sign up.',
+                    status: "error",
+                    duration: 5000,
+                    isClosable: true,
+                    position: "top",
+                });
                 console.error('Sign up failed:', error.response?.data || error.message);
-            });
-    }
+            })
+            .finally(() => setLoading(false));
+    };
+
+    const handleNavigateSignin = () => {
+        if (containerRef.current) {
+            containerRef.current.classList.add('fade-out');
+            setTimeout(() => {
+                navigate('/signin');
+            }, 300);
+        } else {
+            navigate('/signin');
+        }
+    };
 
     return (
         <Flex minH="100vh" align="center" justify="center" bg={useColorModeValue('blue.50', 'gray.900')}>
             <Box
+                ref={containerRef}
                 bg={useColorModeValue('white', 'gray.800')}
                 p={{ base: 6, md: 10 }}
                 rounded="2xl"
@@ -61,6 +115,7 @@ const SignUp = () => {
                 maxW="md"
                 border="1px solid"
                 borderColor={useColorModeValue('gray.200', 'gray.700')}
+                className="signin-transition"
             >
                 <form onSubmit={handleSubmit}>
                     <Stack spacing={6} w="full">
@@ -91,6 +146,7 @@ const SignUp = () => {
                                         variant="ghost"
                                         onClick={toggleRevealPassword}
                                         tabIndex={-1}
+                                        aria-label={revealPwd ? "Hide password" : "Show password"}
                                     >
                                         {revealPwd ? <BsEye /> : <BsEyeSlash />}
                                     </Button>
@@ -113,6 +169,7 @@ const SignUp = () => {
                                         variant="ghost"
                                         onClick={toggleRevealConfirmPassword}
                                         tabIndex={-1}
+                                        aria-label={revealConfirmPwd ? "Hide password" : "Show password"}
                                     >
                                         {revealConfirmPwd ? <BsEye /> : <BsEyeSlash />}
                                     </Button>
@@ -131,6 +188,7 @@ const SignUp = () => {
                                 fontWeight="bold"
                                 shadow="md"
                                 _hover={{ bg: "blue.600" }}
+                                isLoading={loading}
                             >
                                 Sign up
                             </Button>
@@ -142,7 +200,7 @@ const SignUp = () => {
                                     fontWeight="medium"
                                     cursor="pointer"
                                     _hover={{ textDecoration: "underline" }}
-                                    onClick={() => navigate('/signin')}
+                                    onClick={handleNavigateSignin}
                                 >
                                     Sign in
                                 </Text>
@@ -156,3 +214,13 @@ const SignUp = () => {
 }
 
 export default SignUp;
+
+/*
+.signin-transition {
+    transition: opacity 0.3s;
+    opacity: 1;
+}
+.signin-transition.fade-out {
+    opacity: 0;
+}
+*/

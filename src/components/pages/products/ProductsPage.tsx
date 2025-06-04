@@ -1,117 +1,216 @@
-import { useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Button } from "../../widgets/button";
 import { IoMdAdd } from "react-icons/io";
+import ProductTable from "./ProductTable";
+import ProductDetailsModal from "./ProductDetailsModal";
+import ProductFormModal from "./ProductFormModal";
+import ProductCmsModal from "./ProductCmsModal";
+import { mockProducts, emptyProduct } from "./mockProducts";
+import type { Product, CmsContent } from "./types";
 
-const mockProducts = [
-	{
-		id: 1,
-		name: "UNO",
-		category: "Card Game",
-		price: 19.99,
-		stock: 120,
-		status: "Active",
-		image: "https://i5.walmartimages.com/seo/Giant-UNO-Card-Game-for-Kids-Adults-and-Family-Night-108-Oversized-Cards-for-2-10-Players_a31dca6f-015a-4cd5-91f0-599908967b6c.04906de4d872e31806f519775b77ad4e.jpeg",
-	},
-	{
-		id: 2,
-		name: "7 Wonders",
-		category: "Strategy Game",
-		price: 59.99,
-		stock: 45,
-		status: "Active",
-		image: "https://bizweb.dktcdn.net/100/316/286/articles/81v6x774i3l.jpeg?v=1671187787903",
-	},
-	{
-		id: 3,
-		name: "Zoo King",
-		category: "Card Game",
-		price: 29.99,
-		stock: 0,
-		status: "Out of Stock",
-		image: "https://m.media-amazon.com/images/I/61+yRmkcTVL.jpg",
-	},
-];
-
+// Main Products Page
 const ProductsPage = () => {
-	const [products] = useState(mockProducts);
+    const [products, setProducts] = useState<Product[]>(mockProducts);
+    const [detailProduct, setDetailProduct] = useState<Product | null>(null);
+    const [editProduct, setEditProduct] = useState<Product | null>(null);
+    const [showAddModal, setShowAddModal] = useState(false);
 
-	return (
-		<div className="p-8">
-			<div className="flex justify-between items-center mb-6">
-				<h2 className="text-2xl font-bold">Products</h2>
-				<Button className="flex gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-					<IoMdAdd size={20} />
-					<span>Add Product</span>
-				</Button>
-			</div>
-			<div className="bg-white rounded-xl shadow p-6">
-				<div className="overflow-x-auto">
-					<table className="min-w-full text-sm">
-						<thead>
-							<tr className="text-left border-b">
-								<th className="py-2 px-2">Image</th>
-								<th className="py-2 px-2">Name</th>
-								<th className="py-2 px-2">Category</th>
-								<th className="py-2 px-2">Price</th>
-								<th className="py-2 px-2">Stock</th>
-								<th className="py-2 px-2">Status</th>
-								<th className="py-2 px-2">Actions</th>
-							</tr>
-						</thead>
-						<tbody>
-							{products.map((prod) => (
-								<tr key={prod.id} className="border-b hover:bg-gray-50">
-									<td className="py-2 px-2">
-										<img
-											src={prod.image}
-											alt={prod.name}
-											className="w-12 h-12 object-cover rounded"
-										/>
-									</td>
-									<td className="py-2 px-2">{prod.name}</td>
-									<td className="py-2 px-2">{prod.category}</td>
-									<td className="py-2 px-2">${prod.price.toFixed(2)}</td>
-									<td className="py-2 px-2">{prod.stock}</td>
-									<td className="py-2 px-2">
-										<span
-											className={
-												prod.status === "Active"
-													? "text-green-600 font-semibold"
-													: "text-red-500 font-semibold"
-											}
-										>
-											{prod.status}
-										</span>
-									</td>
-									<td className="py-2 px-2 flex gap-2">
-										<Button
-											size="sm"
-											className="bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200 px-3 py-1 rounded"
-										>
-											Edit
-										</Button>
-										<Button
-											size="sm"
-											className="bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 px-3 py-1 rounded"
-										>
-											Delete
-										</Button>
-									</td>
-								</tr>
-							))}
-							{products.length === 0 && (
-								<tr>
-									<td colSpan={7} className="py-6 text-center text-gray-400">
-										No products found.
-									</td>
-								</tr>
-							)}
-						</tbody>
-					</table>
-				</div>
-			</div>
-		</div>
-	);
+    // Per-product CMS modal state
+    const [cmsProductId, setCmsProductId] = useState<number | null>(null);
+    const [cmsProductContent, setCmsProductContent] = useState<CmsContent>({
+        heroTitle: "",
+        heroSubtitle: "",
+        heroImages: [],
+        aboutTitle: "",
+        aboutText: "",
+        aboutImages: []
+    });
+    const [productCmsMap, setProductCmsMap] = useState<Record<number, CmsContent>>({});
+
+    // Delete confirmation modal state
+    const [deleteProductId, setDeleteProductId] = useState<number | null>(null);
+
+    // Modal ref for outside click
+    const modalRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!(showAddModal || editProduct)) return;
+        const handleClick = (e: MouseEvent) => {
+            if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+                setEditProduct(null);
+                setShowAddModal(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClick);
+        return () => document.removeEventListener("mousedown", handleClick);
+    }, [showAddModal, editProduct]);
+
+    // CREATE
+    const handleAddProduct = () => {
+        setEditProduct({ ...emptyProduct, id: Date.now(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+        setShowAddModal(true);
+    };
+
+    const handleSaveNewProduct = () => {
+        if (editProduct) {
+            setProducts([
+                { ...editProduct, id: Date.now(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+                ...products
+            ]);
+            setEditProduct(null);
+            setShowAddModal(false);
+        }
+    };
+
+    // UPDATE
+    const handleEdit = (prod: Product) => {
+        setEditProduct({ ...prod, tags: prod.tags || [] });
+        setShowAddModal(true);
+    };
+
+    const handleSaveEditProduct = () => {
+        if (editProduct) {
+            setProducts(products.map(p => p.id === editProduct.id ? { ...editProduct, updatedAt: new Date().toISOString() } : p));
+            setEditProduct(null);
+            setShowAddModal(false);
+        }
+    };
+
+    // DELETE (open confirmation modal)
+    const handleDelete = (id: number) => {
+        setDeleteProductId(id);
+    };
+
+    // Confirm delete
+    const confirmDelete = () => {
+        if (deleteProductId !== null) {
+            setProducts(products.filter(p => p.id !== deleteProductId));
+            setDeleteProductId(null);
+        }
+    };
+
+    // Cancel delete
+    const cancelDelete = () => {
+        setDeleteProductId(null);
+    };
+
+    // FORM HANDLER
+    const handleChange = (product: Product) => {
+        setEditProduct(product);
+    };
+
+    // Handler for opening CMS modal for a product
+    const handleOpenProductCms = (productId: number) => {
+        setCmsProductId(productId);
+        setCmsProductContent(productCmsMap[productId] || {
+            heroTitle: "",
+            heroSubtitle: "",
+            heroImages: [],
+            aboutTitle: "",
+            aboutText: "",
+            aboutImages: []
+        });
+    };
+
+    // Handler for saving CMS content for a product
+    const handleSaveProductCms = () => {
+        setProductCmsMap(prev => ({
+            ...prev,
+            [cmsProductId as number]: cmsProductContent
+        }));
+        setCmsProductId(null);
+    };
+
+    const productToDelete = products.find(p => p.id === deleteProductId);
+
+    return (
+        <div className="p-8">
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Products</h2>
+                <Button
+                    className="flex gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                    onClick={handleAddProduct}
+                >
+                    <IoMdAdd size={20} />
+                    <span>Add Product</span>
+                </Button>
+            </div>
+            <ProductTable
+                products={products}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onShowDetails={setDetailProduct}
+                onOpenCms={handleOpenProductCms}
+            />
+
+            {/* Product Details Modal */}
+            {detailProduct && (
+                <ProductDetailsModal
+                    product={detailProduct}
+                    onClose={() => setDetailProduct(null)}
+                />
+            )}
+
+            {/* Add/Edit Product Modal */}
+            {(showAddModal || editProduct) && editProduct && (
+                <ProductFormModal
+                    product={editProduct}
+                    onChange={handleChange}
+                    onSave={
+                        editProduct.id && products.some(p => p.id === editProduct.id)
+                            ? handleSaveEditProduct
+                            : handleSaveNewProduct
+                    }
+                    onClose={() => { setEditProduct(null); setShowAddModal(false); }}
+                    mode={
+                        editProduct.id && products.some(p => p.id === editProduct.id)
+                            ? "edit"
+                            : "add"
+                    }
+                />
+            )}
+
+            {/* Per-Product CMS Modal */}
+            {cmsProductId !== null && (
+                <ProductCmsModal
+                    product={products.find(p => p.id === cmsProductId)!}
+                    cmsContent={cmsProductContent}
+                    onChange={setCmsProductContent}
+                    onSave={handleSaveProductCms}
+                    onClose={() => setCmsProductId(null)}
+                />
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {deleteProductId !== null && productToDelete && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                    <div className="bg-white rounded-xl shadow-lg max-w-sm w-full p-8 relative">
+                        <h3 className="text-lg font-bold mb-4 text-red-600">Delete Product</h3>
+                        <p className="mb-4">
+                            Are you sure you want to delete <span className="font-semibold">{productToDelete.name}</span>?<br />
+                            <span className="text-sm text-gray-500">This action cannot be undone.</span>
+                        </p>
+                        <div className="flex justify-end gap-2">
+                            <Button
+                                className="bg-gray-200 px-6 py-2 rounded"
+                                type="button"
+                                onClick={cancelDelete}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700"
+                                type="button"
+                                onClick={confirmDelete}
+                            >
+                                Delete
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 };
 
 export default ProductsPage;

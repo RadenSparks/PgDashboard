@@ -1,0 +1,94 @@
+import type { Product } from "./types";
+
+export const mockProducts: Product[] = [
+    {
+        id: 1,
+        name: "UNO",
+        slug: "uno",
+        description: "Classic card game for all ages. Easy to learn and fun to play with family or friends.",
+        price: 19.99,
+        image: "https://i5.walmartimages.com/seo/Giant-UNO-Card-Game-for-Kids-Adults-and-Family-Night-108-Oversized-Cards-for-2-10-Players_a31dca6f-015a-4cd5-91f0-599908967b6c.04906de4d872e31806f519775b77ad4e.jpeg",
+        images: [
+            { url: "https://i5.walmartimages.com/seo/Giant-UNO-Card-Game-for-Kids-Adults-and-Family-Night-108-Oversized-Cards-for-2-10-Players_a31dca6f-015a-4cd5-91f0-599908967b6c.04906de4d872e31806f519775b77ad4e.jpeg", name: "UNO Main" },
+            { url: "https://m.media-amazon.com/images/I/61+yRmkcTVL.jpg", name: "UNO Alt" }
+        ],
+        category: "Card Game",
+        tags: [],
+        stock: 120,
+        sold: 40,
+        discount: 10,
+        status: "Available",
+        meta: {
+            title: "UNO - Classic Card Game",
+            description: "Buy UNO, the classic card game for family and friends, at the best price."
+        },
+        createdAt: "2025-06-01T10:00:00Z",
+        updatedAt: "2025-06-03T14:30:00Z"
+    },
+    {
+        id: 2,
+        name: "7 Wonders",
+        slug: "7-wonders",
+        description: "Award-winning strategy game. Build your civilization and lead it to glory.",
+        price: 59.99,
+        image: "https://bizweb.dktcdn.net/100/316/286/articles/81v6x774i3l.jpeg?v=1671187787903",
+        images: [
+            { url: "https://bizweb.dktcdn.net/100/316/286/articles/81v6x774i3l.jpeg?v=1671187787903", name: "7 Wonders Main" },
+            { url: "https://cf.shopee.vn/file/2b1e5b6e8a7e3c2b1c8e8f2b1e5b6e8a", name: "7 Wonders Alt" }
+        ],
+        category: "Strategy Game",
+        tags: [],
+        stock: 45,
+        sold: 100,
+        discount: 0,
+        status: "Available",
+        meta: {
+            title: "7 Wonders - Strategy Board Game",
+            description: "Buy 7 Wonders, the award-winning strategy board game, and build your civilization."
+        },
+        createdAt: "2025-05-20T09:00:00Z",
+        updatedAt: "2025-06-01T12:00:00Z"
+    },
+    {
+        id: 3,
+        name: "Zoo King",
+        slug: "zoo-king",
+        description: "Fun and fast-paced card game where you build your own zoo.",
+        price: 29.99,
+        image: "https://m.media-amazon.com/images/I/61+yRmkcTVL.jpg",
+        images: [
+            { url: "https://m.media-amazon.com/images/I/61+yRmkcTVL.jpg", name: "Zoo King Main" }
+        ],
+        category: "Card Game",
+        tags: [],
+        stock: 0,
+        sold: 75,
+        discount: 5,
+        status: "Unavailable",
+        meta: {
+            title: "Zoo King - Build Your Own Zoo Card Game",
+            description: "Zoo King is a fast-paced card game for animal lovers and families."
+        },
+        createdAt: "2025-04-15T15:30:00Z",
+        updatedAt: "2025-05-01T10:00:00Z"
+    }
+];
+
+export const emptyProduct: Product = {
+    id: 0,
+    name: "",
+    slug: "",
+    description: "",
+    price: 0,
+    image: "",
+    images: [],
+    category: "",
+    tags: [],
+    stock: 0,
+    sold: 0,
+    discount: 0,
+    status: "Available",
+    meta: { title: "", description: "" },
+    createdAt: "",
+    updatedAt: ""
+};
