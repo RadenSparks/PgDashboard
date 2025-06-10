@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { Product } from "./types";
 import GallerySlider from "./GallerySlider";
+import { genreTags, playerTags, durationTags } from "../tags/availableTags";
 
 type ProductDetailsModalProps = {
     product: Product;
@@ -19,6 +20,11 @@ const ProductDetailsModal = ({ product, onClose }: ProductDetailsModalProps) => 
         document.addEventListener("mousedown", handleClick);
         return () => document.removeEventListener("mousedown", handleClick);
     }, [onClose]);
+
+    // Group tags by type for display
+    const genres = product.tags?.filter(t => genreTags.some(g => g.genre === t)) || [];
+    const players = product.tags?.find(t => playerTags.some(p => p.players === t)) || "";
+    const duration = product.tags?.find(t => durationTags.some(d => d.duration === t)) || "";
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 overflow-y-auto">
@@ -82,13 +88,29 @@ const ProductDetailsModal = ({ product, onClose }: ProductDetailsModalProps) => 
                             <span className="font-semibold">Category:</span> {product.category}
                         </div>
                         <div className="mb-2">
-                            <span className="font-semibold">Tags:</span>{" "}
-                            {product.tags && product.tags.length > 0 ? (
+                            <span className="font-semibold">Genres:</span>{" "}
+                            {genres.length > 0 ? (
                                 <div className="flex flex-wrap gap-1 mt-1">
-                                    {product.tags.map((tag, idx) => (
-                                        <span key={idx} className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded text-xs">{tag}</span>
+                                    {genres.map((tag, idx) => (
+                                        <span key={idx} className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs">{tag}</span>
                                     ))}
                                 </div>
+                            ) : (
+                                <span className="text-gray-400">-</span>
+                            )}
+                        </div>
+                        <div className="mb-2">
+                            <span className="font-semibold">Players:</span>{" "}
+                            {players ? (
+                                <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs">{players}</span>
+                            ) : (
+                                <span className="text-gray-400">-</span>
+                            )}
+                        </div>
+                        <div className="mb-2">
+                            <span className="font-semibold">Duration:</span>{" "}
+                            {duration ? (
+                                <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs">{duration}</span>
                             ) : (
                                 <span className="text-gray-400">-</span>
                             )}

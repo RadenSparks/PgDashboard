@@ -50,6 +50,19 @@ const ProductCmsModal = ({
         onChange({ ...cmsContent, [field]: arr });
     };
 
+    // --- Tag and category info for CMS preview ---
+    // Group tags by type for display
+    const genreTags = product.tags?.filter(t =>
+        // Only show genre tags (multi)
+        ["Strategy", "Party", "Cooperative"].includes(t)
+    ) || [];
+    const playerTag = product.tags?.find(t =>
+        ["2-4", "4-10", "1-5"].includes(t)
+    ) || "";
+    const durationTag = product.tags?.find(t =>
+        ["Short", "Average", "Long"].includes(t)
+    ) || "";
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 overflow-y-auto">
             <div
@@ -387,6 +400,39 @@ const ProductCmsModal = ({
                                 ) : null
                             )}
                         </div>
+                        {/* --- Show product meta info --- */}
+                        <div className="mb-2">
+                            <span className="font-semibold">Category:</span> {product.category}
+                        </div>
+                        <div className="mb-2">
+                            <span className="font-semibold">Genres:</span>{" "}
+                            {genreTags.length > 0 ? (
+                                <span>
+                                    {genreTags.map((tag, idx) => (
+                                        <span key={idx} className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs mx-1">{tag}</span>
+                                    ))}
+                                </span>
+                            ) : (
+                                <span className="text-gray-400">-</span>
+                            )}
+                        </div>
+                        <div className="mb-2">
+                            <span className="font-semibold">Players:</span>{" "}
+                            {playerTag ? (
+                                <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs">{playerTag}</span>
+                            ) : (
+                                <span className="text-gray-400">-</span>
+                            )}
+                        </div>
+                        <div className="mb-2">
+                            <span className="font-semibold">Duration:</span>{" "}
+                            {durationTag ? (
+                                <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs">{durationTag}</span>
+                            ) : (
+                                <span className="text-gray-400">-</span>
+                            )}
+                        </div>
+                        {/* --- End product meta info --- */}
                         <h3 className="text-2xl font-semibold mb-2">{cmsContent.aboutTitle}</h3>
                         <p className="mb-4">{cmsContent.aboutText}</p>
                         <div className="flex gap-2 mb-6 flex-wrap">

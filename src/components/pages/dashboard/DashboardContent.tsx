@@ -1,12 +1,86 @@
+import { useMemo } from "react";
 import { Button } from "../../widgets/button";
 import { MdOutlineKeyboardArrowDown } from "react-icons/md";
-import { FaShoppingCart, FaUsers, FaDollarSign, FaBoxOpen,} from "react-icons/fa";
+import { FaShoppingCart, FaUsers, FaDollarSign, FaBoxOpen } from "react-icons/fa";
 import { IoMdAdd } from "react-icons/io";
-import SalesChart from "./SalesChart"; 
-import OrdersTable from "./OrdersTable"; 
-import TopProducts from "./TopProducts"; 
+import SalesChart from "./SalesChart";
+import OrdersTable from "./OrdersTable";
+import TopProducts from "./TopProducts";
+import { mockProducts } from "../products/mockProducts";
+import mockOrders from "../orders/mockOrders"; // Update import path
+
+// Define the Order type to match your mockOrders structure
+type Order = {
+  id: string;
+  customer: string;
+  date: string;
+  status: string;
+  total: number;
+  items: number;
+};
 
 const DashboardContent = () => {
+  // Calculate stats from products and orders
+  const {
+    totalRevenue,
+    totalOrders,
+    totalCustomers,
+    totalProducts,
+    salesChartData,
+    topProductsData,
+    recentOrders,
+  } = useMemo(() => {
+    // Products
+    const products = mockProducts;
+    const totalProducts = products.length;
+    const topProductsData = products
+      .map((p) => ({
+        name: p.name,
+        sales: p.sold,
+      }))
+      .sort((a, b) => b.sales - a.sales)
+      .slice(0, 5);
+
+    // Orders (mock)
+    let orders: Order[] = [];
+    try {
+      orders = mockOrders as Order[];
+    } catch {
+      orders = [];
+    }
+    const totalOrders = orders.length || 1320;
+    const totalCustomers = 890; // Replace with real user/customer count if available
+
+    // Revenue: sum of all product sold * price (approximation)
+    const totalRevenue = products.reduce(
+      (sum, p) => sum + p.sold * p.price * (1 - (p.discount || 0) / 100),
+      0
+    );
+
+    // Sales chart: group by month (mocked for now)
+    const salesChartData = [
+      { name: "Jan", sales: 4000 },
+      { name: "Feb", sales: 3000 },
+      { name: "Mar", sales: 5000 },
+      { name: "Apr", sales: 4780 },
+      { name: "May", sales: 5890 },
+      { name: "Jun", sales: products.reduce((sum, p) => sum + p.sold * p.price, 0) }, // Example: this month
+    ];
+
+    // Recent orders (mock)
+    const recentOrders = orders.slice(0, 3);
+
+    return {
+      totalRevenue,
+      totalOrders,
+      totalCustomers,
+      totalProducts,
+      salesChartData,
+      topProductsData,
+      recentOrders,
+    };
+  }, []);
+
   return (
     <main className="flex flex-1 px-8 py-8 bg-gray-50 min-h-screen">
       <div className="flex flex-col gap-8 w-full">
@@ -26,7 +100,7 @@ const DashboardContent = () => {
               <FaDollarSign size={24} />
               <span className="font-semibold text-lg">Revenue</span>
             </div>
-            <span className="text-2xl font-bold">$24,500</span>
+            <span className="text-2xl font-bold">${totalRevenue.toLocaleString()}</span>
             <span className="text-green-500 text-sm">+12% this month</span>
           </div>
           <div className="bg-white rounded-xl shadow p-6 flex flex-col gap-2">
@@ -34,7 +108,7 @@ const DashboardContent = () => {
               <FaShoppingCart size={24} />
               <span className="font-semibold text-lg">Orders</span>
             </div>
-            <span className="text-2xl font-bold">1,320</span>
+            <span className="text-2xl font-bold">{totalOrders}</span>
             <span className="text-green-500 text-sm">+8% this month</span>
           </div>
           <div className="bg-white rounded-xl shadow p-6 flex flex-col gap-2">
@@ -42,7 +116,7 @@ const DashboardContent = () => {
               <FaUsers size={24} />
               <span className="font-semibold text-lg">Customers</span>
             </div>
-            <span className="text-2xl font-bold">890</span>
+            <span className="text-2xl font-bold">{totalCustomers}</span>
             <span className="text-green-500 text-sm">+5% this month</span>
           </div>
           <div className="bg-white rounded-xl shadow p-6 flex flex-col gap-2">
@@ -50,7 +124,7 @@ const DashboardContent = () => {
               <FaBoxOpen size={24} />
               <span className="font-semibold text-lg">Products</span>
             </div>
-            <span className="text-2xl font-bold">320</span>
+            <span className="text-2xl font-bold">{totalProducts}</span>
             <span className="text-green-500 text-sm">+2% this month</span>
           </div>
         </div>
@@ -66,12 +140,14 @@ const DashboardContent = () => {
                 <MdOutlineKeyboardArrowDown size={20} className="text-primary" />
               </Button>
             </div>
-            <SalesChart />
+            {/* Pass salesChartData as prop */}
+            <SalesChart salesChartData={salesChartData} />
           </div>
           {/* Top Products */}
           <div className="bg-white rounded-xl shadow p-6">
             <h3 className="font-semibold text-lg mb-4">Top Products</h3>
-            <TopProducts />
+            {/* Pass topProductsData as prop */}
+            <TopProducts topProductsData={topProductsData} />
           </div>
         </div>
 
@@ -83,7 +159,8 @@ const DashboardContent = () => {
               <span className="text-primary font-medium">Export</span>
             </Button>
           </div>
-          <OrdersTable />
+          {/* Pass recentOrders as prop */}
+          <OrdersTable orders={recentOrders} />
         </div>
       </div>
     </main>

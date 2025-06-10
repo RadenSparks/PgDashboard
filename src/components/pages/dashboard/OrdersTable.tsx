@@ -1,12 +1,25 @@
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
+type Order = {
+  id: string;
+  customer: string;
+  date: string;
+  status: string;
+  total: number;
+  items: number;
+};
+
+type OrdersTableProps = {
+  orders: Order[];
+};
+
 const data = [
   { name: "Completed", value: 400, color: "#22c55e" },
   { name: "Pending", value: 120, color: "#fbbf24" },
   { name: "Cancelled", value: 80, color: "#ef4444" },
 ];
 
-const OrdersTable = () => (
+const OrdersTable = ({ orders }: OrdersTableProps) => (
   <div className="flex flex-col lg:flex-row gap-8">
     <div className="flex-1">
       {/* Example table, replace with your real data */}
@@ -20,24 +33,14 @@ const OrdersTable = () => (
           </tr>
         </thead>
         <tbody>
-          <tr className="border-b">
-            <td className="py-2">#1001</td>
-            <td className="py-2">Alice</td>
-            <td className="py-2 text-green-600">Completed</td>
-            <td className="py-2">$120.00</td>
-          </tr>
-          <tr className="border-b">
-            <td className="py-2">#1002</td>
-            <td className="py-2">Bob</td>
-            <td className="py-2 text-yellow-600">Pending</td>
-            <td className="py-2">$80.00</td>
-          </tr>
-          <tr>
-            <td className="py-2">#1003</td>
-            <td className="py-2">Charlie</td>
-            <td className="py-2 text-red-600">Cancelled</td>
-            <td className="py-2">$50.00</td>
-          </tr>
+          {orders.map((order) => (
+            <tr key={order.id} className="border-b">
+              <td className="py-2">{order.id}</td>
+              <td className="py-2">{order.customer}</td>
+              <td className="py-2">{order.status}</td>
+              <td className="py-2">${order.total.toFixed(2)}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>

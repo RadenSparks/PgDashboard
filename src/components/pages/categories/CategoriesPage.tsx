@@ -17,15 +17,10 @@ import {
 } from "@chakra-ui/react";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { Button } from "../../widgets/button";
-
-const initialCategories = [
-  { id: 1, name: "Board Games", description: "Games played on a board, including strategy and family games." },
-  { id: 2, name: "Card Games", description: "Games played with cards, from classics to modern." },
-  { id: 3, name: "Accessories", description: "Game accessories like dice, sleeves, and organizers." },
-];
+import { initialCategories, type Category } from "./categoriesData";
 
 const CategoriesPage = () => {
-  const [categories, setCategories] = useState(initialCategories);
+  const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [editId, setEditId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState("");
   const [editDescription, setEditDescription] = useState("");

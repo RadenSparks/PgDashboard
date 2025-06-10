@@ -1,5 +1,8 @@
 import type { Product } from "./types";
 
+// Each product can have multiple genres, one player tag, and one duration tag in the tags array.
+// Example: ["Strategy", "Party", "2-4", "Short"]
+
 export const mockProducts: Product[] = [
     {
         id: 1,
@@ -13,7 +16,7 @@ export const mockProducts: Product[] = [
             { url: "https://m.media-amazon.com/images/I/61+yRmkcTVL.jpg", name: "UNO Alt" }
         ],
         category: "Card Game",
-        tags: [],
+        tags: ["Party", "2-10", "Short"], // UNO is a party game, 2-10 players, short duration
         stock: 120,
         sold: 40,
         discount: 10,
@@ -37,7 +40,7 @@ export const mockProducts: Product[] = [
             { url: "https://cf.shopee.vn/file/2b1e5b6e8a7e3c2b1c8e8f2b1e5b6e8a", name: "7 Wonders Alt" }
         ],
         category: "Strategy Game",
-        tags: [],
+        tags: ["Strategy", "Cooperative", "3-7", "Average"], // Multiple genres, 3-7 players, average duration
         stock: 45,
         sold: 100,
         discount: 0,
@@ -60,7 +63,7 @@ export const mockProducts: Product[] = [
             { url: "https://m.media-amazon.com/images/I/61+yRmkcTVL.jpg", name: "Zoo King Main" }
         ],
         category: "Card Game",
-        tags: [],
+        tags: ["Strategy", "2-4", "Short"], // Strategy, 2-4 players, short duration
         stock: 0,
         sold: 75,
         discount: 5,
@@ -71,6 +74,29 @@ export const mockProducts: Product[] = [
         },
         createdAt: "2025-04-15T15:30:00Z",
         updatedAt: "2025-05-01T10:00:00Z"
+    },
+    {
+        id: 4,
+        name: "Dice Tray",
+        slug: "dice-tray",
+        description: "A premium dice tray for all your board game needs.",
+        price: 14.99,
+        image: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308",
+        images: [
+            { url: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308", name: "Dice Tray Main" }
+        ],
+        category: "Accessories",
+        tags: [], // Accessories do not require tags
+        stock: 200,
+        sold: 30,
+        discount: 0,
+        status: "Available",
+        meta: {
+            title: "Dice Tray - Board Game Accessory",
+            description: "Keep your dice rolls contained and your table safe with this premium dice tray."
+        },
+        createdAt: "2025-06-05T08:00:00Z",
+        updatedAt: "2025-06-06T10:00:00Z"
     }
 ];
 
