@@ -1,5 +1,3 @@
-// Move mockOrders to its own file for sharing and to avoid Fast Refresh warning
-
 const mockOrders = [
   {
     id: "ORD-1001",
@@ -8,6 +6,9 @@ const mockOrders = [
     status: "Completed",
     total: 120.0,
     items: 3,
+    paymentType: "Credit Card",
+    deliveryMethod: "Express Shipping",
+    trackingNumber: "EXP123456789",
   },
   {
     id: "ORD-1002",
@@ -16,6 +17,9 @@ const mockOrders = [
     status: "Pending",
     total: 80.0,
     items: 2,
+    paymentType: "Bank Transfer",
+    deliveryMethod: "Standard Shipping",
+    trackingNumber: "",
   },
   {
     id: "ORD-1003",
@@ -24,6 +28,9 @@ const mockOrders = [
     status: "Cancelled",
     total: 50.0,
     items: 1,
+    paymentType: "Cash on Delivery",
+    deliveryMethod: "Pickup",
+    trackingNumber: "",
   },
 ];
 
