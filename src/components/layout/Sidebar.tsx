@@ -58,9 +58,8 @@ const Sidebar = () => {
       </Button>
 
       <div
-        className={`hidden md:flex flex-col h-full border-r-2 border-[#dbdbdb] py-4 transition-all duration-300 bg-gradient-to-b from-white via-gray-50 to-gray-200 ${
-          collapsed ? "w-[72px]" : "w-[260px]"
-        }`}
+        className={`hidden md:flex flex-col h-auto border-r-2 border-[#dbdbdb] py-4 transition-all duration-300 bg-gradient-to-b from-white via-gray-50 to-gray-200 ${collapsed ? "w-[72px]" : "w-[260px]"
+          }`}
       >
         {/* Logo Section */}
         <div className="flex items-center justify-center px-3 mb-4">

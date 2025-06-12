@@ -18,6 +18,7 @@ import {
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { Button } from "../../widgets/button";
 import { initialCategories, type Category } from "./categoriesData";
+// import Loading from "../../widgets/loading";
 
 const CategoriesPage = () => {
   const [categories, setCategories] = useState<Category[]>(initialCategories);
