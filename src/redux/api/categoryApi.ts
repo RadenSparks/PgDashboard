@@ -1,9 +1,10 @@
 import { createApi } from '@reduxjs/toolkit/query/react'
-import { axiosBaseQuery } from './axiosBaseQuery'
+import { axiosBaseQuery } from '../axiosBaseQuery'
 
 export interface Category {
   id: number
   name: string
+  description?: string
 }
 
 export const categoryApi = createApi({
@@ -23,6 +24,14 @@ export const categoryApi = createApi({
       }),
       invalidatesTags: ['Category'],
     }),
+    updateCategory: builder.mutation<Category, Partial<Category>>({
+      query: (body) => ({
+        url: '/categories/' + body.id,
+        method: 'PUT',
+        data: body,
+      }),
+      invalidatesTags: ['Category'],
+    }),
     deleteCategory: builder.mutation<void, number>({
       query: (id) => ({
         url: `/categories/${id}`,
@@ -37,4 +46,5 @@ export const {
   useGetCategoriesQuery,
   useAddCategoryMutation,
   useDeleteCategoryMutation,
+  useUpdateCategoryMutation
 } = categoryApi

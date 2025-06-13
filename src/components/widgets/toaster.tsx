@@ -15,6 +15,7 @@ export const toaster = createToaster({
   pauseOnPageIdle: true,
 })
 
+
 export const Toaster = () => {
   return (
     <Portal>

@@ -17,11 +17,12 @@ import {
 } from "@chakra-ui/react";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { Button } from "../../widgets/button";
-import { initialCategories, type Category } from "./categoriesData";
-// import Loading from "../../widgets/loading";
+import { useAddCategoryMutation, useDeleteCategoryMutation, useGetCategoriesQuery, useUpdateCategoryMutation } from "../../../redux/api/categoryApi";
+import Loading from "../../widgets/loading";
 
 const CategoriesPage = () => {
-  const [categories, setCategories] = useState<Category[]>(initialCategories);
+  // const [categories, setCategories] = useState<Category[]>(initialCategories);
+  const { data: categories, isLoading } = useGetCategoriesQuery()
   const [editId, setEditId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState("");
   const [editDescription, setEditDescription] = useState("");
@@ -29,13 +30,12 @@ const CategoriesPage = () => {
   const [newDescription, setNewDescription] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
-
-  const handleAdd = () => {
+  const [addCategory] = useAddCategoryMutation();
+  const [updateCategory] = useUpdateCategoryMutation();
+  const [deleteCategory] = useDeleteCategoryMutation();
+  const handleAdd = async () => {
     if (newCategory.trim()) {
-      setCategories([
-        ...categories,
-        { id: Date.now(), name: newCategory.trim(), description: newDescription.trim() },
-      ]);
+      await addCategory({ name: newCategory.trim(), description: newDescription.trim() }).unwrap();
       toast({
         title: "Category created.",
         status: "success",
@@ -61,21 +61,27 @@ const CategoriesPage = () => {
     setEditId(id);
     setEditValue(name);
     setEditDescription(description);
+
   };
 
-  const handleEditSave = (id: number) => {
-    setCategories(categories.map(cat =>
-      cat.id === id ? { ...cat, name: editValue, description: editDescription } : cat
-    ));
+  const handleEditSave = async (id: number) => {
+    await updateCategory({ id, name: editValue.trim(), description: editDescription.trim() }).unwrap()
     setEditId(null);
     setEditValue("");
     setEditDescription("");
+    toast({
+      title: "Update created.",
+      status: "success",
+      duration: 2000,
+      isClosable: true,
+      position: "bottom",
+    });
   };
 
-  const handleDelete = (id: number) => {
-    setCategories(categories.filter(cat => cat.id !== id));
+  const handleDelete = async (id: number) => {
+    await deleteCategory(id)
   };
-
+  if (isLoading) return <Loading></Loading>;
   return (
     <Box minH="100vh" bg="gray.50" py={10} px={2}>
       <Box
