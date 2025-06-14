@@ -1,10 +1,13 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../../widgets/button";
-import { FaEye, FaEdit, FaSave, FaTimes, FaExchangeAlt } from "react-icons/fa";
+import { FaEye, FaEdit, FaSave, FaTimes, FaExchangeAlt, FaArrowRight } from "react-icons/fa";
 import mockOrders from "./mockOrders";
+import { mockProducts } from "../products/mockProducts";
 
-// Extend Order type to include products array
+// Extend OrderProduct to include productId
 type OrderProduct = {
+    productId: number;
     name: string;
     quantity: number;
     price: number;
@@ -32,19 +35,33 @@ const paymentTypes = [
 const deliveryMethods = ["Standard Shipping", "Express Shipping", "Pickup"];
 const statusCycle = ["Pending", "Ongoing", "Completed", "Cancelled"];
 
-// Example mockOrders with products (update your mockOrders accordingly)
-const ordersWithProducts: Order[] = mockOrders.map((order: any, idx: number) => ({
+// Map orders and attach productId from mockProducts
+const ordersWithProducts: Order[] = mockOrders.map((order, idx) => ({
     ...order,
-    products: order.products || [
-        { name: "UNO", quantity: 2, price: 19.99 },
-        { name: "7 Wonders", quantity: 1, price: 59.99 },
-    ].slice(0, (idx % 2) + 1), // Just for demo, alternate between 1 and 2 products
+    products: [
+        mockProducts[0] && {
+            productId: mockProducts[0].id,
+            name: mockProducts[0].name,
+            quantity: 2,
+            price: mockProducts[0].price,
+        },
+        mockProducts[1] && {
+            productId: mockProducts[1].id,
+            name: mockProducts[1].name,
+            quantity: 1,
+            price: mockProducts[1].price,
+        },
+    ]
+        .filter(Boolean)
+        .slice(0, (idx % 2) + 1) as OrderProduct[],
 }));
 
 const OrdersPage = () => {
     const [orders, setOrders] = useState<Order[]>(ordersWithProducts);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [editOrder, setEditOrder] = useState<Order | null>(null);
+    const [productDetail, setProductDetail] = useState<number | null>(null);
+    const navigate = useNavigate();
 
     const handleSaveEdit = () => {
         if (editOrder) {
@@ -71,6 +88,10 @@ const OrdersPage = () => {
             })
         );
     };
+
+    // Helper to get product info by id
+    const getProductById = (id: number) =>
+        mockProducts.find((p) => p.id === id);
 
     return (
         <div className="p-8">
@@ -123,7 +144,7 @@ const OrdersPage = () => {
                                             {order.status}
                                         </span>
                                         <Button
-                                            size="xs"
+                                            size="sm"
                                             title="Toggle Status"
                                             className="bg-gray-100 border border-gray-300 hover:bg-gray-200 px-2 py-1 rounded"
                                             onClick={() => handleToggleStatus(order.id)}
@@ -209,26 +230,146 @@ const OrdersPage = () => {
                                 <thead>
                                     <tr className="border-b">
                                         <th className="py-1 px-2 text-left">Product</th>
+                                        <th className="py-1 px-2 text-left">Image</th>
                                         <th className="py-1 px-2 text-left">Quantity</th>
                                         <th className="py-1 px-2 text-left">Price</th>
                                         <th className="py-1 px-2 text-left">Subtotal</th>
+                                        <th className="py-1 px-2 text-left"></th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {selectedOrder.products.map((prod, idx) => (
-                                        <tr key={idx} className="border-b">
-                                            <td className="py-1 px-2">{prod.name}</td>
-                                            <td className="py-1 px-2">{prod.quantity}</td>
-                                            <td className="py-1 px-2">${prod.price.toFixed(2)}</td>
-                                            <td className="py-1 px-2">${(prod.price * prod.quantity).toFixed(2)}</td>
-                                        </tr>
-                                    ))}
+                                    {selectedOrder.products.map((prod, idx) => {
+                                        const productInfo = getProductById(prod.productId);
+                                        return (
+                                            <tr key={idx} className="border-b">
+                                                <td className="py-1 px-2">{prod.name}</td>
+                                                <td className="py-1 px-2">
+                                                    {productInfo ? (
+                                                        <img
+                                                            src={productInfo.image}
+                                                            alt={prod.name}
+                                                            className="w-10 h-10 object-cover rounded border"
+                                                        />
+                                                    ) : (
+                                                        <span className="text-gray-400">-</span>
+                                                    )}
+                                                </td>
+                                                <td className="py-1 px-2">{prod.quantity}</td>
+                                                <td className="py-1 px-2">${prod.price.toFixed(2)}</td>
+                                                <td className="py-1 px-2">${(prod.price * prod.quantity).toFixed(2)}</td>
+                                                <td className="py-1 px-2">
+                                                    {productInfo && (
+                                                        <Button
+                                                            size="sm"
+                                                            className="bg-blue-100 text-blue-700 border border-blue-200 hover:bg-blue-200 px-2 py-1 rounded flex items-center gap-1"
+                                                            onClick={() => setProductDetail(prod.productId)}
+                                                        >
+                                                            <FaArrowRight />
+                                                            View
+                                                        </Button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
+                        </div>
+                        <div className="flex justify-end gap-2 mt-4">
+                            <Button
+                                className="bg-gray-200 px-4 py-2 rounded"
+                                onClick={() => setSelectedOrder(null)}
+                            >
+                                Close
+                            </Button>
+                            <Button
+                                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                                onClick={() => navigate(`/orders/${selectedOrder.id}/invoice`)}
+                            >
+                                View Invoice
+                            </Button>
                         </div>
                     </div>
                 </div>
             )}
+
+            {/* Product Detail Modal */}
+            {productDetail !== null && (() => {
+                const product = getProductById(productDetail);
+                if (!product) return null;
+                return (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                        <div className="bg-white rounded-xl shadow-lg max-w-2xl w-full p-6 relative">
+                            <button
+                                className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl"
+                                onClick={() => setProductDetail(null)}
+                                aria-label="Close"
+                            >
+                                &times;
+                            </button>
+                            <div className="flex flex-col md:flex-row gap-6">
+                                <div className="flex-shrink-0">
+                                    <img
+                                        src={product.image}
+                                        alt={product.name}
+                                        className="w-32 h-32 object-cover rounded border mb-4"
+                                    />
+                                    <div className="flex gap-2 flex-wrap">
+                                        {product.images.map((imgObj, idx) => (
+                                            <img
+                                                key={idx}
+                                                src={imgObj.url}
+                                                alt={`${product.name} ${idx + 1}`}
+                                                className="w-10 h-10 object-cover rounded border"
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="text-2xl font-bold mb-2">{product.name}</h3>
+                                    <p className="mb-2 text-gray-700">{product.description}</p>
+                                    <div className="mb-2">
+                                        <span className="font-semibold">Category:</span> {product.category}
+                                    </div>
+                                    <div className="mb-2">
+                                        <span className="font-semibold">Price:</span> ${product.price.toFixed(2)}
+                                        {product.discount > 0 && (
+                                            <span className="ml-2 text-green-600 font-semibold">
+                                                {product.discount}% OFF
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="mb-2">
+                                        <span className="font-semibold">Stock:</span> {product.stock}
+                                        <span className="ml-4 font-semibold">Sold:</span> {product.sold}
+                                    </div>
+                                    <div className="mb-2">
+                                        <span className="font-semibold">Status:</span>{" "}
+                                        <span
+                                            className={
+                                                product.status === "Available"
+                                                    ? "text-green-600 font-semibold"
+                                                    : "text-red-500 font-semibold"
+                                            }
+                                        >
+                                            {product.status}
+                                        </span>
+                                    </div>
+                                    <Button
+                                        className="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+                                        onClick={() => {
+                                            setProductDetail(null);
+                                            navigate(`/products/${product.id}`);
+                                        }}
+                                    >
+                                        Go to Product Detail Page
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
 
             {/* Edit Order Modal */}
             {editOrder && (
