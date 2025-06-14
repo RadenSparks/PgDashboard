@@ -1,20 +1,33 @@
 import { useState, useRef, useEffect } from "react";
-import { FaSearch } from "react-icons/fa";
-import { Input } from "../widgets/input"
+import { FaSearch, FaBars, FaMoon, FaSun } from "react-icons/fa";
+import { Input } from "../widgets/input";
 import { MdOutlineKeyboardArrowDown } from "react-icons/md";
-import { FaMoon, FaSun } from "react-icons/fa"; // Add icons for dark/light
 import { clearAuth } from "../../utils/auth";
+import {
+  Box,
+  Flex,
+  IconButton,
+  Drawer,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerCloseButton,
+  useDisclosure,
+  useBreakpointValue,
+} from "@chakra-ui/react";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false); // Dark mode state
+  const [darkMode, setDarkMode] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
 
-  // Toggle dark mode (simple implementation)
+  // Drawer for mobile menu
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const isMobile = useBreakpointValue({ base: true, md: false });
+
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add("dark");
@@ -23,7 +36,6 @@ const Navbar = () => {
     }
   }, [darkMode]);
 
-  // Close menus when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -54,39 +66,59 @@ const Navbar = () => {
 
   function handleSignout(): void {
     clearAuth();
-    window.location.href = "/signin"; // Redirect to sign-in page
+    window.location.href = "/signin";
   }
 
   return (
-    <div className="w-full">
-      <div className="flex h-[96px] px-8 w-full items-center border-b-2 border-[#dbdbdb] bg-gradient-to-r from-blue-100 via-white to-blue-200 shadow-sm">
+    <Box w="full">
+      <Flex
+        h={{ base: "64px", md: "96px" }}
+        px={{ base: 4, md: 8 }}
+        w="full"
+        align="center"
+        borderBottom="2px"
+        borderColor="#dbdbdb"
+        bgGradient="linear(to-r, blue.100, white, blue.200)"
+        boxShadow="sm"
+        justify="space-between"
+      >
+        {/* Hamburger for mobile */}
+        {isMobile && (
+          <IconButton
+            aria-label="Open menu"
+            icon={<FaBars />}
+            variant="ghost"
+            fontSize="2xl"
+            onClick={onOpen}
+            mr={2}
+          />
+        )}
+
         {/* Center: Search Bar */}
-        <div className="flex-1 flex justify-center">
-          <div className="flex items-center gap-1 px-4 w-[415px] rounded-lg bg-secondary-2">
+        <Box flex="1" display={{ base: "none", sm: "flex" }} justifyContent="center">
+          <Flex align="center" gap={1} px={4} w={{ base: "100%", md: "415px" }} rounded="lg" bg="gray.100">
             <FaSearch className="text-primary" />
             <Input
               type="text"
               placeholder="Search for anything..."
-              className="h-12 w-full border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+              className="h-10 md:h-12 w-full border-none focus-visible:ring-0 focus-visible:ring-offset-0"
             />
-          </div>
-        </div>
+          </Flex>
+        </Box>
+
         {/* Right side: Profile and Icons */}
-        <div className="flex items-center gap-6 ml-8">
+        <Flex align="center" gap={{ base: 2, md: 6 }} ml={{ base: 2, md: 8 }}>
           {/* Dark/Light Mode Toggle */}
-          <button
-            className="p-2 rounded-full border border-gray-300 bg-white hover:bg-gray-100 transition"
+          <IconButton
             aria-label="Toggle dark mode"
+            icon={darkMode ? <FaSun color="#ECC94B" /> : <FaMoon color="#2D3748" />}
             onClick={() => setDarkMode((prev) => !prev)}
-          >
-            {darkMode ? (
-              <FaSun className="text-yellow-500" size={20} />
-            ) : (
-              <FaMoon className="text-gray-700" size={20} />
-            )}
-          </button>
+            variant="ghost"
+            size="md"
+            rounded="full"
+          />
           {/* Calendar Button */}
-          <div className="relative" ref={calendarRef}>
+          <Box position="relative" ref={calendarRef} display={{ base: "none", sm: "block" }}>
             <img
               src="/assets/icons/calendar.svg"
               alt="calendar"
@@ -100,7 +132,7 @@ const Navbar = () => {
               }}
             />
             {calendarOpen && (
-              <div className="absolute left-0 top-8 z-50 min-w-[260px] bg-white border border-gray-200 rounded-lg shadow-lg p-4">
+              <Box position="absolute" left={0} top={8} zIndex={50} minW="260px" bg="white" border="1px solid" borderColor="gray.200" rounded="lg" shadow="lg" p={4}>
                 {/* Simple calendar mockup, replace with a real calendar component if needed */}
                 <div className="text-center font-semibold mb-2">May 2025</div>
                 <div className="grid grid-cols-7 gap-1 text-xs text-gray-700">
@@ -138,11 +170,11 @@ const Navbar = () => {
                   <span>30</span>
                   <span>31</span>
                 </div>
-              </div>
+              </Box>
             )}
-          </div>
+          </Box>
           {/* Notification Button */}
-          <div className="relative" ref={notificationRef} style={{ minWidth: 32 }}>
+          <Box position="relative" ref={notificationRef} minW={8} display={{ base: "none", sm: "block" }}>
             <img
               src="/assets/icons/notification.svg"
               alt="notification"
@@ -155,27 +187,36 @@ const Navbar = () => {
                 setMenuOpen(false);
               }}
             />
-            {/* Badge */}
             {!notificationOpen && (
-              <span
-                className="absolute top-0 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center"
-                style={{ right: "-10px", left: "auto" }}
+              <Box
+                position="absolute"
+                top={0}
+                right="-10px"
+                bg="red.500"
+                color="white"
+                fontSize="xs"
+                rounded="full"
+                w={4}
+                h={4}
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
               >
                 3
-              </span>
+              </Box>
             )}
             {notificationOpen && (
-              <div className="absolute right-0 top-8 z-50 min-w-[220px] bg-white border border-gray-200 rounded-lg shadow-lg py-2">
+              <Box position="absolute" right={0} top={8} zIndex={50} minW="220px" bg="white" border="1px solid" borderColor="gray.200" rounded="lg" shadow="lg" py={2}>
                 <div className="px-4 py-2 font-semibold border-b">Notifications</div>
                 <div className="px-4 py-2 hover:bg-gray-100 cursor-pointer">New order received</div>
                 <div className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Product out of stock</div>
                 <div className="px-4 py-2 hover:bg-gray-100 cursor-pointer">User signed up</div>
                 <div className="px-4 py-2 text-center text-xs text-gray-400 border-t">View all</div>
-              </div>
+              </Box>
             )}
-          </div>
+          </Box>
           {/* User Menu */}
-          <div className="relative flex gap-2" ref={menuRef}>
+          <Box position="relative" ref={menuRef} display={{ base: "none", sm: "flex" }} gap={2}>
             <button
               className="flex items-center gap-2 px-4 py-2 bg-yellow-100 border border-yellow-300 rounded-lg shadow font-semibold text-yellow-800 hover:bg-yellow-200 transition"
               onClick={() => {
@@ -192,16 +233,33 @@ const Navbar = () => {
               />
             </button>
             {menuOpen && (
-              <div className="absolute right-0 top-14 z-50 min-w-[160px] bg-white border border-gray-200 rounded-lg shadow-lg py-2">
+              <Box position="absolute" right={0} top={14} zIndex={50} minW="160px" bg="white" border="1px solid" borderColor="gray.200" rounded="lg" shadow="lg" py={2}>
                 <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">Profile</button>
                 <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">Settings</button>
                 <button className="block w-full text-left px-4 py-2 hover:bg-gray-100" onClick={handleSignout}>Signout</button>
-              </div>
+              </Box>
             )}
-          </div>
-        </div>
-      </div>
-    </div>
+          </Box>
+        </Flex>
+      </Flex>
+
+      {/* Mobile Drawer for menu */}
+      <Drawer placement="left" onClose={onClose} isOpen={isOpen}>
+        <DrawerOverlay />
+        <DrawerContent>
+          <DrawerCloseButton />
+          <Box p={4}>
+            {/* You can add Sidebar or user menu here for mobile */}
+            <button
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+              onClick={handleSignout}
+            >
+              Signout
+            </button>
+          </Box>
+        </DrawerContent>
+      </Drawer>
+    </Box>
   );
 };
 

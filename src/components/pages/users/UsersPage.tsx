@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "../../widgets/button";
-import { FaTrash, FaPlus, FaUndo } from "react-icons/fa";
+import { FaTrash, FaPlus, FaUndo, FaUserPlus, FaFilter, FaArrowLeft } from "react-icons/fa";
 import clsx from "clsx";
-import type { User } from "../users/usersData"; 
+import type { User } from "../users/usersData";
+
 type UsersPageProps = {
   users: User[];
   setUsers: React.Dispatch<React.SetStateAction<User[]>>;
@@ -20,14 +22,54 @@ const emptyUser: User = {
   avatar_url: "",
   email: "",
   role: "User",
-  status: "Active",
+  status: true,
 };
+
+// Mock data for newly joined users (should match dashboard)
+const newUsers = [
+  {
+    name: "Emily Carter",
+    avatar: "/assets/image/profile5.jpg",
+    joined: "2025-06-12",
+    email: "emily.carter@email.com",
+  },
+  {
+    name: "Samuel Lee",
+    avatar: "/assets/image/profile6.jpg",
+    joined: "2025-06-11",
+    email: "samuel.lee@email.com",
+  },
+  {
+    name: "Olivia Smith",
+    avatar: "/assets/image/profile7.jpg",
+    joined: "2025-06-10",
+    email: "olivia.smith@email.com",
+  },
+  {
+    name: "David Kim",
+    avatar: "/assets/image/profile8.jpg",
+    joined: "2025-06-09",
+    email: "david.kim@email.com",
+  },
+];
 
 const UsersPage = ({ users, setUsers }: UsersPageProps) => {
   const [pendingDelete, setPendingDelete] = useState<{ user: User; timeLeft: number } | null>(null);
   const [fadingUserId, setFadingUserId] = useState<number | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newUser, setNewUser] = useState<User>({ ...emptyUser });
+
+  // Filter logic for newly joined users
+  const location = useLocation();
+  const navigate = useNavigate();
+  const params = new URLSearchParams(location.search);
+  const filterNew = params.get("filter") === "new";
+
+  // For demo: filter by email matching newUsers mock data
+  const newUserEmails = newUsers.map(u => u.email);
+  const filteredUsers = filterNew
+    ? users.filter(u => newUserEmails.includes(u.email))
+    : users;
 
   // Handle delete timer and fade-out
   useEffect(() => {
@@ -80,13 +122,14 @@ const UsersPage = ({ users, setUsers }: UsersPageProps) => {
     setNewUser({ ...emptyUser, id: Date.now() });
   };
 
+  // When adding a new user, always use boolean for status
   const handleSaveNewUser = () => {
-    setUsers(prev => [{ ...newUser, id: Date.now(), role: "User" }, ...prev]);
+    setUsers(prev => [{ ...newUser, id: Date.now(), role: "User", status: true }, ...prev]);
     setShowAddModal(false);
     setNewUser({ ...emptyUser });
   };
 
-  const handleChangeNewUser = (field: keyof User, value: string) => {
+  const handleChangeNewUser = (field: keyof User, value: string | boolean) => {
     setNewUser(prev => ({ ...prev, [field]: value }));
   };
 
@@ -95,19 +138,21 @@ const UsersPage = ({ users, setUsers }: UsersPageProps) => {
     setUsers(prev =>
       prev.map(u =>
         u.id === id
-          ? { ...u, status: u.status === "Active" ? "Suspended" : "Active" }
+          ? { ...u, status: !u.status }
           : u
       )
     );
   };
 
   // Show all users, but highlight the one being deleted
-  const visibleUsers = users;
+  const visibleUsers = filteredUsers;
 
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Users</h2>
+        <h2 className="text-2xl font-bold">
+          {filterNew ? "Newly Joined Users" : "Users"}
+        </h2>
         <Button
           className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded flex items-center gap-2"
           onClick={handleAddUser}
@@ -116,6 +161,61 @@ const UsersPage = ({ users, setUsers }: UsersPageProps) => {
           Add User
         </Button>
       </div>
+
+      {/* Panel for newly joined users */}
+      {!filterNew && (
+        <div className="bg-white rounded-xl shadow p-6 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <FaUserPlus className="text-pink-500" size={22} />
+              <span className="font-semibold text-lg">Recently Joined Users</span>
+            </div>
+            <Button
+              className="flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-700 border border-blue-200 rounded text-sm hover:bg-blue-200 transition"
+              onClick={() => navigate("?filter=new")}
+            >
+              <FaFilter />
+              Show Only New Users
+            </Button>
+          </div>
+          <ul className="flex flex-wrap gap-6">
+            {newUsers.map((user, idx) => (
+              <li
+                key={idx}
+                className="flex flex-col items-center bg-gray-50 rounded-lg p-4 w-48 shadow hover:bg-gray-100 transition"
+              >
+                <img
+                  src={user.avatar}
+                  alt={user.name}
+                  className="rounded-full object-cover border-2 border-pink-400 mb-2"
+                  width={56}
+                  height={56}
+                  style={{ width: 56, height: 56 }}
+                />
+                <span className="font-semibold text-gray-800">{user.name}</span>
+                <span className="text-gray-500 text-sm">{user.email}</span>
+                <span className="text-xs text-gray-400">
+                  Joined {new Date(user.joined).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Back to all users button when filtered */}
+      {filterNew && (
+        <div className="mb-6 flex justify-end">
+          <Button
+            className="flex items-center gap-2 px-3 py-1 bg-gray-100 text-gray-700 border border-gray-300 rounded text-sm hover:bg-gray-200 transition"
+            onClick={() => navigate("/users")}
+          >
+            <FaArrowLeft />
+            Back to All Users
+          </Button>
+        </div>
+      )}
+
       <div className="bg-white rounded-xl shadow p-6">
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
@@ -170,26 +270,26 @@ const UsersPage = ({ users, setUsers }: UsersPageProps) => {
                     <td className="py-2 px-2">
                       <span
                         className={
-                          user.status === "Active"
+                          user.status
                             ? "text-green-600 font-semibold"
                             : "text-red-600 font-semibold"
                         }
                       >
-                        {user.status}
+                        {user.status ? "Active" : "Suspended"}
                       </span>
                     </td>
                     <td className="py-2 px-2 flex gap-2">
                       <Button
                         size="sm"
                         className={
-                          user.status === "Active"
+                          user.status
                             ? "bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200"
                             : "bg-green-100 text-green-800 border border-green-300 hover:bg-green-200"
                         }
                         onClick={() => handleToggleStatus(user.id)}
                         disabled={!!pendingDelete}
                       >
-                        {user.status === "Active" ? "Set Suspended" : "Set Active"}
+                        {user.status ? "Set Suspended" : "Set Active"}
                       </Button>
                       <Button
                         size="sm"
@@ -268,7 +368,7 @@ const UsersPage = ({ users, setUsers }: UsersPageProps) => {
                 <label className="block text-sm font-medium mb-1">Phone Number</label>
                 <input
                   className="w-full border rounded px-3 py-2"
-                  value={newUser.phone_number}
+                  value={newUser.phone_number ?? ""}
                   onChange={e => handleChangeNewUser("phone_number", e.target.value)}
                 />
               </div>
@@ -276,7 +376,7 @@ const UsersPage = ({ users, setUsers }: UsersPageProps) => {
                 <label className="block text-sm font-medium mb-1">Address</label>
                 <input
                   className="w-full border rounded px-3 py-2"
-                  value={newUser.address}
+                  value={newUser.address ?? ""}
                   onChange={e => handleChangeNewUser("address", e.target.value)}
                 />
               </div>
@@ -284,7 +384,7 @@ const UsersPage = ({ users, setUsers }: UsersPageProps) => {
                 <label className="block text-sm font-medium mb-1">Avatar URL</label>
                 <input
                   className="w-full border rounded px-3 py-2"
-                  value={newUser.avatar_url}
+                  value={newUser.avatar_url ?? ""}
                   onChange={e => handleChangeNewUser("avatar_url", e.target.value)}
                   placeholder="https://..."
                 />
@@ -313,8 +413,8 @@ const UsersPage = ({ users, setUsers }: UsersPageProps) => {
                 <label className="block text-sm font-medium mb-1">Status</label>
                 <select
                   className="w-full border rounded px-3 py-2"
-                  value={newUser.status}
-                  onChange={e => handleChangeNewUser("status", e.target.value)}
+                  value={newUser.status ? "Active" : "Suspended"}
+                  onChange={e => handleChangeNewUser("status", e.target.value === "Active")}
                 >
                   <option value="Active">Active</option>
                   <option value="Suspended">Suspended</option>
