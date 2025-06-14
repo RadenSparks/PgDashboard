@@ -1,5 +1,3 @@
-import type { AxiosError } from 'axios';
-import api from '../../../api/axios-client';
 import {
     Button,
     Checkbox,
@@ -19,7 +17,7 @@ import {
 import { useState, useRef } from 'react';
 import { BsEye, BsEyeSlash } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
-import type { SignInRequestDTO, SignInResponseDTO } from '@/entity/dto';
+import type { SignInResponseDTO } from '@/entity/dto';
 
 const SignIn = () => {
     const navigate = useNavigate();
@@ -49,32 +47,40 @@ const SignIn = () => {
         }
 
         setLoading(true);
-        const signInRequestDTO: SignInRequestDTO = {
-            username,
-            password
-        };
 
-        api.post<SignInResponseDTO>('/auth/signin', signInRequestDTO)
-            .then(response => {
-                localStorage.setItem('token', response.data.access_token);
-                localStorage.setItem('username', response.data.username);
-                localStorage.setItem('role', response.data.role);
-                navigate('/');
-            })
-            .catch((error : AxiosError) => {
-                toast({
-                    title: 'Sign in failed',
-                    description: (typeof error.response?.data === 'object' && error.response?.data && 'message' in error.response.data)
-                        ? (error.response.data as { message?: string }).message
-                        : 'Invalid username or password.',
-                    status: 'error',
-                    duration: 5000,
-                    isClosable: true,
-                    position: 'top',
-                });
-                console.error('Sign in failed:', error.response?.data || error.message);
-            })
-            .finally(() => setLoading(false));
+        fetch("http://localhost:3000/api/auth/signin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        })
+          .then(async response => {
+            if (!response.ok) {
+              // Optionally parse error message from backend
+              const errorData = await response.json();
+              throw new Error(errorData.message || "Sign in failed");
+            }
+            // Type the response as SignInResponseDTO
+            return response.json() as Promise<SignInResponseDTO>;
+          })
+          .then((data) => {
+            // Now data is typed as SignInResponseDTO
+            localStorage.setItem('token', data.access_token);
+            localStorage.setItem('username', data.username);
+            localStorage.setItem('role', data.role);
+            navigate('/');
+          })
+          .catch((error: Error) => {
+            toast({
+              title: 'Sign in failed',
+              description: error.message,
+              status: 'error',
+              duration: 5000,
+              isClosable: true,
+              position: 'top',
+            });
+            console.error('Sign in failed:', error.message);
+          })
+          .finally(() => setLoading(false));
     }
 
     const handleNavigateSignup = () => {
