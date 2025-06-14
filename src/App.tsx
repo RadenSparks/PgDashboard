@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import RootLayout from "./components/layout/RootLayout";
 import { ChakraProvider } from '@chakra-ui/react';
@@ -17,16 +17,16 @@ import SignUp from './components/pages/signup/signup';
 import CommentsPage from './components/pages/comments/CommentsPage'; 
 import PermissionPage from './components/pages/permission/PermisionPage';
 import TagsPage from './components/pages/tags/TagsPage';
-
-
+import { initialUsers, type User } from './components/pages/users/usersData';
 
 const App: React.FC = () => {
+  const [users, setUsers] = useState<User[]>(initialUsers);
+
   return (
     <ChakraProvider>
       <main className="h-screen w-full">
         <Router>
           <Routes>
-
             <Route element={<RootLayout />}>              
                 <Route path="/" element={<ProtectedRoute><DashboardContent /></ProtectedRoute>} />
                 <Route path="/products" element={<ProtectedRoute><ProductsPage /></ProtectedRoute>} />
@@ -34,8 +34,8 @@ const App: React.FC = () => {
                 <Route path="/voucher" element={<ProtectedRoute><VoucherPage /></ProtectedRoute>} />
                 <Route path="/posts" element={<ProtectedRoute><PostsPage /></ProtectedRoute>} />
                 <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
-                <Route path="/permission" element={<ProtectedRoute><PermissionPage /></ProtectedRoute>} />
-                <Route path="/users" element={<ProtectedRoute><UsersPage /></ProtectedRoute>} />
+                <Route path="/permission" element={<ProtectedRoute><PermissionPage users={users} setUsers={setUsers} /></ProtectedRoute>} />
+                <Route path="/users" element={<ProtectedRoute><UsersPage users={users} setUsers={setUsers} /></ProtectedRoute>} />
                 <Route path="/comments" element={<ProtectedRoute><CommentsPage /></ProtectedRoute>} /> 
                 <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />       
                 <Route path="/tags" element={<ProtectedRoute><TagsPage /></ProtectedRoute>} />          

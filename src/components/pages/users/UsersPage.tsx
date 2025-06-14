@@ -1,58 +1,16 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "../../widgets/button";
-import { FaEdit, FaTrash, FaPlus } from "react-icons/fa";
+import { FaTrash, FaPlus, FaUndo, FaUserPlus, FaFilter, FaArrowLeft } from "react-icons/fa";
+import clsx from "clsx";
+import type { User } from "../users/usersData";
 
-type User = {
-  id: number;
-  full_name: string;
-  username: string;
-  password: string;
-  phone_number: string;
-  address: string;
-  avatar_url: string;
-  email: string;
-  role: string;
-  status: string;
+type UsersPageProps = {
+  users: User[];
+  setUsers: React.Dispatch<React.SetStateAction<User[]>>;
 };
 
-const mockUsers: User[] = [
-  {
-    id: 1,
-    full_name: "Admin User",
-    username: "admin",
-    password: "",
-    phone_number: "1234567890",
-    address: "123 Admin St",
-    avatar_url: "",
-    email: "admin@email.com",
-    role: "Admin",
-    status: "Active",
-  },
-  {
-    id: 2,
-    full_name: "John Doe",
-    username: "johndoe",
-    password: "",
-    phone_number: "0987654321",
-    address: "456 John St",
-    avatar_url: "",
-    email: "john@email.com",
-    role: "User",
-    status: "Active",
-  },
-  {
-    id: 3,
-    full_name: "Jane Doe",
-    username: "janedoe",
-    password: "",
-    phone_number: "1112223333",
-    address: "789 Jane St",
-    avatar_url: "",
-    email: "jane@email.com",
-    role: "User",
-    status: "Suspended",
-  },
-];
+const UNDO_TIMEOUT = 8000; // 8 seconds
 
 const emptyUser: User = {
   id: 0,
@@ -64,98 +22,200 @@ const emptyUser: User = {
   avatar_url: "",
   email: "",
   role: "User",
-  status: "Active",
+  status: true,
 };
 
-const UsersPage = () => {
-  const [users, setUsers] = useState<User[]>(mockUsers);
-  const [showModal, setShowModal] = useState(false);
-  const [editUser, setEditUser] = useState<User | null>(null);
-  const [deleteId, setDeleteId] = useState<number | null>(null);
+// Mock data for newly joined users (should match dashboard)
+const newUsers = [
+  {
+    name: "Emily Carter",
+    avatar: "/assets/image/profile5.jpg",
+    joined: "2025-06-12",
+    email: "emily.carter@email.com",
+  },
+  {
+    name: "Samuel Lee",
+    avatar: "/assets/image/profile6.jpg",
+    joined: "2025-06-11",
+    email: "samuel.lee@email.com",
+  },
+  {
+    name: "Olivia Smith",
+    avatar: "/assets/image/profile7.jpg",
+    joined: "2025-06-10",
+    email: "olivia.smith@email.com",
+  },
+  {
+    name: "David Kim",
+    avatar: "/assets/image/profile8.jpg",
+    joined: "2025-06-09",
+    email: "david.kim@email.com",
+  },
+];
 
-  // Modal outside click close
-  const modalRef = useRef<HTMLDivElement>(null);
+const UsersPage = ({ users, setUsers }: UsersPageProps) => {
+  const [pendingDelete, setPendingDelete] = useState<{ user: User; timeLeft: number } | null>(null);
+  const [fadingUserId, setFadingUserId] = useState<number | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newUser, setNewUser] = useState<User>({ ...emptyUser });
+
+  // Filter logic for newly joined users
+  const location = useLocation();
+  const navigate = useNavigate();
+  const params = new URLSearchParams(location.search);
+  const filterNew = params.get("filter") === "new";
+
+  // For demo: filter by email matching newUsers mock data
+  const newUserEmails = newUsers.map(u => u.email);
+  const filteredUsers = filterNew
+    ? users.filter(u => newUserEmails.includes(u.email))
+    : users;
+
+  // Handle delete timer and fade-out
   useEffect(() => {
-    if (!showModal) return;
-    const handleClick = (e: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-        setShowModal(false);
-        setEditUser(null);
-      }
+    if (!pendingDelete) return;
+    const fadeOutTime = UNDO_TIMEOUT * 0.8;
+    let fadeTimeout: NodeJS.Timeout | null = null;
+    let interval: NodeJS.Timeout | null = null;
+    let timeout: NodeJS.Timeout | null = null;
+
+    fadeTimeout = setTimeout(() => {
+      setFadingUserId(pendingDelete.user.id);
+    }, fadeOutTime);
+
+    interval = setInterval(() => {
+      setPendingDelete(prev =>
+        prev ? { ...prev, timeLeft: prev.timeLeft - 100 } : null
+      );
+    }, 100);
+
+    timeout = setTimeout(() => {
+      setUsers(prev => prev.filter(u => u.id !== pendingDelete.user.id));
+      setPendingDelete(null);
+      setFadingUserId(null);
+    }, pendingDelete.timeLeft);
+
+    return () => {
+      if (fadeTimeout) clearTimeout(fadeTimeout);
+      if (interval) clearInterval(interval);
+      if (timeout) clearTimeout(timeout);
     };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [showModal]);
-
-  const handleAdd = () => {
-    setEditUser({ ...emptyUser, id: Date.now() });
-    setShowModal(true);
-  };
-
-  const handleEdit = (id: number) => {
-    const user = users.find(u => u.id === id);
-    if (user) {
-      setEditUser({ ...user });
-      setShowModal(true);
-    }
-  };
+  }, [pendingDelete?.user.id, setUsers, pendingDelete]);
 
   const handleDelete = (id: number) => {
-    setDeleteId(id);
+    const user = users.find(u => u.id === id);
+    if (!user) return;
+    // Prevent deleting users with the Admin role
+    if (user.role === "Admin") return;
+    setPendingDelete({ user, timeLeft: UNDO_TIMEOUT });
+    setFadingUserId(null);
   };
 
-  const confirmDelete = () => {
-    if (deleteId !== null) {
-      setUsers(users.filter(u => u.id !== deleteId));
-      setDeleteId(null);
-    }
+  const handleUndoDelete = () => {
+    setPendingDelete(null);
+    setFadingUserId(null);
   };
 
-  const cancelDelete = () => setDeleteId(null);
-
-  const handleSave = () => {
-    if (!editUser) return;
-    if (editUser.id && users.some(u => u.id === editUser.id)) {
-      // Update
-      setUsers(users.map(u => (u.id === editUser.id ? editUser : u)));
-    } else {
-      // Add
-      setUsers([{ ...editUser, id: Date.now() }, ...users]);
-    }
-    setShowModal(false);
-    setEditUser(null);
+  // Add user modal logic
+  const handleAddUser = () => {
+    setShowAddModal(true);
+    setNewUser({ ...emptyUser, id: Date.now() });
   };
 
-  const handleChange = (field: keyof User, value: string) => {
-    if (!editUser) return;
-    setEditUser({ ...editUser, [field]: value });
+  // When adding a new user, always use boolean for status
+  const handleSaveNewUser = () => {
+    setUsers(prev => [{ ...newUser, id: Date.now(), role: "User", status: true }, ...prev]);
+    setShowAddModal(false);
+    setNewUser({ ...emptyUser });
   };
 
-  const handleStatusToggle = (id: number) => {
-    setUsers(users =>
-      users.map(u =>
+  const handleChangeNewUser = (field: keyof User, value: string | boolean) => {
+    setNewUser(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Toggle user status (Active/Suspended)
+  const handleToggleStatus = (id: number) => {
+    setUsers(prev =>
+      prev.map(u =>
         u.id === id
-          ? {
-              ...u,
-              status: u.status === "Active" ? "Suspended" : "Active",
-            }
+          ? { ...u, status: !u.status }
           : u
       )
     );
   };
 
+  // Show all users, but highlight the one being deleted
+  const visibleUsers = filteredUsers;
+
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Users</h2>
+        <h2 className="text-2xl font-bold">
+          {filterNew ? "Newly Joined Users" : "Users"}
+        </h2>
         <Button
           className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded flex items-center gap-2"
-          onClick={handleAdd}
+          onClick={handleAddUser}
         >
           <FaPlus />
           Add User
         </Button>
       </div>
+
+      {/* Panel for newly joined users */}
+      {!filterNew && (
+        <div className="bg-white rounded-xl shadow p-6 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <FaUserPlus className="text-pink-500" size={22} />
+              <span className="font-semibold text-lg">Recently Joined Users</span>
+            </div>
+            <Button
+              className="flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-700 border border-blue-200 rounded text-sm hover:bg-blue-200 transition"
+              onClick={() => navigate("?filter=new")}
+            >
+              <FaFilter />
+              Show Only New Users
+            </Button>
+          </div>
+          <ul className="flex flex-wrap gap-6">
+            {newUsers.map((user, idx) => (
+              <li
+                key={idx}
+                className="flex flex-col items-center bg-gray-50 rounded-lg p-4 w-48 shadow hover:bg-gray-100 transition"
+              >
+                <img
+                  src={user.avatar}
+                  alt={user.name}
+                  className="rounded-full object-cover border-2 border-pink-400 mb-2"
+                  width={56}
+                  height={56}
+                  style={{ width: 56, height: 56 }}
+                />
+                <span className="font-semibold text-gray-800">{user.name}</span>
+                <span className="text-gray-500 text-sm">{user.email}</span>
+                <span className="text-xs text-gray-400">
+                  Joined {new Date(user.joined).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Back to all users button when filtered */}
+      {filterNew && (
+        <div className="mb-6 flex justify-end">
+          <Button
+            className="flex items-center gap-2 px-3 py-1 bg-gray-100 text-gray-700 border border-gray-300 rounded text-sm hover:bg-gray-200 transition"
+            onClick={() => navigate("/users")}
+          >
+            <FaArrowLeft />
+            Back to All Users
+          </Button>
+        </div>
+      )}
+
       <div className="bg-white rounded-xl shadow p-6">
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
@@ -173,70 +233,79 @@ const UsersPage = () => {
               </tr>
             </thead>
             <tbody>
-              {users.map(user => (
-                <tr key={user.id} className="border-b hover:bg-gray-50">
-                  <td className="py-2 px-2">
-                    {user.avatar_url ? (
-                      <img
-                        src={user.avatar_url}
-                        alt={user.full_name}
-                        className="w-10 h-10 object-cover rounded-full border"
-                      />
-                    ) : (
-                      <span className="inline-block w-10 h-10 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center">
-                        {user.full_name ? user.full_name[0].toUpperCase() : "?"}
-                      </span>
+              {visibleUsers.map(user => {
+                const isFading = fadingUserId === user.id;
+                const isPendingDelete = pendingDelete?.user.id === user.id;
+                return (
+                  <tr
+                    key={user.id}
+                    className={clsx(
+                      "border-b transition-all duration-700",
+                      isPendingDelete && !isFading && "bg-red-100 ring-2 ring-red-400",
+                      isFading && "opacity-0 pointer-events-none"
                     )}
-                  </td>
-                  <td className="py-2 px-2">{user.full_name}</td>
-                  <td className="py-2 px-2">{user.username}</td>
-                  <td className="py-2 px-2">{user.email}</td>
-                  <td className="py-2 px-2">{user.phone_number}</td>
-                  <td className="py-2 px-2">{user.address}</td>
-                  <td className="py-2 px-2">{user.role}</td>
-                  <td className="py-2 px-2">
-                    <span
-                      className={
-                        user.status === "Active"
-                          ? "text-green-600 font-semibold"
-                          : "text-red-600 font-semibold"
-                      }
-                    >
-                      {user.status}
-                    </span>
-                  </td>
-                  <td className="py-2 px-2 flex gap-2">
-                    <Button
-                      size="sm"
-                      className="bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200"
-                      onClick={() => handleEdit(user.id)}
-                    >
-                      <FaEdit className="inline mr-1" />
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      className="bg-red-100 text-red-700 border border-red-300 hover:bg-red-200"
-                      onClick={() => handleDelete(user.id)}
-                    >
-                      <FaTrash className="inline mr-1" />
-                      Delete
-                    </Button>
-                    <Button
-                      size="sm"
-                      className={
-                        user.status === "Active"
-                          ? "bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200"
-                          : "bg-green-100 text-green-800 border border-green-300 hover:bg-green-200"
-                      }
-                      onClick={() => handleStatusToggle(user.id)}
-                    >
-                      {user.status === "Active" ? "Set Inactive" : "Set Active"}
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-              {users.length === 0 && (
+                    style={{
+                      transition: "opacity 1s, background 0.3s",
+                    }}
+                  >
+                    <td className="py-2 px-2">
+                      {user.avatar_url ? (
+                        <img
+                          src={user.avatar_url}
+                          alt={user.full_name}
+                          className="w-10 h-10 object-cover rounded-full border"
+                        />
+                      ) : (
+                        <span className="inline-block w-10 h-10 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center">
+                          {user.full_name ? user.full_name[0].toUpperCase() : "?"}
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-2 px-2">{user.full_name}</td>
+                    <td className="py-2 px-2">{user.username}</td>
+                    <td className="py-2 px-2">{user.email}</td>
+                    <td className="py-2 px-2">{user.phone_number}</td>
+                    <td className="py-2 px-2">{user.address}</td>
+                    <td className="py-2 px-2">{user.role}</td>
+                    <td className="py-2 px-2">
+                      <span
+                        className={
+                          user.status
+                            ? "text-green-600 font-semibold"
+                            : "text-red-600 font-semibold"
+                        }
+                      >
+                        {user.status ? "Active" : "Suspended"}
+                      </span>
+                    </td>
+                    <td className="py-2 px-2 flex gap-2">
+                      <Button
+                        size="sm"
+                        className={
+                          user.status
+                            ? "bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200"
+                            : "bg-green-100 text-green-800 border border-green-300 hover:bg-green-200"
+                        }
+                        onClick={() => handleToggleStatus(user.id)}
+                        disabled={!!pendingDelete}
+                      >
+                        {user.status ? "Set Suspended" : "Set Active"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="bg-red-100 text-red-700 border border-red-300 hover:bg-red-200"
+                        onClick={() => handleDelete(user.id)}
+                        disabled={!!pendingDelete || user.role === "Admin"}
+                        title={user.role === "Admin" ? "Cannot delete Admin users" : "Delete"}
+                      >
+                        <FaTrash className="inline mr-1" />
+                        Delete
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+              {visibleUsers.length === 0 && (
                 <tr>
                   <td colSpan={9} className="py-6 text-center text-gray-400">
                     No users found.
@@ -248,30 +317,22 @@ const UsersPage = () => {
         </div>
       </div>
 
-      {/* Add/Edit Modal */}
-      {showModal && editUser && (
+      {/* Add User Modal */}
+      {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div
-            ref={modalRef}
-            className="bg-white rounded-xl shadow-lg max-w-md w-full p-6 relative"
-          >
+          <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-6 relative">
             <button
               className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl"
-              onClick={() => {
-                setShowModal(false);
-                setEditUser(null);
-              }}
+              onClick={() => setShowAddModal(false)}
               aria-label="Close"
             >
               &times;
             </button>
-            <h3 className="text-xl font-bold mb-4">
-              {users.some(u => u.id === editUser.id) ? "Edit User" : "Add User"}
-            </h3>
+            <h3 className="text-xl font-bold mb-4">Add User</h3>
             <form
               onSubmit={e => {
                 e.preventDefault();
-                handleSave();
+                handleSaveNewUser();
               }}
               className="space-y-4"
             >
@@ -279,8 +340,8 @@ const UsersPage = () => {
                 <label className="block text-sm font-medium mb-1">Full Name</label>
                 <input
                   className="w-full border rounded px-3 py-2"
-                  value={editUser.full_name}
-                  onChange={e => handleChange("full_name", e.target.value)}
+                  value={newUser.full_name}
+                  onChange={e => handleChangeNewUser("full_name", e.target.value)}
                   required
                 />
               </div>
@@ -288,8 +349,8 @@ const UsersPage = () => {
                 <label className="block text-sm font-medium mb-1">Username</label>
                 <input
                   className="w-full border rounded px-3 py-2"
-                  value={editUser.username}
-                  onChange={e => handleChange("username", e.target.value)}
+                  value={newUser.username}
+                  onChange={e => handleChangeNewUser("username", e.target.value)}
                   required
                 />
               </div>
@@ -298,34 +359,33 @@ const UsersPage = () => {
                 <input
                   className="w-full border rounded px-3 py-2"
                   type="password"
-                  value={editUser.password}
-                  onChange={e => handleChange("password", e.target.value)}
-                  required={!users.some(u => u.id === editUser.id)}
-                  placeholder={users.some(u => u.id === editUser.id) ? "Leave blank to keep current" : ""}
+                  value={newUser.password}
+                  onChange={e => handleChangeNewUser("password", e.target.value)}
+                  required
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Phone Number</label>
                 <input
                   className="w-full border rounded px-3 py-2"
-                  value={editUser.phone_number}
-                  onChange={e => handleChange("phone_number", e.target.value)}
+                  value={newUser.phone_number ?? ""}
+                  onChange={e => handleChangeNewUser("phone_number", e.target.value)}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Address</label>
                 <input
                   className="w-full border rounded px-3 py-2"
-                  value={editUser.address}
-                  onChange={e => handleChange("address", e.target.value)}
+                  value={newUser.address ?? ""}
+                  onChange={e => handleChangeNewUser("address", e.target.value)}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Avatar URL</label>
                 <input
                   className="w-full border rounded px-3 py-2"
-                  value={editUser.avatar_url}
-                  onChange={e => handleChange("avatar_url", e.target.value)}
+                  value={newUser.avatar_url ?? ""}
+                  onChange={e => handleChangeNewUser("avatar_url", e.target.value)}
                   placeholder="https://..."
                 />
               </div>
@@ -334,20 +394,30 @@ const UsersPage = () => {
                 <input
                   className="w-full border rounded px-3 py-2"
                   type="email"
-                  value={editUser.email}
-                  onChange={e => handleChange("email", e.target.value)}
+                  value={newUser.email}
+                  onChange={e => handleChangeNewUser("email", e.target.value)}
                   required
                 />
               </div>
+              {/* Role is not selectable, always "User" */}
               <div>
                 <label className="block text-sm font-medium mb-1">Role</label>
+                <input
+                  className="w-full border rounded px-3 py-2 bg-gray-100 text-gray-500"
+                  value="User"
+                  disabled
+                  readOnly
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Status</label>
                 <select
                   className="w-full border rounded px-3 py-2"
-                  value={editUser.role}
-                  onChange={e => handleChange("role", e.target.value)}
+                  value={newUser.status ? "Active" : "Suspended"}
+                  onChange={e => handleChangeNewUser("status", e.target.value === "Active")}
                 >
-                  <option value="Admin">Admin</option>
-                  <option value="User">User</option>
+                  <option value="Active">Active</option>
+                  <option value="Suspended">Suspended</option>
                 </select>
               </div>
               <div className="flex justify-end gap-2">
@@ -360,10 +430,7 @@ const UsersPage = () => {
                 <Button
                   className="bg-gray-200 px-6 py-2 rounded"
                   type="button"
-                  onClick={() => {
-                    setShowModal(false);
-                    setEditUser(null);
-                  }}
+                  onClick={() => setShowAddModal(false)}
                 >
                   Cancel
                 </Button>
@@ -373,35 +440,44 @@ const UsersPage = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
-      {deleteId !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-xl shadow-lg max-w-sm w-full p-8 relative">
-            <h3 className="text-lg font-bold mb-4 text-red-600">Delete User</h3>
-            <p className="mb-4">
-              Are you sure you want to delete this user?
-              <br />
-              <span className="text-sm text-gray-500">This action cannot be undone.</span>
-            </p>
-            <div className="flex justify-end gap-2">
+      {/* Undo Delete Snackbar as Modal */}
+      {pendingDelete && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-70">
+          <div className="bg-white border-4 border-red-600 text-red-700 px-8 py-8 rounded-2xl shadow-2xl flex flex-col min-w-[340px] max-w-xs w-full items-center animate-pulse">
+            <div className="flex items-center justify-between w-full mb-4">
+              <span className="font-bold text-lg flex-1 text-center">
+                Deleting <b>{pendingDelete.user.full_name}</b>
+              </span>
               <Button
-                className="bg-gray-200 px-6 py-2 rounded"
-                type="button"
-                onClick={cancelDelete}
+                size="sm"
+                className="bg-red-600 text-white border border-red-700 hover:bg-red-700 px-4 py-2 rounded ml-4"
+                onClick={handleUndoDelete}
               >
-                Cancel
+                <FaUndo className="inline mr-1" />
+                Undo
               </Button>
-              <Button
-                className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700"
-                type="button"
-                onClick={confirmDelete}
-              >
-                Delete
-              </Button>
+            </div>
+            <div className="w-full h-3 bg-red-200 rounded overflow-hidden mb-2">
+              <div
+                className="h-full bg-red-500"
+                style={{
+                  width: `${(pendingDelete.timeLeft / UNDO_TIMEOUT) * 100}%`,
+                  transition: "width 0.1s linear",
+                }}
+              />
+            </div>
+            <div className="text-center text-base font-semibold mt-2">
+              User will be deleted in&nbsp;
+              <span className="font-mono text-lg">
+                {(pendingDelete.timeLeft / 1000).toFixed(1)}s
+              </span>
             </div>
           </div>
         </div>
       )}
+      <div className="mt-6 text-gray-500 text-sm">
+        <strong>Note:</strong> User information is managed and updated from the main site. You cannot edit user info here. Any changes will be reflected automatically when updated on the main site.
+      </div>
     </div>
   );
 };
