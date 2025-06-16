@@ -21,8 +21,8 @@ import { useAddCategoryMutation, useDeleteCategoryMutation, useGetCategoriesQuer
 import Loading from "../../widgets/loading";
 
 const CategoriesPage = () => {
-  // const [categories, setCategories] = useState<Category[]>(initialCategories);
   const { data: categories, isLoading } = useGetCategoriesQuery()
+  console.log(categories)
   const [editId, setEditId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState("");
   const [editDescription, setEditDescription] = useState("");

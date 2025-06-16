@@ -1,101 +1,94 @@
 import { useState } from "react";
 import { Button } from "../../widgets/button";
 import { FaPlus, FaTrash, FaEdit, FaSave, FaTimes } from "react-icons/fa";
+import { useAddTagMutation, useDeleteTagMutation, useGetTagsQuery, useUpdateTagMutation } from "../../../redux/api/tagsApi";
+import Loading from "../../../components/widgets/loading";
 
-type GenreTag = { id: number; genre: string };
-type PlayerTag = { id: number; players: string };
-type DurationTag = { id: number; duration: "Short" | "Average" | "Long" };
 
-const initialGenreTags: GenreTag[] = [
-  { id: 1, genre: "Strategy" },
-  { id: 2, genre: "Party" },
-  { id: 3, genre: "Cooperative" },
-];
-
-const initialPlayerTags: PlayerTag[] = [
-  { id: 1, players: "2-4" },
-  { id: 2, players: "4-10" },
-  { id: 3, players: "1-5" },
-];
-
-const initialDurationTags: DurationTag[] = [
-  { id: 1, duration: "Short" },
-  { id: 2, duration: "Average" },
-  { id: 3, duration: "Long" },
-];
-
+type DurationTag = { duration: "Short" | "Average" | "Long" };
 const durationOptions = ["Short", "Average", "Long"] as const;
+type Tag = { id: number; name: string; type: string; duration?: DurationTag }
+
+
 
 const TagsPage = () => {
+  //RTK Query
+  const { data: tags, isLoading } = useGetTagsQuery()
+  const [addTag] = useAddTagMutation();
+  const [updateTag] = useUpdateTagMutation();
+  const [deleteTag] = useDeleteTagMutation();
+  const genreTags = tags?.filter(c => c.type === 'genre') ?? [];
+  const playerTags = tags?.filter(c => c.type === 'players') ?? [];
+  const durationTags = tags?.filter(c => c.type === 'duration') ?? [];
   // Genre
-  const [genreTags, setGenreTags] = useState<GenreTag[]>(initialGenreTags);
   const [newGenre, setNewGenre] = useState("");
-  const [editingGenreId, setEditingGenreId] = useState<number | null>(null);
+  const [editingGenreId, setEditingGenreId] = useState<number>(0);
   const [editGenre, setEditGenre] = useState("");
 
   // Players
-  const [playerTags, setPlayerTags] = useState<PlayerTag[]>(initialPlayerTags);
   const [newPlayers, setNewPlayers] = useState("");
-  const [editingPlayerId, setEditingPlayerId] = useState<number | null>(null);
+  const [editingPlayerId, setEditingPlayerId] = useState<number>(0);
   const [editPlayers, setEditPlayers] = useState("");
 
   // Duration
-  const [durationTags, setDurationTags] = useState<DurationTag[]>(initialDurationTags);
   const [newDuration, setNewDuration] = useState<DurationTag["duration"]>("Short");
-  const [editingDurationId, setEditingDurationId] = useState<number | null>(null);
+  const [editingDurationId, setEditingDurationId] = useState<number>(0);
   const [editDuration, setEditDuration] = useState<DurationTag["duration"]>("Short");
 
   // Genre handlers
   const handleAddGenre = () => {
     if (!newGenre.trim()) return;
-    setGenreTags([...genreTags, { id: Date.now(), genre: newGenre.trim() }]);
+    addTag({ name: newGenre.trim(), type: "genre" });
     setNewGenre("");
   };
-  const handleDeleteGenre = (id: number) => setGenreTags(genreTags.filter(g => g.id !== id));
-  const handleEditGenre = (tag: GenreTag) => {
+  const handleDeleteGenre = (id: number) => {
+    deleteTag(id)
+  }
+
+  const handleEditGenre = (tag: Tag) => {
     setEditingGenreId(tag.id);
-    setEditGenre(tag.genre);
+    setEditGenre(tag.name);
   };
   const handleSaveGenre = () => {
-    setGenreTags(genreTags.map(g => g.id === editingGenreId ? { ...g, genre: editGenre } : g));
-    setEditingGenreId(null);
+    updateTag({ id: +(editingGenreId), name: editGenre.trim() });
+    setEditingGenreId(0);
     setEditGenre("");
   };
 
   // Player handlers
   const handleAddPlayers = () => {
     if (!newPlayers.trim()) return;
-    setPlayerTags([...playerTags, { id: Date.now(), players: newPlayers.trim() }]);
+    addTag({ name: newPlayers.trim(), type: "players" });
+    setEditingPlayerId(0);
     setNewPlayers("");
   };
-  const handleDeletePlayers = (id: number) => setPlayerTags(playerTags.filter(p => p.id !== id));
-  const handleEditPlayers = (tag: PlayerTag) => {
+  const handleDeletePlayers = (id: number) => deleteTag(id)
+  const handleEditPlayers = (tag: Tag) => {
     setEditingPlayerId(tag.id);
-    setEditPlayers(tag.players);
+    setEditPlayers(tag.name);
   };
   const handleSavePlayers = () => {
-    setPlayerTags(playerTags.map(p => p.id === editingPlayerId ? { ...p, players: editPlayers } : p));
-    setEditingPlayerId(null);
+    updateTag({ id: +(editingPlayerId), name: editPlayers.trim() }); setEditingPlayerId(0);
     setEditPlayers("");
   };
 
   // Duration handlers
   const handleAddDuration = () => {
     if (!newDuration) return;
-    setDurationTags([...durationTags, { id: Date.now(), duration: newDuration }]);
+    addTag({ name: newDuration.trim(), type: "duration" });
     setNewDuration("Short");
   };
-  const handleDeleteDuration = (id: number) => setDurationTags(durationTags.filter(d => d.id !== id));
-  const handleEditDuration = (tag: DurationTag) => {
+  const handleDeleteDuration = (id: number) => deleteTag(id)
+  const handleEditDuration = (tag: Tag) => {
     setEditingDurationId(tag.id);
     setEditDuration(tag.duration);
   };
   const handleSaveDuration = () => {
-    setDurationTags(durationTags.map(d => d.id === editingDurationId ? { ...d, duration: editDuration } : d));
-    setEditingDurationId(null);
+    updateTag({ id: +(editingDurationId), name: editDuration.trim() });
+    setEditingDurationId(0);
     setEditDuration("Short");
   };
-
+  if (isLoading) return <Loading></Loading>;
   return (
     <div className="p-8">
       <h2 className="text-2xl font-bold mb-6">Tag Categories Management</h2>
@@ -134,12 +127,12 @@ const TagsPage = () => {
                     </td>
                     <td className="flex gap-2">
                       <Button size="sm" className="bg-green-100" onClick={handleSaveGenre}><FaSave /></Button>
-                      <Button size="sm" className="bg-gray-200" onClick={() => setEditingGenreId(null)}><FaTimes /></Button>
+                      <Button size="sm" className="bg-gray-200" onClick={() => setEditingGenreId(0)}><FaTimes /></Button>
                     </td>
                   </tr>
                 ) : (
                   <tr key={tag.id}>
-                    <td>{tag.genre}</td>
+                    <td>{tag.name}</td>
                     <td className="flex gap-2">
                       <Button size="sm" className="bg-yellow-100" onClick={() => handleEditGenre(tag)}><FaEdit /></Button>
                       <Button size="sm" className="bg-red-100" onClick={() => handleDeleteGenre(tag.id)}><FaTrash /></Button>
@@ -189,12 +182,12 @@ const TagsPage = () => {
                     </td>
                     <td className="flex gap-2">
                       <Button size="sm" className="bg-green-100" onClick={handleSavePlayers}><FaSave /></Button>
-                      <Button size="sm" className="bg-gray-200" onClick={() => setEditingPlayerId(null)}><FaTimes /></Button>
+                      <Button size="sm" className="bg-gray-200" onClick={() => setEditingPlayerId(0)}><FaTimes /></Button>
                     </td>
                   </tr>
                 ) : (
                   <tr key={tag.id}>
-                    <td>{tag.players}</td>
+                    <td>{tag.name}</td>
                     <td className="flex gap-2">
                       <Button size="sm" className="bg-yellow-100" onClick={() => handleEditPlayers(tag)}><FaEdit /></Button>
                       <Button size="sm" className="bg-red-100" onClick={() => handleDeletePlayers(tag.id)}><FaTrash /></Button>
@@ -249,12 +242,12 @@ const TagsPage = () => {
                     </td>
                     <td className="flex gap-2">
                       <Button size="sm" className="bg-green-100" onClick={handleSaveDuration}><FaSave /></Button>
-                      <Button size="sm" className="bg-gray-200" onClick={() => setEditingDurationId(null)}><FaTimes /></Button>
+                      <Button size="sm" className="bg-gray-200" onClick={() => setEditingDurationId(0)}><FaTimes /></Button>
                     </td>
                   </tr>
                 ) : (
                   <tr key={tag.id}>
-                    <td>{tag.duration}</td>
+                    <td>{tag.name}</td>
                     <td className="flex gap-2">
                       <Button size="sm" className="bg-yellow-100" onClick={() => handleEditDuration(tag)}><FaEdit /></Button>
                       <Button size="sm" className="bg-red-100" onClick={() => handleDeleteDuration(tag.id)}><FaTrash /></Button>
