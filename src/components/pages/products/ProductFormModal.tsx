@@ -2,20 +2,21 @@ import { useEffect, useRef } from "react";
 import type { Product, NamedImage } from "./types";
 import { Button } from "../../widgets/button";
 import GallerySlider from "./GallerySlider";
-import {
-  genreTags,
-  playerTags,
-  durationTags,
-} from "../tags/availableTags";
+// import {
+//   genreTags,
+//   // playerTags,
+//   durationTags,
+// } from "../tags/availableTags";
 import type {
-  GenreTag,
-  PlayerTag,
-  DurationTag,
+  Tag,
+  // PlayerTag,
+  // DurationTag,
 } from "../tags/availableTags";
 // import { initialCategories, type Category } from "../categories/categoriesData";
 import { useGetCategoriesQuery } from "../../../redux/api/categoryApi";
 import Loading from "../../../components/widgets/loading";
 import type { Category } from "../categories/categoriesData";
+import { useGetTagsQuery } from "../../../redux/api/tagsApi";
 type ProductFormModalProps = {
   product: Product;
   onChange: (product: Product) => void;
@@ -32,11 +33,22 @@ const ProductFormModal = ({
   mode,
 }: ProductFormModalProps) => {
   const { data: initialCategories, isLoading: loadCat } = useGetCategoriesQuery()
+  const { data: dataTags, isLoading: loadTags } = useGetTagsQuery();
+
+  const genreTags = dataTags?.filter(c => c.type === 'genre') ?? [];
+  const playerTags = dataTags?.filter(c => c.type === 'players') ?? [];
+  const durationTags = dataTags?.filter(c => c.type === 'duration') ?? [];
   // Helper for updating images array
   const updateImage = (idx: number, field: keyof NamedImage, value: string) => {
     const newImages = [...product.images];
     newImages[idx] = { ...newImages[idx], [field]: value };
     onChange({ ...product, images: newImages });
+  };
+  const handleDeleteImage = (id: number) => {
+    console.log(id)
+    const updatedImages = [...product.images];
+    const data = updatedImages.filter(f => !(f.id === id));
+    onChange({ ...product, images: data, deleteImages: [...product.deleteImages, id] });
   };
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -55,7 +67,7 @@ const ProductFormModal = ({
   const handleGenreChange = (selected: string[]) => {
     // Remove all genre tags, then add selected
     let tags = product.tags ? [...product.tags] : [];
-    tags = tags.filter((t) => !genreTags.some((g) => g.genre === t));
+    tags = tags.filter((t) => !genreTags.some((g) => g.name === t));
     tags = [...tags, ...selected];
     onChange({ ...product, tags });
   };
@@ -66,24 +78,25 @@ const ProductFormModal = ({
   ) => {
     let tags = product.tags ? [...product.tags] : [];
     if (type === "players") {
-      tags = tags.filter((t) => !playerTags.some((p) => p.players === t));
+      tags = tags.filter((t) => !playerTags.some((p) => p.name === t));
       if (value) tags.push(value);
     } else if (type === "duration") {
       tags = tags.filter((t) => !durationTags.some((d) => d.duration === t));
       if (value) tags.push(value);
     }
+    console.log(tags)
     onChange({ ...product, tags });
   };
 
   // Get current selected tags for each type
   const selectedGenres = product.tags
-    ? genreTags.filter((g) => product.tags.includes(g.genre)).map((g) => g.genre)
+    ? genreTags.filter((g) => product.tags.includes(g.name)).map((g) => g.name)
     : [];
   const selectedPlayers =
-    product.tags?.find((t) => playerTags.some((p) => p.players === t)) || "";
+    product.tags?.find((t) => playerTags.some((p) => p.name === t)) || "";
   const selectedDuration =
-    product.tags?.find((t) => durationTags.some((d) => d.duration === t)) || "";
-  if (loadCat) { return <Loading></Loading> }
+    product.tags?.find((t) => durationTags.some((d) => d.name === t)) || "";
+  if (loadCat || loadTags) { return <Loading></Loading> }
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 overflow-y-auto">
       <div
@@ -154,12 +167,13 @@ const ProductFormModal = ({
                   <select
                     className="w-full border rounded px-3 py-2"
                     name="category"
-                    value={product.category_ID}
+                    value={Number(product.category_ID.id)}
                     onChange={e => onChange({ ...product, category_ID: e.target.value })}
                   >
                     <option value="">Select category</option>
                     {(initialCategories || []).map((cat) => (
-                      <option key={cat.id} value={cat.name}>
+                      <option key={cat.id} value={cat.id} >
+
                         {cat.name}
                       </option>
                     ))}
@@ -180,9 +194,9 @@ const ProductFormModal = ({
                         )
                       }
                     >
-                      {genreTags.map((tag: GenreTag) => (
-                        <option key={tag.id} value={tag.genre}>
-                          {tag.genre}
+                      {genreTags.map((tag: Tag) => (
+                        <option key={tag.id} value={tag.id}>
+                          {tag.name}
                         </option>
                       ))}
                     </select>
@@ -199,9 +213,9 @@ const ProductFormModal = ({
                       onChange={e => handleSingleTagChange("players", e.target.value)}
                     >
                       <option value="">Select players</option>
-                      {playerTags.map((tag: PlayerTag) => (
-                        <option key={tag.id} value={tag.players}>
-                          {tag.players}
+                      {playerTags.map((tag: Tag) => (
+                        <option key={tag.id} value={tag.id}>
+                          {tag.name}
                         </option>
                       ))}
                     </select>
@@ -215,9 +229,9 @@ const ProductFormModal = ({
                       onChange={e => handleSingleTagChange("duration", e.target.value)}
                     >
                       <option value="">Select duration</option>
-                      {durationTags.map((tag: DurationTag) => (
-                        <option key={tag.id} value={tag.duration}>
-                          {tag.duration}
+                      {durationTags.map((tag: Tag) => (
+                        <option key={tag.id} value={tag.name}>
+                          {tag.name}
                         </option>
                       ))}
                     </select>
@@ -375,29 +389,39 @@ const ProductFormModal = ({
                 <div className="flex flex-col gap-2 mt-2">
                   <div>
                     <div className="text-xs text-gray-500 mb-1">Main</div>
-                    {product.image && (
-                      <img
-                        src={product.image}
-                        alt="Main"
-                        className="w-14 h-14 object-cover rounded border"
-                      />
-                    )}
+                    {product.images &&
+                      product.images.find((img) => img.name === 'main') && (
+                        <img
+                          src={product.images.find((img) => img.name === 'main')!.url}
+                          alt="Main"
+                          className="w-14 h-14 object-cover rounded border"
+                        />
+                      )}
                   </div>
                   <div>
                     <div className="text-xs text-gray-500 mb-1">Gallery</div>
-                    <div className="flex gap-1 flex-wrap">
+                    <div className="flex gap-3 flex-wrap">
                       {product.images.map((imgObj, idx) => (
                         imgObj.url ? (
-                          <img
-                            key={idx}
-                            src={imgObj.url}
-                            alt={`Gallery ${idx + 1}`}
-                            className="w-10 h-10 object-cover rounded border"
-                          />
+                          <div key={imgObj.id} className="relative group">
+                            <img
+                              src={imgObj.url}
+                              alt={`Gallery ${idx + 1}`}
+                              className="w-10 h-10 object-cover rounded border"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteImage(imgObj.id)}
+                              className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center transform translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition"
+                            >
+                              x
+                            </button>
+                          </div>
                         ) : null
                       ))}
                     </div>
                   </div>
+
                   {/* Slider Carousel */}
                   <GallerySlider
                     images={[

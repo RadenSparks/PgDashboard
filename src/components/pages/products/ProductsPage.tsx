@@ -7,13 +7,14 @@ import ProductFormModal from "./ProductFormModal";
 import ProductCmsModal from "./ProductCmsModal";
 import { mockProducts, emptyProduct } from "./mockProducts";
 import type { Product, CmsContent } from "./types";
-import { useAddProductMutation, useGetProductsQuery } from "../../../redux/api/productsApi";
+import { useAddProductMutation, useGetProductsQuery, useUpdateProductMutation } from "../../../redux/api/productsApi";
 import Loading from "../../../components/widgets/loading";
 
 // Main Products Page
 const ProductsPage = () => {
     //Store
     const [addProduct] = useAddProductMutation();
+    const [updateProduct] = useUpdateProductMutation();
     const { data: products, isLoading } = useGetProductsQuery();
     //
     const [detailProduct, setDetailProduct] = useState<Product | null>(null);
@@ -80,13 +81,12 @@ const ProductsPage = () => {
             }))));
             console.log(editProduct.featuredImage)
             editProduct.featuredImage.forEach((f) => {
-                console.log("fjhfdsf", f)
-                formData.append('featureImages[]', f);
+                formData.append('featureImages', f);
             });
-            formData.append('file', editProduct.image as Blob);
+            formData.append('mainImage', editProduct.image as Blob);
 
-            editProduct.images.forEach((file) => {
-                formData.append('images', file);
+            editProduct?.images.forEach((file) => {
+                formData.append('detailImages', file);
             });
             for (const [key, value] of formData.entries()) {
                 console.log(key, value);
@@ -104,14 +104,55 @@ const ProductsPage = () => {
 
     // UPDATE
     const handleEdit = (prod: Product) => {
-        setEditProduct({ ...prod, tags: prod.tags || [], featured: prod.featured || [] });
+        setEditProduct({ ...prod, tags: prod.tags || [], featured: prod.featured || [], deleteImages: [] });
         console.log(editProduct)
         setShowAddModal(true);
     };
 
     const handleSaveEditProduct = () => {
         if (editProduct) {
-            // setProducts(products.map(p => p.id === editProduct.id ? { ...editProduct, updatedAt: new Date().toISOString() } : p));
+            const formData = new FormData();
+            formData.append("id", editProduct.id.toString())
+            formData.append("product_name", editProduct.product_name)
+            formData.append("product_price", editProduct.product_price.toString())
+            formData.append("description", editProduct.description)
+            // formData.append("tags", editProduct.tags.join(" "))
+            formData.append("tags", "1 2 3")
+            formData.append("discount", editProduct.discount.toString())
+            formData.append("category_ID", "1")
+            // formData.append("category_ID", editProduct.category.toString())
+            formData.append("publisher_ID", "1")
+            formData.append("quantity_sold", editProduct.quantity_sold.toString())
+            formData.append("quantity_stock", editProduct.quantity_stock.toString())
+            formData.append("meta_description", editProduct.meta_description)
+            formData.append("meta_title", editProduct.meta_title)
+            formData.append("status", editProduct.status)
+            formData.append('featured', JSON.stringify(editProduct.featured.map((f, i) => ({
+                title: f.title,
+                content: f.content,
+                ord: String(i)
+            }))));
+            console.log(editProduct.featuredImage)
+            editProduct.featuredImage?.forEach((f) => {
+                formData.append('featureImages', f);
+            });
+            if (editProduct.image) {
+                formData.append('mainImage', editProduct.image as Blob);
+            }
+
+            editProduct.images?.forEach((file) => {
+                if (file instanceof Blob) {
+                    formData.append('detailImages', file);
+                }
+            });
+            if (editProduct.deleteImages) {
+                formData.append('deleteImages', JSON.stringify(editProduct.deleteImages))
+            }
+
+            for (const [key, value] of formData.entries()) {
+                console.log(key, value);
+            }
+            updateProduct(formData);
             setEditProduct(null);
             setShowAddModal(false);
         }

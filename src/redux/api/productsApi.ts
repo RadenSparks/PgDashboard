@@ -24,9 +24,9 @@ export const productsApi = createApi({
       }),
       invalidatesTags: ['Product'],
     }),
-    updateProduct: builder.mutation<Product, Partial<Product>>({
+    updateProduct: builder.mutation<Product, FormData>({
       query: (body) => ({
-        url: '/products/' + body.id,
+        url: '/products/' + body.get('id'),
         method: 'PUT',
         data: body,
       }),

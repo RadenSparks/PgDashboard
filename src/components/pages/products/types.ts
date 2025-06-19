@@ -2,7 +2,7 @@
 
 import type { Category } from "../categories/categoriesData";
 
-export type NamedImage = { url: string; name: string };
+export type NamedImage = { id: number; url: string; name: string };
 
 export type Product = {
     id: number;
@@ -13,7 +13,7 @@ export type Product = {
     image: string | File;
     images: NamedImage[] & File[];
     category_ID: string | Category
-    tags: string[];
+    tags: string[] | string;
     quantity_stock: number;
     quantity_sold: number;
     discount: number;
@@ -22,6 +22,7 @@ export type Product = {
     meta_description: string;
     featured: Featured[];
     featuredImage: File[];
+    deleteImages?: number[];
     created_at: string;
     updated_at: string;
 };
