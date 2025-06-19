@@ -1,26 +1,37 @@
 // Types for products and CMS content
 
-export type NamedImage = { url: string; name: string };
+import type { Category } from "../categories/categoriesData";
+
+export type NamedImage = { id: number; url: string; name: string };
 
 export type Product = {
     id: number;
-    name: string;
+    product_name: string;
     slug: string;
     description: string;
-    price: number;
-    image: string;
-    images: NamedImage[];
-    category: string;
-    tags: string[];
-    stock: number;
-    sold: number;
+    product_price: number;
+    image: string | File;
+    images: NamedImage[] & File[];
+    category_ID: string | Category
+    tags: string[] | string;
+    quantity_stock: number;
+    quantity_sold: number;
     discount: number;
     status: string;
-    meta: { title: string; description: string };
-    createdAt: string;
-    updatedAt: string;
+    meta_title: string;
+    meta_description: string;
+    featured: Featured[];
+    featuredImage: File[];
+    deleteImages?: number[];
+    created_at: string;
+    updated_at: string;
 };
 
+export type Featured = {
+    title: string;
+    content: string;
+    ord: number | null
+};
 export type CmsContent = {
     heroTitle: string;
     heroSubtitle: string;

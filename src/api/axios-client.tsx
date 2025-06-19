@@ -3,10 +3,7 @@ import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 const baseURL = import.meta.env.VITE_BASE_API || '';
 
 const api = axios.create({
-    baseURL,
-    headers: {
-        'Content-Type': 'application/json',
-    },
+    baseURL
 });
 
 // Request interceptor: add token if exists

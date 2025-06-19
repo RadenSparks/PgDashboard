@@ -102,19 +102,22 @@ export const mockProducts: Product[] = [
 
 export const emptyProduct: Product = {
     id: 0,
-    name: "",
+    product_name: "",
     slug: "",
     description: "",
-    price: 0,
+    product_price: 0,
     image: "",
     images: [],
-    category: "",
+    category_ID: "",
     tags: [],
-    stock: 0,
-    sold: 0,
+    quantity_stock: 0,
+    quantity_sold: 0,
     discount: 0,
     status: "Available",
-    meta: { title: "", description: "" },
-    createdAt: "",
-    updatedAt: ""
+    meta_title: "",
+    meta_description: "",
+    created_at: "",
+    updated_at: "",
+    featured: [{ title: "", content: "", ord: null }],
+    featuredImage: []
 };

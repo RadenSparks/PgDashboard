@@ -7,10 +7,16 @@ import ProductFormModal from "./ProductFormModal";
 import ProductCmsModal from "./ProductCmsModal";
 import { mockProducts, emptyProduct } from "./mockProducts";
 import type { Product, CmsContent } from "./types";
+import { useAddProductMutation, useGetProductsQuery, useUpdateProductMutation } from "../../../redux/api/productsApi";
+import Loading from "../../../components/widgets/loading";
 
 // Main Products Page
 const ProductsPage = () => {
-    const [products, setProducts] = useState<Product[]>(mockProducts);
+    //Store
+    const [addProduct] = useAddProductMutation();
+    const [updateProduct] = useUpdateProductMutation();
+    const { data: products, isLoading } = useGetProductsQuery();
+    //
     const [detailProduct, setDetailProduct] = useState<Product | null>(null);
     const [editProduct, setEditProduct] = useState<Product | null>(null);
     const [showAddModal, setShowAddModal] = useState(false);
@@ -47,16 +53,50 @@ const ProductsPage = () => {
 
     // CREATE
     const handleAddProduct = () => {
-        setEditProduct({ ...emptyProduct, id: Date.now(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+        setEditProduct({ ...emptyProduct });
         setShowAddModal(true);
     };
 
     const handleSaveNewProduct = () => {
         if (editProduct) {
-            setProducts([
-                { ...editProduct, id: Date.now(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-                ...products
-            ]);
+            const formData = new FormData();
+            formData.append("product_name", editProduct.product_name)
+            formData.append("product_price", editProduct.product_price.toString())
+            formData.append("description", editProduct.description)
+            // formData.append("tags", editProduct.tags.join(" "))
+            formData.append("tags", "1 2 3")
+            formData.append("discount", editProduct.discount.toString())
+            formData.append("category_ID", "1")
+            // formData.append("category_ID", editProduct.category.toString())
+            formData.append("publisher_ID", "1")
+            formData.append("quantity_sold", editProduct.quantity_sold.toString())
+            formData.append("quantity_stock", editProduct.quantity_stock.toString())
+            formData.append("meta_description", editProduct.meta_description)
+            formData.append("meta_title", editProduct.meta_title)
+            formData.append("status", editProduct.status)
+            formData.append('featured', JSON.stringify(editProduct.featured.map((f, i) => ({
+                title: f.title,
+                content: f.content,
+                ord: String(i)
+            }))));
+            console.log(editProduct.featuredImage)
+            editProduct.featuredImage.forEach((f) => {
+                formData.append('featureImages', f);
+            });
+            formData.append('mainImage', editProduct.image as Blob);
+
+            editProduct?.images.forEach((file) => {
+                formData.append('detailImages', file);
+            });
+            for (const [key, value] of formData.entries()) {
+                console.log(key, value);
+            }
+            // console.log(editProduct)
+            addProduct(formData)
+            // setProducts([
+            //     { ...editProduct, id: Date.now(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            //     ...products
+            // ]);
             setEditProduct(null);
             setShowAddModal(false);
         }
@@ -64,13 +104,55 @@ const ProductsPage = () => {
 
     // UPDATE
     const handleEdit = (prod: Product) => {
-        setEditProduct({ ...prod, tags: prod.tags || [] });
+        setEditProduct({ ...prod, tags: prod.tags || [], featured: prod.featured || [], deleteImages: [] });
+        console.log(editProduct)
         setShowAddModal(true);
     };
 
     const handleSaveEditProduct = () => {
         if (editProduct) {
-            setProducts(products.map(p => p.id === editProduct.id ? { ...editProduct, updatedAt: new Date().toISOString() } : p));
+            const formData = new FormData();
+            formData.append("id", editProduct.id.toString())
+            formData.append("product_name", editProduct.product_name)
+            formData.append("product_price", editProduct.product_price.toString())
+            formData.append("description", editProduct.description)
+            // formData.append("tags", editProduct.tags.join(" "))
+            formData.append("tags", "1 2 3")
+            formData.append("discount", editProduct.discount.toString())
+            formData.append("category_ID", "1")
+            // formData.append("category_ID", editProduct.category.toString())
+            formData.append("publisher_ID", "1")
+            formData.append("quantity_sold", editProduct.quantity_sold.toString())
+            formData.append("quantity_stock", editProduct.quantity_stock.toString())
+            formData.append("meta_description", editProduct.meta_description)
+            formData.append("meta_title", editProduct.meta_title)
+            formData.append("status", editProduct.status)
+            formData.append('featured', JSON.stringify(editProduct.featured.map((f, i) => ({
+                title: f.title,
+                content: f.content,
+                ord: String(i)
+            }))));
+            console.log(editProduct.featuredImage)
+            editProduct.featuredImage?.forEach((f) => {
+                formData.append('featureImages', f);
+            });
+            if (editProduct.image) {
+                formData.append('mainImage', editProduct.image as Blob);
+            }
+
+            editProduct.images?.forEach((file) => {
+                if (file instanceof Blob) {
+                    formData.append('detailImages', file);
+                }
+            });
+            if (editProduct.deleteImages) {
+                formData.append('deleteImages', JSON.stringify(editProduct.deleteImages))
+            }
+
+            for (const [key, value] of formData.entries()) {
+                console.log(key, value);
+            }
+            updateProduct(formData);
             setEditProduct(null);
             setShowAddModal(false);
         }
@@ -84,7 +166,7 @@ const ProductsPage = () => {
     // Confirm delete
     const confirmDelete = () => {
         if (deleteProductId !== null) {
-            setProducts(products.filter(p => p.id !== deleteProductId));
+            // setProducts(products.filter(p => p.id !== deleteProductId));
             setDeleteProductId(null);
         }
     };
@@ -96,6 +178,7 @@ const ProductsPage = () => {
 
     // FORM HANDLER
     const handleChange = (product: Product) => {
+        console.log(product)
         setEditProduct(product);
     };
 
@@ -121,8 +204,8 @@ const ProductsPage = () => {
         setCmsProductId(null);
     };
 
-    const productToDelete = products.find(p => p.id === deleteProductId);
-
+    // const productToDelete = products.find(p => p.id === deleteProductId);
+    if (isLoading) return <Loading></Loading>
     return (
         <div className="p-8">
             <div className="flex justify-between items-center mb-6">
@@ -182,7 +265,7 @@ const ProductsPage = () => {
             )}
 
             {/* Delete Confirmation Modal */}
-            {deleteProductId !== null && productToDelete && (
+            {/* {deleteProductId !== null && productToDelete && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
                     <div className="bg-white rounded-xl shadow-lg max-w-sm w-full p-8 relative">
                         <h3 className="text-lg font-bold mb-4 text-red-600">Delete Product</h3>
@@ -208,7 +291,7 @@ const ProductsPage = () => {
                         </div>
                     </div>
                 </div>
-            )}
+            )} */}
         </div>
     );
 };
