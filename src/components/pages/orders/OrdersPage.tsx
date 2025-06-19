@@ -4,27 +4,30 @@ import { Button } from "../../widgets/button";
 import { FaEye, FaEdit, FaSave, FaTimes, FaExchangeAlt, FaArrowRight } from "react-icons/fa";
 import mockOrders from "./mockOrders";
 import { mockProducts } from "../products/mockProducts";
-
+import Loading from "../../../components/widgets/loading";
+import { formatCurrencyVND } from "../products/ProductTable";
+import { useGetOrdersQuery } from "../../../redux/api/ordersApi";
+import { type Order } from "../../../redux/api/ordersApi";
 // Extend OrderProduct to include productId
-type OrderProduct = {
-    productId: number;
-    name: string;
-    quantity: number;
-    price: number;
-};
+// type OrderProduct = {
+//     productId: number;
+//     name: string;
+//     quantity: number;
+//     price: number;
+// };
 
-type Order = {
-    id: string;
-    customer: string;
-    date: string;
-    status: string;
-    total: number;
-    items: number;
-    paymentType: string;
-    deliveryMethod: string;
-    trackingNumber: string;
-    products: OrderProduct[];
-};
+// type Order = {
+//     id: string;
+//     customer: string;
+//     date: string;
+//     status: string;
+//     total: number;
+//     items: number;
+//     paymentType: string;
+//     deliveryMethod: string;
+//     trackingNumber: string;
+//     products: OrderProduct[];
+// };
 
 const paymentTypes = [
     "Credit Card",
@@ -36,28 +39,30 @@ const deliveryMethods = ["Standard Shipping", "Express Shipping", "Pickup"];
 const statusCycle = ["Pending", "Ongoing", "Completed", "Cancelled"];
 
 // Map orders and attach productId from mockProducts
-const ordersWithProducts: Order[] = mockOrders.map((order, idx) => ({
-    ...order,
-    products: [
-        mockProducts[0] && {
-            productId: mockProducts[0].id,
-            name: mockProducts[0].name,
-            quantity: 2,
-            price: mockProducts[0].price,
-        },
-        mockProducts[1] && {
-            productId: mockProducts[1].id,
-            name: mockProducts[1].name,
-            quantity: 1,
-            price: mockProducts[1].price,
-        },
-    ]
-        .filter(Boolean)
-        .slice(0, (idx % 2) + 1) as OrderProduct[],
-}));
+// const ordersWithProducts: Order[] = mockOrders.map((order, idx) => ({
+//     ...order,
+//     products: [
+//         mockProducts[0] && {
+//             productId: mockProducts[0].id,
+//             name: mockProducts[0].name,
+//             quantity: 2,
+//             price: mockProducts[0].price,
+//         },
+//         mockProducts[1] && {
+//             productId: mockProducts[1].id,
+//             name: mockProducts[1].name,
+//             quantity: 1,
+//             price: mockProducts[1].price,
+//         },
+//     ]
+//         .filter(Boolean)
+//         .slice(0, (idx % 2) + 1) as OrderProduct[],
+// }));
+// console.log(ordersWithProducts)
 
 const OrdersPage = () => {
-    const [orders, setOrders] = useState<Order[]>(ordersWithProducts);
+    const { data: orders, isLoading } = useGetOrdersQuery();
+    // const [orders, setOrders] = useState<Order[]>(ordersWithProducts);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [editOrder, setEditOrder] = useState<Order | null>(null);
     const [productDetail, setProductDetail] = useState<number | null>(null);
@@ -92,7 +97,10 @@ const OrdersPage = () => {
     // Helper to get product info by id
     const getProductById = (id: number) =>
         mockProducts.find((p) => p.id === id);
-
+    if (isLoading) {
+        return <Loading></Loading>
+    }
+    console.log(orders)
     return (
         <div className="p-8">
             <h2 className="text-2xl font-bold mb-6">Orders</h2>
@@ -123,25 +131,25 @@ const OrdersPage = () => {
                                             <FaEye className="mr-1" /> {order.id}
                                         </Button>
                                     </td>
-                                    <td className="py-2 px-2">{order.customer}</td>
-                                    <td className="py-2 px-2">{order.date}</td>
-                                    <td className="py-2 px-2">{order.items}</td>
-                                    <td className="py-2 px-2">${order.total.toFixed(2)}</td>
-                                    <td className="py-2 px-2">{order.paymentType || "-"}</td>
-                                    <td className="py-2 px-2">{order.deliveryMethod || "-"}</td>
+                                    <td className="py-2 px-2">{order.user.username}</td>
+                                    <td className="py-2 px-2">{order.order_date}</td>
+                                    <td className="py-2 px-2">{order.details.length}</td>
+                                    <td className="py-2 px-2">{formatCurrencyVND(+(order.total_price))}</td>
+                                    <td className="py-2 px-2">{order.payment_type || "-"}</td>
+                                    <td className="py-2 px-2">{order.delivery.name || "-"}</td>
                                     <td className="py-2 px-2 flex items-center gap-2">
                                         <span
                                             className={
-                                                order.status === "Completed"
+                                                order.productStatus === "Completed"
                                                     ? "text-green-600 font-semibold"
-                                                    : order.status === "Pending"
-                                                    ? "text-yellow-600 font-semibold"
-                                                    : order.status === "Ongoing"
-                                                    ? "text-blue-600 font-semibold"
-                                                    : "text-red-600 font-semibold"
+                                                    : order.productStatus === "Pending"
+                                                        ? "text-yellow-600 font-semibold"
+                                                        : order.productStatus === "Ongoing"
+                                                            ? "text-blue-600 font-semibold"
+                                                            : "text-red-600 font-semibold"
                                             }
                                         >
-                                            {order.status}
+                                            {order.productStatus}
                                         </span>
                                         <Button
                                             size="sm"
@@ -189,39 +197,39 @@ const OrdersPage = () => {
                             <span className="font-semibold">Order ID:</span> {selectedOrder.id}
                         </div>
                         <div className="mb-2 text-sm text-gray-500">
-                            <span className="font-semibold">Customer:</span> {selectedOrder.customer}
+                            <span className="font-semibold">Customer:</span> {selectedOrder.user.username}
                         </div>
                         <div className="mb-2 text-sm text-gray-500">
-                            <span className="font-semibold">Date:</span> {selectedOrder.date}
+                            <span className="font-semibold">Date:</span> {selectedOrder.order_date}
                         </div>
                         <div className="mb-2 text-sm text-gray-500">
-                            <span className="font-semibold">Items:</span> {selectedOrder.items}
+                            <span className="font-semibold">Items:</span> {selectedOrder.details.length}
                         </div>
                         <div className="mb-2 text-sm text-gray-500">
-                            <span className="font-semibold">Total:</span> ${selectedOrder.total.toFixed(2)}
+                            <span className="font-semibold">Total:</span>{formatCurrencyVND(+(selectedOrder.total_price))}
                         </div>
                         <div className="mb-2 text-sm text-gray-500">
-                            <span className="font-semibold">Payment Type:</span> {selectedOrder.paymentType || "-"}
+                            <span className="font-semibold">Payment Type:</span> {selectedOrder.payment_type || "-"}
                         </div>
                         <div className="mb-2 text-sm text-gray-500">
-                            <span className="font-semibold">Delivery Method:</span> {selectedOrder.deliveryMethod || "-"}
+                            <span className="font-semibold">Delivery Method:</span> {selectedOrder.delivery.name || "-"}
                         </div>
                         <div className="mb-2 text-sm text-gray-500">
-                            <span className="font-semibold">Tracking Number:</span> {selectedOrder.trackingNumber || "-"}
+                            <span className="font-semibold">Tracking Number:</span> {"-"}
                         </div>
                         <div className="mb-2 text-sm">
                             <span
                                 className={
-                                    selectedOrder.status === "Completed"
+                                    selectedOrder.productStatus === "Completed"
                                         ? "inline-block px-2 py-1 bg-green-100 text-green-700 rounded text-xs"
-                                        : selectedOrder.status === "Pending"
-                                        ? "inline-block px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs"
-                                        : selectedOrder.status === "Ongoing"
-                                        ? "inline-block px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs"
-                                        : "inline-block px-2 py-1 bg-red-100 text-red-700 rounded text-xs"
+                                        : selectedOrder.productStatus === "Pending"
+                                            ? "inline-block px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs"
+                                            : selectedOrder.productStatus === "Ongoing"
+                                                ? "inline-block px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs"
+                                                : "inline-block px-2 py-1 bg-red-100 text-red-700 rounded text-xs"
                                 }
                             >
-                                {selectedOrder.status}
+                                {selectedOrder.productStatus}
                             </span>
                         </div>
                         <div className="mb-4 mt-4">
@@ -238,36 +246,33 @@ const OrdersPage = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {selectedOrder.products.map((prod, idx) => {
-                                        const productInfo = getProductById(prod.productId);
+                                    {selectedOrder.details.map((prod, idx) => {
                                         return (
                                             <tr key={idx} className="border-b">
-                                                <td className="py-1 px-2">{prod.name}</td>
+                                                <td className="py-1 px-2">{prod.product.product_name}</td>
                                                 <td className="py-1 px-2">
-                                                    {productInfo ? (
-                                                        <img
-                                                            src={productInfo.image}
-                                                            alt={prod.name}
-                                                            className="w-10 h-10 object-cover rounded border"
-                                                        />
-                                                    ) : (
-                                                        <span className="text-gray-400">-</span>
-                                                    )}
+
+                                                    <img
+                                                        src={prod.product.images[0].url}
+                                                        alt={prod.product.product_name}
+                                                        className="w-10 h-10 object-cover rounded border"
+                                                    />
+
                                                 </td>
                                                 <td className="py-1 px-2">{prod.quantity}</td>
-                                                <td className="py-1 px-2">${prod.price.toFixed(2)}</td>
+                                                <td className="py-1 px-2">{formatCurrencyVND(+(prod.price))}</td>
                                                 <td className="py-1 px-2">${(prod.price * prod.quantity).toFixed(2)}</td>
                                                 <td className="py-1 px-2">
-                                                    {productInfo && (
-                                                        <Button
-                                                            size="sm"
-                                                            className="bg-blue-100 text-blue-700 border border-blue-200 hover:bg-blue-200 px-2 py-1 rounded flex items-center gap-1"
-                                                            onClick={() => setProductDetail(prod.productId)}
-                                                        >
-                                                            <FaArrowRight />
-                                                            View
-                                                        </Button>
-                                                    )}
+
+                                                    <Button
+                                                        size="sm"
+                                                        className="bg-blue-100 text-blue-700 border border-blue-200 hover:bg-blue-200 px-2 py-1 rounded flex items-center gap-1"
+                                                        onClick={() => setProductDetail(prod.product.id)}
+                                                    >
+                                                        <FaArrowRight />
+                                                        View
+                                                    </Button>
+
                                                 </td>
                                             </tr>
                                         );
