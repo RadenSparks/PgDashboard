@@ -13,7 +13,7 @@ import Loading from "../../../components/widgets/loading";
 // Main Products Page
 const ProductsPage = () => {
     //Store
-    const [addProduct] = useAddProductMutation();
+    const [addProduct, { isLoading: isAdding }] = useAddProductMutation();
     const [updateProduct] = useUpdateProductMutation();
     const { data: products, isLoading } = useGetProductsQuery();
     //
@@ -205,7 +205,7 @@ const ProductsPage = () => {
     };
 
     // const productToDelete = products.find(p => p.id === deleteProductId);
-    if (isLoading) return <Loading></Loading>
+    if (isAdding || isLoading) return <Loading></Loading>
     return (
         <div className="p-8">
             <div className="flex justify-between items-center mb-6">

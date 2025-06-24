@@ -31,7 +31,7 @@ export interface Product {
   id: number;
   product_name: string;
   description: string;
-  product_price: string; // Nếu là số thì dùng `number`
+  product_price: number;
   slug: string;
   status: 'Available' | 'Unavailable' | string;
   discount: number;
