@@ -48,39 +48,39 @@ const SignIn = () => {
 
         setLoading(true);
 
-        fetch("http://localhost:3000/api/auth/signin", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password }),
+        fetch('http://localhost:3000/api/auth/signin', {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: username, password }),
         })
-          .then(async response => {
-            if (!response.ok) {
-              // Optionally parse error message from backend
-              const errorData = await response.json();
-              throw new Error(errorData.message || "Sign in failed");
-            }
-            // Type the response as SignInResponseDTO
-            return response.json() as Promise<SignInResponseDTO>;
-          })
-          .then((data) => {
-            // Now data is typed as SignInResponseDTO
-            localStorage.setItem('token', data.access_token);
-            localStorage.setItem('username', data.username);
-            localStorage.setItem('role', data.role);
-            navigate('/');
-          })
-          .catch((error: Error) => {
-            toast({
-              title: 'Sign in failed',
-              description: error.message,
-              status: 'error',
-              duration: 5000,
-              isClosable: true,
-              position: 'top',
-            });
-            console.error('Sign in failed:', error.message);
-          })
-          .finally(() => setLoading(false));
+            .then(async response => {
+                if (!response.ok) {
+                    // Optionally parse error message from backend
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || "Sign in failed");
+                }
+                // Type the response as SignInResponseDTO
+                return response.json() as Promise<SignInResponseDTO>;
+            })
+            .then((data) => {
+                // Now data is typed as SignInResponseDTO
+                localStorage.setItem('token', data.access_token);
+                localStorage.setItem('username', data.username);
+                localStorage.setItem('role', data.role);
+                navigate('/');
+            })
+            .catch((error: Error) => {
+                toast({
+                    title: 'Sign in failed',
+                    description: error.message,
+                    status: 'error',
+                    duration: 5000,
+                    isClosable: true,
+                    position: 'top',
+                });
+                console.error('Sign in failed:', error.message);
+            })
+            .finally(() => setLoading(false));
     }
 
     const handleNavigateSignup = () => {

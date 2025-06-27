@@ -52,9 +52,8 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
   navigate,
 }) => (
   <div
-    className={`flex flex-col h-full border-r-2 border-[#dbdbdb] py-4 transition-all duration-300 bg-gradient-to-b from-white via-gray-50 to-gray-200 ${
-      collapsed ? "w-[72px]" : "w-[260px]"
-    }`}
+    className={`flex flex-col h-full border-r-2 border-[#dbdbdb] py-4 transition-all duration-300 bg-gradient-to-b from-white via-gray-50 to-gray-200 ${collapsed ? "w-[72px]" : "w-[260px]"
+      }`}
   >
     {/* Logo Section */}
     <div className="flex items-center justify-center px-3 mb-4">
@@ -141,13 +140,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   // Drawer for mobile
   if (isMobile) {
     return (
-      <Drawer isOpen={!!isOpen} placement="left" onClose={onClose || (() => {})}>
+      <Drawer isOpen={!!isOpen} placement="left" onClose={onClose || (() => { })}>
         <DrawerOverlay />
         <DrawerContent maxW="260px">
           <DrawerCloseButton />
           <SidebarContent
             collapsed={false}
-            setCollapsed={() => {}}
+            setCollapsed={() => { }}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             navigate={navigate}
