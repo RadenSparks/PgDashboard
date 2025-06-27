@@ -1,46 +1,41 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "../../widgets/button";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
-
+import { useGetVouchersQuery, useAddVoucherMutation, useSetStatusVoucherMutation, useUpdateVoucherMutation } from '../../../redux/api/vounchersApi'
+import Loading from "../../../components/widgets/loading";
 type Voucher = {
-  id: number;
+  id?: number;
   code: string;
-  discount: string;
-  expiry: string;
+  startDate: string;
+  endDate: string;
+  maxOrderValue: number;
+  minOrderValue: number;
+  usageLimit: number;
+  discountPercent: number;
   status: "Active" | "Inactive" | "Expired";
 };
 
-const mockVouchers: Voucher[] = [
-  {
-    id: 1,
-    code: "SUMMER25",
-    discount: "25%",
-    expiry: "2025-08-31",
-    status: "Active",
-  },
-  {
-    id: 2,
-    code: "WELCOME10",
-    discount: "10%",
-    expiry: "2025-12-31",
-    status: "Expired",
-  },
-];
 
 const emptyVoucher: Voucher = {
-  id: 0,
   code: "",
-  discount: "",
-  expiry: "",
+  startDate: "",
+  endDate: "",
+  maxOrderValue: 0,
+  minOrderValue: 0,
+  usageLimit: 50,
+  discountPercent: 0,
   status: "Inactive",
 };
 
 const VoucherPage = () => {
-  const [vouchers, setVouchers] = useState<Voucher[]>(mockVouchers);
+  // const [vouchers, setVouchers] = useState<Voucher[]>(mockVouchers);
   const [showModal, setShowModal] = useState(false);
   const [editVoucher, setEditVoucher] = useState<Voucher | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-
+  const { data: vouchers, isLoading: isLoadingVoucher } = useGetVouchersQuery();
+  const [addVoucher] = useAddVoucherMutation()
+  const [updateVoucher] = useUpdateVoucherMutation()
+  const [setStatusVoucher] = useSetStatusVoucherMutation()
   // Modal outside click close
   const modalRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -56,7 +51,7 @@ const VoucherPage = () => {
   }, [showModal]);
 
   const handleAdd = () => {
-    setEditVoucher({ ...emptyVoucher, id: Date.now() });
+    setEditVoucher({ ...emptyVoucher });
     setShowModal(true);
   };
 
@@ -74,7 +69,7 @@ const VoucherPage = () => {
 
   const confirmDelete = () => {
     if (deleteId !== null) {
-      setVouchers(vouchers.filter(v => v.id !== deleteId));
+      // setVouchers(vouchers.filter(v => v.id !== deleteId));
       setDeleteId(null);
     }
   };
@@ -85,11 +80,12 @@ const VoucherPage = () => {
     if (!editVoucher) return;
     if (editVoucher.id && vouchers.some(v => v.id === editVoucher.id)) {
       // Update
-      setVouchers(vouchers.map(v => (v.id === editVoucher.id ? editVoucher : v)));
+      updateVoucher(editVoucher)
     } else {
       // Add
-      setVouchers([{ ...editVoucher, id: Date.now() }, ...vouchers]);
+      addVoucher(editVoucher)
     }
+
     setShowModal(false);
     setEditVoucher(null);
   };
@@ -100,18 +96,12 @@ const VoucherPage = () => {
   };
 
   const handleStatusToggle = (id: number) => {
-    setVouchers(vouchers =>
-      vouchers.map(v =>
-        v.id === id
-          ? {
-              ...v,
-              status: v.status === "Active" ? "Inactive" : "Active",
-            }
-          : v
-      )
-    );
+    const voucher = vouchers?.find(v => v.id === id)
+    const status = voucher?.status === "active" ? "inactive" : "active"
+    console.log(voucher, status)
+    setStatusVoucher({ id, status })
   };
-
+  if (isLoadingVoucher) { return (<Loading></Loading>) }
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-6">
@@ -130,7 +120,7 @@ const VoucherPage = () => {
             <thead>
               <tr className="text-left border-b">
                 <th className="py-2 px-2">Code</th>
-                <th className="py-2 px-2">Discount</th>
+                <th className="py-2 px-2">discountPercent</th>
                 <th className="py-2 px-2">Expiry</th>
                 <th className="py-2 px-2">Status</th>
                 <th className="py-2 px-2">Actions</th>
@@ -140,16 +130,16 @@ const VoucherPage = () => {
               {vouchers.map(voucher => (
                 <tr key={voucher.id} className="border-b hover:bg-gray-50">
                   <td className="py-2 px-2">{voucher.code}</td>
-                  <td className="py-2 px-2">{voucher.discount}</td>
-                  <td className="py-2 px-2">{voucher.expiry}</td>
+                  <td className="py-2 px-2">{voucher.discountPercent}</td>
+                  <td className="py-2 px-2">{voucher.endDate}</td>
                   <td className="py-2 px-2">
                     <span
                       className={
-                        voucher.status === "Active"
+                        voucher.status === "active"
                           ? "text-green-600 font-semibold"
-                          : voucher.status === "Inactive"
-                          ? "text-yellow-600 font-semibold"
-                          : "text-red-600 font-semibold"
+                          : voucher.status === "inactive"
+                            ? "text-yellow-600 font-semibold"
+                            : "text-red-600 font-semibold"
                       }
                     >
                       {voucher.status}
@@ -235,23 +225,66 @@ const VoucherPage = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Discount</label>
+                <label className="block text-sm font-medium mb-1">discountPercent</label>
                 <input
                   className="w-full border rounded px-3 py-2"
-                  value={editVoucher.discount}
-                  onChange={e => handleChange("discount", e.target.value)}
+                  value={editVoucher.usageLimit}
+                  onChange={e => handleChange("usageLimit", e.target.value)}
                   required
+
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Expiry</label>
+                <label className="block text-sm font-medium mb-1">discountPercent</label>
                 <input
                   className="w-full border rounded px-3 py-2"
-                  type="date"
-                  value={editVoucher.expiry}
-                  onChange={e => handleChange("expiry", e.target.value)}
+                  value={editVoucher.discountPercent}
+                  onChange={e => handleChange("discountPercent", e.target.value)}
                   required
+
                 />
+              </div>
+              <div className="flex justify-between">
+                <div>
+                  <label className="block text-sm font-medium mb-1">discountPercent</label>
+                  <input
+                    className="w-full border rounded px-3 py-2"
+                    value={editVoucher.minOrderValue}
+                    onChange={e => handleChange("minOrderValue", e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">discountPercent</label>
+                  <input
+                    className="w-full border rounded px-3 py-2"
+                    value={editVoucher.maxOrderValue}
+                    onChange={e => handleChange("maxOrderValue", e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="flex justify-between">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Expiry</label>
+                  <input
+                    className="w-full border rounded px-3 py-2"
+                    type="date"
+                    value={editVoucher.startDate}
+                    onChange={e => handleChange("startDate", e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Expiry</label>
+                  <input
+                    className="w-full border rounded px-3 py-2"
+                    type="date"
+                    value={editVoucher.endDate}
+                    onChange={e => handleChange("endDate", e.target.value)}
+                    required
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Status</label>
@@ -260,9 +293,9 @@ const VoucherPage = () => {
                   value={editVoucher.status}
                   onChange={e => handleChange("status", e.target.value)}
                 >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                  <option value="Expired">Expired</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="expired">Expired</option>
                 </select>
               </div>
               <div className="flex justify-end gap-2">

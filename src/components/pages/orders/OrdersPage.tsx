@@ -6,7 +6,7 @@ import mockOrders from "./mockOrders";
 import { mockProducts } from "../products/mockProducts";
 import Loading from "../../../components/widgets/loading";
 import { formatCurrencyVND } from "../products/ProductTable";
-import { useGetOrdersQuery } from "../../../redux/api/ordersApi";
+import { useGetOrdersQuery, useUpdateStatusMutation } from "../../../redux/api/ordersApi";
 import { type Order } from "../../../redux/api/ordersApi";
 // Extend OrderProduct to include productId
 // type OrderProduct = {
@@ -36,7 +36,7 @@ const paymentTypes = [
     "E-Wallet",
 ];
 const deliveryMethods = ["Standard Shipping", "Express Shipping", "Pickup"];
-const statusCycle = ["Pending", "Ongoing", "Completed", "Cancelled"];
+const statusCycle = ["pending", "on going", "completed", "cancelled"];
 
 // Map orders and attach productId from mockProducts
 // const ordersWithProducts: Order[] = mockOrders.map((order, idx) => ({
@@ -59,8 +59,8 @@ const statusCycle = ["Pending", "Ongoing", "Completed", "Cancelled"];
 //         .slice(0, (idx % 2) + 1) as OrderProduct[],
 // }));
 // console.log(ordersWithProducts)
-
 const OrdersPage = () => {
+    const [updateStatus] = useUpdateStatusMutation()
     const { data: orders, isLoading } = useGetOrdersQuery();
     // const [orders, setOrders] = useState<Order[]>(ordersWithProducts);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -84,14 +84,13 @@ const OrdersPage = () => {
     };
 
     const handleToggleStatus = (orderId: string) => {
-        setOrders((prev) =>
-            prev.map((order) => {
-                if (order.id !== orderId) return order;
-                const currentIdx = statusCycle.indexOf(order.status);
-                const nextStatus = statusCycle[(currentIdx + 1) % statusCycle.length];
-                return { ...order, status: nextStatus };
-            })
-        );
+        const result = orders?.find(order => order.id === orderId)
+        const currentIdx = statusCycle.indexOf(result.productStatus);
+        const nextStatus = statusCycle[(currentIdx + 1) % statusCycle.length];
+        console.log(nextStatus)
+        console.log("result", result)
+        updateStatus({ id: orderId, productStatus: nextStatus })
+
     };
 
     // Helper to get product info by id
@@ -140,11 +139,11 @@ const OrdersPage = () => {
                                     <td className="py-2 px-2 flex items-center gap-2">
                                         <span
                                             className={
-                                                order.productStatus === "Completed"
+                                                order.productStatus === "completed"
                                                     ? "text-green-600 font-semibold"
-                                                    : order.productStatus === "Pending"
+                                                    : order.productStatus === "pending"
                                                         ? "text-yellow-600 font-semibold"
-                                                        : order.productStatus === "Ongoing"
+                                                        : order.productStatus === "on_going"
                                                             ? "text-blue-600 font-semibold"
                                                             : "text-red-600 font-semibold"
                                             }
