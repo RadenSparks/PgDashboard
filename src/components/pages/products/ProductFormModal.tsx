@@ -2,21 +2,12 @@ import { useEffect, useRef } from "react";
 import type { Product, NamedImage } from "./types";
 import { Button } from "../../widgets/button";
 import GallerySlider from "./GallerySlider";
-// import {
-//   genreTags,
-//   // playerTags,
-//   durationTags,
-// } from "../tags/availableTags";
-import type {
-  Tag,
-  // PlayerTag,
-  // DurationTag,
-} from "../tags/availableTags";
-// import { initialCategories, type Category } from "../categories/categoriesData";
+import type { Tag } from "../tags/availableTags";
 import { useGetCategoriesQuery } from "../../../redux/api/categoryApi";
 import Loading from "../../../components/widgets/loading";
 import type { Category } from "../categories/categoriesData";
 import { useGetTagsQuery } from "../../../redux/api/tagsApi";
+
 type ProductFormModalProps = {
   product: Product;
   onChange: (product: Product) => void;
@@ -32,12 +23,13 @@ const ProductFormModal = ({
   onClose,
   mode,
 }: ProductFormModalProps) => {
-  const { data: initialCategories, isLoading: loadCat } = useGetCategoriesQuery()
+  const { data: initialCategories, isLoading: loadCat } = useGetCategoriesQuery();
   const { data: dataTags, isLoading: loadTags } = useGetTagsQuery();
 
   const genreTags = dataTags?.filter(c => c.type === 'genre') ?? [];
   const playerTags = dataTags?.filter(c => c.type === 'players') ?? [];
   const durationTags = dataTags?.filter(c => c.type === 'duration') ?? [];
+
   // Helper for updating images array
   const updateImage = (idx: number, field: keyof NamedImage, value: string) => {
     const newImages = [...product.images];
@@ -45,10 +37,9 @@ const ProductFormModal = ({
     onChange({ ...product, images: newImages });
   };
   const handleDeleteImage = (id: number) => {
-    console.log(id)
     const updatedImages = [...product.images];
     const data = updatedImages.filter(f => !(f.id === id));
-    onChange({ ...product, images: data, deleteImages: [...product.deleteImages, id] });
+    onChange({ ...product, images: data, deleteImages: [...(product.deleteImages ?? []), id] });
   };
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -64,39 +55,45 @@ const ProductFormModal = ({
 
   // Tag assignment handlers
   // Genres: multi-select, Players/Duration: single-select
-  const handleGenreChange = (selected: string[]) => {
+
+  // Ensure product.tags is always an array of numbers
+  const tagsArray: number[] = Array.isArray(product.tags)
+    ? product.tags.map(Number)
+    : [];
+
+  const handleGenreChange = (selected: number[]) => {
     // Remove all genre tags, then add selected
-    let tags = product.tags ? [...product.tags] : [];
-    tags = tags.filter((t) => !genreTags.some((g) => g.name === t));
+    let tags = tagsArray.filter((t) => !genreTags.some((g) => g.id === t));
     tags = [...tags, ...selected];
     onChange({ ...product, tags });
   };
 
+  const selectedGenres = genreTags
+    .filter((g) => tagsArray.includes(g.id))
+    .map((g) => g.id);
+
+  const selectedPlayers =
+    playerTags.find((p) => tagsArray.includes(p.id))?.id ?? "";
+
+  const selectedDuration =
+    durationTags.find((d) => tagsArray.includes(d.id))?.id ?? "";
+
   const handleSingleTagChange = (
     type: "players" | "duration",
-    value: string
+    value: number
   ) => {
-    let tags = product.tags ? [...product.tags] : [];
+    let tags = [...tagsArray];
     if (type === "players") {
-      tags = tags.filter((t) => !playerTags.some((p) => p.name === t));
+      tags = tags.filter((t) => !playerTags.some((p) => p.id === t));
       if (value) tags.push(value);
     } else if (type === "duration") {
-      tags = tags.filter((t) => !durationTags.some((d) => d.duration === t));
+      tags = tags.filter((t) => !durationTags.some((d) => d.id === t));
       if (value) tags.push(value);
     }
-    console.log(tags)
     onChange({ ...product, tags });
   };
 
-  // Get current selected tags for each type
-  const selectedGenres = product.tags
-    ? genreTags.filter((g) => product.tags.includes(g.name)).map((g) => g.name)
-    : [];
-  const selectedPlayers =
-    product.tags?.find((t) => playerTags.some((p) => p.name === t)) || "";
-  const selectedDuration =
-    product.tags?.find((t) => durationTags.some((d) => d.name === t)) || "";
-  if (loadCat || loadTags) { return <Loading></Loading> }
+  if (loadCat || loadTags) { return <Loading></Loading>; }
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 overflow-y-auto">
       <div
@@ -167,13 +164,18 @@ const ProductFormModal = ({
                   <select
                     className="w-full border rounded px-3 py-2"
                     name="category"
-                    value={Number(product.category_ID.id)}
-                    onChange={e => onChange({ ...product, category_ID: e.target.value })}
+                    value={product.category_ID && typeof product.category_ID === "object" ? product.category_ID.id : ""}
+                    onChange={e => {
+                      const selectedCat = (initialCategories || []).find(cat => cat.id === Number(e.target.value));
+                      if (selectedCat) {
+                        onChange({ ...product, category_ID: selectedCat });
+                      }
+                    }}
+                    required
                   >
                     <option value="">Select category</option>
                     {(initialCategories || []).map((cat) => (
-                      <option key={cat.id} value={cat.id} >
-
+                      <option key={cat.id} value={cat.id}>
                         {cat.name}
                       </option>
                     ))}
@@ -190,7 +192,7 @@ const ProductFormModal = ({
                       value={selectedGenres}
                       onChange={e =>
                         handleGenreChange(
-                          Array.from(e.target.selectedOptions).map(opt => opt.value)
+                          Array.from(e.target.selectedOptions).map(opt => Number(opt.value))
                         )
                       }
                     >
@@ -210,7 +212,7 @@ const ProductFormModal = ({
                     <select
                       className="w-full border rounded px-3 py-2"
                       value={selectedPlayers}
-                      onChange={e => handleSingleTagChange("players", e.target.value)}
+                      onChange={e => handleSingleTagChange("players", Number(e.target.value))}
                     >
                       <option value="">Select players</option>
                       {playerTags.map((tag: Tag) => (
@@ -226,11 +228,11 @@ const ProductFormModal = ({
                     <select
                       className="w-full border rounded px-3 py-2"
                       value={selectedDuration}
-                      onChange={e => handleSingleTagChange("duration", e.target.value)}
+                      onChange={e => handleSingleTagChange("duration", Number(e.target.value))}
                     >
                       <option value="">Select duration</option>
                       {durationTags.map((tag: Tag) => (
-                        <option key={tag.id} value={tag.name}>
+                        <option key={tag.id} value={tag.id}>
                           {tag.name}
                         </option>
                       ))}
@@ -344,47 +346,6 @@ const ProductFormModal = ({
                     }}
                   />
                 </label>
-                {/* <div>
-                  <span className="block text-xs font-medium text-gray-600 mb-1">Gallery Images</span>
-                  <div className="flex flex-col gap-2">
-                    {product.images.map((imgObj, idx) => (
-                      <div key={idx} className="flex items-center gap-2">
-                        <input
-                          className="w-full border rounded px-3 py-2"
-                          type="text"
-                          value={imgObj.url}
-                          placeholder={`Gallery Image URL #${idx + 1}`}
-                          onChange={e => updateImage(idx, "url", e.target.value)}
-                        />
-                        <input
-                          className="border rounded px-2 py-2 w-32"
-                          type="text"
-                          value={imgObj.name}
-                          placeholder="Image Name"
-                          onChange={e => updateImage(idx, "name", e.target.value)}
-                        />
-                        <button
-                          type="button"
-                          className="text-red-500 hover:text-red-700 text-lg"
-                          onClick={() => {
-                            const newImages = product.images.filter((_, i) => i !== idx);
-                            onChange({ ...product, images: newImages });
-                          }}
-                          aria-label="Remove image"
-                        >
-                          &times;
-                        </button>
-                      </div>
-                    ))}
-                    <button
-                      type="button"
-                      className="mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-xs font-semibold w-fit"
-                      onClick={() => onChange({ ...product, images: [...product.images, { url: "", name: "" }] })}
-                    >
-                      + Add Gallery Image
-                    </button>
-                  </div>
-                </div> */}
                 {/* Gallery Preview */}
                 <div className="flex flex-col gap-2 mt-2">
                   <div>
@@ -421,7 +382,6 @@ const ProductFormModal = ({
                       ))}
                     </div>
                   </div>
-
                   {/* Slider Carousel */}
                   <GallerySlider
                     images={[
@@ -469,7 +429,8 @@ const ProductFormModal = ({
                     />
                   </label>
                   <label className="block">
-                    <span className="block text-xs font-medium text-gray-600 mb-1">Image</span>                    <input
+                    <span className="block text-xs font-medium text-gray-600 mb-1">Image</span>
+                    <input
                       type="file"
                       accept="image/*"
                       name="featuredImage[]"
