@@ -18,6 +18,7 @@ import { useState, useRef } from 'react';
 import { BsEye, BsEyeSlash } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
 import type { SignInResponseDTO } from '@/entity/dto';
+import api from '../../../api/axios-client';
 
 const SignIn = () => {
     const navigate = useNavigate();
@@ -31,13 +32,13 @@ const SignIn = () => {
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
-        const username = formData.get('username') as string;
+        const email = formData.get('email') as string;
         const password = formData.get('password') as string;
 
-        if (!username || !password) {
+        if (!email || !password) {
             toast({
                 title: 'Missing fields',
-                description: 'Please enter both username and password.',
+                description: 'Please enter both email and password.',
                 status: 'warning',
                 duration: 4000,
                 isClosable: true,
@@ -48,37 +49,23 @@ const SignIn = () => {
 
         setLoading(true);
 
-        fetch('http://localhost:3000/api/auth/signin', {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: username, password }),
-        })
-            .then(async response => {
-                if (!response.ok) {
-                    // Optionally parse error message from backend
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || "Sign in failed");
-                }
-                // Type the response as SignInResponseDTO
-                return response.json() as Promise<SignInResponseDTO>;
-            })
-            .then((data) => {
-                // Now data is typed as SignInResponseDTO
+        api.post<SignInResponseDTO>('/api/auth/signin', { email, password })
+            .then(({ data }) => {
                 localStorage.setItem('token', data.access_token);
                 localStorage.setItem('username', data.username);
                 localStorage.setItem('role', data.role);
                 navigate('/');
             })
-            .catch((error: Error) => {
+            .catch((error) => {
                 toast({
                     title: 'Sign in failed',
-                    description: error.message,
+                    description: error.response?.data?.message || error.message,
                     status: 'error',
                     duration: 5000,
                     isClosable: true,
                     position: 'top',
                 });
-                console.error('Sign in failed:', error.message);
+                console.error('Sign in failed:', error.response?.data || error.message);
             })
             .finally(() => setLoading(false));
     }
@@ -88,7 +75,7 @@ const SignIn = () => {
             containerRef.current.classList.add('fade-out');
             setTimeout(() => {
                 navigate('/signup');
-            }, 300); // duration matches the CSS transition
+            }, 300);
         } else {
             navigate('/signup');
         }
@@ -113,9 +100,9 @@ const SignIn = () => {
                         <Heading fontSize="2xl" textAlign="center" color="blue.700" mb={2}>
                             Sign in to your account
                         </Heading>
-                        <FormControl id="username" isRequired>
-                            <FormLabel>Username</FormLabel>
-                            <Input type="text" name="username" placeholder="Enter your username" size="lg" />
+                        <FormControl id="email" isRequired>
+                            <FormLabel>Email</FormLabel>
+                            <Input type="email" name="email" placeholder="Enter your email" size="lg" />
                         </FormControl>
                         <FormControl id="password" isRequired>
                             <FormLabel>Password</FormLabel>

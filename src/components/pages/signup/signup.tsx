@@ -35,9 +35,9 @@ const SignUp = () => {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
         const username = formData.get('username') as string;
+        const email = formData.get('email') as string;
         const password = formData.get('password') as string;
         const confirmPassword = formData.get('confirmPassword') as string;
-        const email = formData.get('email') as string;
 
         if (!username || !email || !password || !confirmPassword) {
             toast({
@@ -64,7 +64,7 @@ const SignUp = () => {
         }
 
         setLoading(true);
-        api.post('/auth/signup', { username, password, email })
+        api.post('/api/auth/signup', { username, email, password })
             .then(() => {
                 toast({
                     title: "Account created!",
