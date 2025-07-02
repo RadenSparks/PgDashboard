@@ -1,5 +1,6 @@
 import React from 'react';
 import LiveMarkdownPreview from './LiveMarkdownPreview';
+import BlogPostPreview from './BlogPostPreview';
 
 interface Props {
   form: any;
@@ -30,7 +31,7 @@ const PostFormSidebar: React.FC<Props> = ({
     <div className="p-6 pb-2">
       <h4 className="font-bold mb-2 text-blue-700">Live Preview</h4>
       <div className="rounded-xl overflow-hidden border shadow bg-white" style={{ background: previewBgColor }}>
-        <LiveMarkdownPreview
+        <BlogPostPreview
           content={form.content || ''}
           title={form.name}
           description={form.description}
@@ -44,6 +45,11 @@ const PostFormSidebar: React.FC<Props> = ({
           fontSize={fontSize}
           textColor={previewTextColor}
           bgColor={previewBgColor}
+          meta_title={form.meta_title}
+          meta_description={form.meta_description}
+          meta_keyword={form.meta_keyword}
+          canonical={form.canonical}
+          publish={!!form.publish}
         />
       </div>
     </div>

@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { axiosBaseQuery } from './axiosBaseQuery';
 
 export interface Post {
   id: number;
@@ -14,53 +15,46 @@ export interface Post {
   publish?: boolean;
   created_at?: string;
   updated_at?: string;
-  catalogue?: { id: number; name: string }; // <-- add this
-  catalogueId?: number; // <-- for form usage
+  catalogueId?: number;
+  catalogue?: any;
+  galleryImages?: string[];
 }
 
 export const postsApi = createApi({
   reducerPath: 'postsApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: 'http://localhost:3000',
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token'); // or your token key
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['Posts'],
+  baseQuery: axiosBaseQuery({ baseUrl: 'http://localhost:3000' }),
+  tagTypes: ['Post'],
   endpoints: (builder) => ({
     getPosts: builder.query<Post[], void>({
-      query: () => '/posts',
-      providesTags: ['Posts'],
+      query: () => ({ url: '/posts', method: 'GET' }),
+      providesTags: ['Post'],
     }),
     getPost: builder.query<Post, number>({
-      query: (id) => `/posts/${id}`,
+      query: (id) => ({ url: `/posts/${id}`, method: 'GET' }),
+      providesTags: (result, error, id) => [{ type: 'Post', id }],
     }),
     createPost: builder.mutation<Post, Partial<Post>>({
       query: (body) => ({
         url: '/posts',
         method: 'POST',
-        body,
+        data: body,
       }),
-      invalidatesTags: ['Posts'],
+      invalidatesTags: ['Post'],
     }),
     updatePost: builder.mutation<Post, { id: number; body: Partial<Post> }>({
       query: ({ id, body }) => ({
         url: `/posts/${id}`,
         method: 'PATCH',
-        body,
+        data: body,
       }),
-      invalidatesTags: ['Posts'],
+      invalidatesTags: ['Post'],
     }),
     deletePost: builder.mutation<void, number>({
       query: (id) => ({
         url: `/posts/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Posts'],
+      invalidatesTags: ['Post'],
     }),
   }),
 });

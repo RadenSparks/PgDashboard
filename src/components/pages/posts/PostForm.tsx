@@ -3,6 +3,7 @@ import { useCreatePostMutation, useUpdatePostMutation, type Post } from '../../.
 import api from '../../../api/axios-client';
 import PostFormToolbar from './PostFormToolbar';
 import PostFormSidebar from './PostFormSidebar';
+import { useToast } from '@chakra-ui/react'; // or your toast lib
 
 interface Props {
   initialData?: Partial<Post>;
@@ -36,6 +37,10 @@ const BG_COLORS = [
   '#ffffff', '#f8fafc', '#f1f5f9', '#e3f2fd', '#fffde7', '#fce4ec', '#f3e5f5', '#e8f5e9',
 ];
 
+function isCloudinaryUrl(url: string) {
+  return /^https:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\//.test(url);
+}
+
 const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
   const [form, setForm] = useState<Partial<Post>>(initialData);
   const [catalogues, setCatalogues] = useState<Catalogue[]>([]);
@@ -48,9 +53,8 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showBgColorPicker, setShowBgColorPicker] = useState(false);
-
-  // Gallery images state for the post
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const toast = useToast();
 
   useEffect(() => {
     api.get('/post-catalogues').then(res => setCatalogues(res.data));
@@ -58,7 +62,6 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
 
   useEffect(() => {
     setForm(initialData);
-    // If editing, load gallery images from initialData if available
     if (initialData && Array.isArray(initialData.galleryImages)) {
       setGalleryImages(initialData.galleryImages);
     } else {
@@ -66,7 +69,7 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
     }
   }, [initialData]);
 
-  // Helper to insert markdown at cursor, wrapping selection if present
+  // Markdown helpers
   const insertMarkdown = (before: string, after: string = '', placeholder: string = '') => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -90,30 +93,15 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
   };
 
   // Toolbar actions
-  const handleInsertHeading = (level: number) => {
-    insertMarkdown('\n' + '#'.repeat(level) + ' ', '');
-  };
-
-  const handleInsertBold = () => {
-    insertMarkdown('**', '**', 'bold text');
-  };
-
-  const handleInsertItalic = () => {
-    insertMarkdown('_', '_', 'italic text');
-  };
-
-  const handleInsertUnderline = () => {
-    insertMarkdown('<u>', '</u>', 'underlined text');
-  };
-
+  const handleInsertHeading = (level: number) => insertMarkdown('\n' + '#'.repeat(level) + ' ', '');
+  const handleInsertBold = () => insertMarkdown('**', '**', 'bold text');
+  const handleInsertItalic = () => insertMarkdown('_', '_', 'italic text');
+  const handleInsertUnderline = () => insertMarkdown('<u>', '</u>', 'underlined text');
   const handleInsertImage = () => {
     const url = prompt('Enter image URL:');
     if (url) insertMarkdown(`\n\n![alt text](${url})\n\n`);
   };
-
-  const handleInsertHr = () => {
-    insertMarkdown('\n\n---\n\n');
-  };
+  const handleInsertHr = () => insertMarkdown('\n\n---\n\n');
 
   // Gallery image upload handler
   const handleGalleryImageAdd = (files: FileList) => {
@@ -131,7 +119,6 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
     });
   };
 
-  // Undo support (Ctrl+Z is handled natively by textarea, but we can ensure focus)
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
       setTimeout(() => {
@@ -144,12 +131,27 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const url = e.target.value.trim();
+    if (url && !isCloudinaryUrl(url)) {
+      toast({
+        title: 'Invalid Image URL',
+        description: 'Please use a valid Cloudinary image URL.',
+        status: 'error',
+        duration: 4000,
+        isClosable: true,
+      });
+      return;
+    }
+    setForm(f => ({ ...f, image: url }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const payload = {
       ...form,
       catalogueId: form.catalogueId || form.catalogue?.id,
-      galleryImages, // Save gallery images with the post
+      galleryImages,
     };
     if (form.id) {
       await updatePost({ id: form.id, body: payload });
@@ -161,7 +163,7 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="relative w-full max-w-6xl mx-auto bg-transparent">
+      <div className="relative w-full max-w-[1600px] mx-auto bg-transparent">
         {/* Collapse/Close Button */}
         <button
           className="absolute top-4 right-4 z-10 bg-white border border-gray-200 rounded-full shadow p-2 hover:bg-gray-100 transition"
@@ -174,14 +176,14 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
         {/* Main Form Box */}
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col md:flex-row gap-8 h-[80vh] w-full min-w-[900px] bg-white rounded-2xl shadow-2xl p-0 overflow-hidden"
+          className="flex flex-col md:flex-row gap-8 h-[95vh] w-full min-w-[1200px] bg-white rounded-2xl shadow-2xl p-0 overflow-hidden"
           style={{ minHeight: 0 }}
         >
           {/* Info & Editor Section */}
-          <div className="flex-[2] min-w-[380px] max-w-[700px] flex flex-col h-full">
+          <div className="flex-[2] min-w-[600px] max-w-[1100px] flex flex-col h-full">
             {/* Post Info */}
-            <div className="p-6 border-b bg-gray-50">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-8 border-b bg-gray-50">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block font-semibold mb-1">Title</label>
                   <input
@@ -189,7 +191,7 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
                     value={form.name || ''}
                     onChange={handleChange}
                     placeholder="Title"
-                    className="w-full border rounded p-2"
+                    className="w-full border rounded p-3 text-lg"
                     required
                   />
                 </div>
@@ -200,7 +202,7 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
                     value={form.canonical || ''}
                     onChange={handleChange}
                     placeholder="Canonical"
-                    className="w-full border rounded p-2"
+                    className="w-full border rounded p-3 text-lg"
                     required
                   />
                 </div>
@@ -210,7 +212,7 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
                     name="catalogueId"
                     value={form.catalogueId || form.catalogue?.id || ''}
                     onChange={handleChange}
-                    className="w-full border rounded p-2"
+                    className="w-full border rounded p-3 text-lg"
                     required
                   >
                     <option value="">Select Catalogue</option>
@@ -227,11 +229,11 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
                     value={form.order || ''}
                     onChange={handleChange}
                     placeholder="Order"
-                    className="w-full border rounded p-2"
+                    className="w-full border rounded p-3 text-lg"
                   />
                 </div>
               </div>
-              <div className="mt-4">
+              <div className="mt-6">
                 <label className="block font-semibold mb-1">Description</label>
                 <textarea
                   name="description"
@@ -239,97 +241,136 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
                   onChange={handleChange}
                   placeholder="Description"
                   rows={2}
-                  className="w-full border rounded p-2"
+                  className="w-full border rounded p-3 text-lg"
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
                 <input
                   name="meta_title"
                   value={form.meta_title || ''}
                   onChange={handleChange}
                   placeholder="Meta Title"
-                  className="border rounded p-2"
+                  className="border rounded p-3 text-lg"
                 />
                 <input
                   name="meta_description"
                   value={form.meta_description || ''}
                   onChange={handleChange}
                   placeholder="Meta Description"
-                  className="border rounded p-2"
+                  className="border rounded p-3 text-lg"
                 />
                 <input
                   name="meta_keyword"
                   value={form.meta_keyword || ''}
                   onChange={handleChange}
                   placeholder="Meta Keyword"
-                  className="border rounded p-2"
+                  className="border rounded p-3 text-lg"
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-6">
                 <input
                   name="image"
                   value={form.image || ''}
-                  onChange={handleChange}
-                  placeholder="Image URL"
-                  className="border rounded p-2"
+                  onChange={handleImageChange}
+                  placeholder="Cloudinary image URL"
+                  className="border rounded p-2 w-full"
                 />
               </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Only Cloudinary URLs are accepted (e.g. https://res.cloudinary.com/...)
+              </p>
             </div>
-            {/* Toolbar */}
-            <PostFormToolbar
-              onHeading={handleInsertHeading}
-              onBold={handleInsertBold}
-              onItalic={handleInsertItalic}
-              onUnderline={handleInsertUnderline}
-              onImage={handleInsertImage}
-              onHr={handleInsertHr}
-              previewTextColor={previewTextColor}
-              previewBgColor={previewBgColor}
-              showColorPicker={showColorPicker}
-              showBgColorPicker={showBgColorPicker}
-              setShowColorPicker={setShowColorPicker}
-              setShowBgColorPicker={setShowBgColorPicker}
-              setPreviewTextColor={setPreviewTextColor}
-              setPreviewBgColor={setPreviewBgColor}
-              COLORS={COLORS}
-              BG_COLORS={BG_COLORS}
-              fontFamily={fontFamily}
-              setFontFamily={setFontFamily}
-              fontSize={fontSize}
-              setFontSize={setFontSize}
-              FONT_FAMILIES={FONT_FAMILIES}
-              FONT_SIZES={FONT_SIZES}
-              publish={!!form.publish}
-              setPublish={v => setForm({ ...form, publish: v })}
-              // Gallery integration
-              onImageAdd={handleGalleryImageAdd}
-              images={galleryImages}
-              onGalleryImageInsert={url => {
-                // Insert markdown for image at cursor
-                insertMarkdown(`\n\n![alt text](${url})\n\n`);
-              }}
-            />
             {/* Markdown Editor */}
-            <div className="flex-1 bg-gray-50 px-6 py-4 overflow-y-auto">
-              <textarea
-                ref={textareaRef}
-                name="content"
-                value={form.content || ''}
-                onChange={handleChange}
-                onKeyDown={handleKeyDown}
-                placeholder="Write your post in Markdown..."
-                rows={12}
-                className="w-full border rounded p-2"
-                required
-                style={{
-                  fontFamily,
-                  fontSize: fontSize === 'text-base' ? '1rem' : fontSize === 'text-lg' ? '1.125rem' : '1.5rem',
-                }}
-              />
+            <div className="flex-1 bg-gray-50 px-0 py-0 overflow-y-auto flex flex-col">
+              {/* Sticky Toolbar */}
+              <div className="sticky top-0 z-10 bg-white border-b">
+                <PostFormToolbar
+                  onHeading={handleInsertHeading}
+                  onBold={handleInsertBold}
+                  onItalic={handleInsertItalic}
+                  onUnderline={handleInsertUnderline}
+                  onImage={handleInsertImage}
+                  onHr={handleInsertHr}
+                  previewTextColor={previewTextColor}
+                  previewBgColor={previewBgColor}
+                  showColorPicker={showColorPicker}
+                  showBgColorPicker={showBgColorPicker}
+                  setShowColorPicker={setShowColorPicker}
+                  setShowBgColorPicker={setShowBgColorPicker}
+                  setPreviewTextColor={setPreviewTextColor}
+                  setPreviewBgColor={setPreviewBgColor}
+                  COLORS={COLORS}
+                  BG_COLORS={BG_COLORS}
+                  fontFamily={fontFamily}
+                  setFontFamily={setFontFamily}
+                  fontSize={fontSize}
+                  setFontSize={setFontSize}
+                  FONT_FAMILIES={FONT_FAMILIES}
+                  FONT_SIZES={FONT_SIZES}
+                  publish={!!form.publish}
+                  setPublish={v => setForm({ ...form, publish: v })}
+                  onImageAdd={handleGalleryImageAdd}
+                  images={galleryImages}
+                  onGalleryImageInsert={url => {
+                    insertMarkdown(`\n\n![alt text](${url})\n\n`);
+                  }}
+                />
+              </div>
+              {/* Editor */}
+              <div className="flex-1 flex flex-col">
+                <textarea
+                  ref={textareaRef}
+                  name="content"
+                  value={form.content || ''}
+                  onChange={handleChange}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Write your post in Markdown..."
+                  className="w-full flex-1 min-h-[700px] max-h-[1200px] border-none outline-none rounded-b-xl p-10 font-mono text-2xl bg-white shadow-inner focus:ring-2 focus:ring-blue-400 transition-all resize-vertical"
+                  style={{
+                    fontFamily,
+                    fontSize: fontSize === 'text-base' ? '1.25rem' : fontSize === 'text-lg' ? '1.5rem' : '2rem',
+                    lineHeight: 1.8,
+                  }}
+                  required
+                />
+                {/* Gallery below editor */}
+                {galleryImages.length > 0 && (
+                  <div className="w-full mt-4">
+                    <div className="flex items-center gap-3 overflow-x-auto pb-2 border rounded bg-gray-50 px-3" style={{ maxHeight: 90 }}>
+                      {galleryImages.map((img, idx) => (
+                        <div key={idx} className="relative group flex-shrink-0">
+                          <img
+                            src={img}
+                            alt={`Gallery ${idx + 1}`}
+                            className="w-20 h-20 object-cover rounded border"
+                          />
+                          <button
+                            type="button"
+                            className="absolute top-0 right-0 bg-white bg-opacity-80 rounded-full p-1 text-xs text-red-500 hover:bg-red-100 transition"
+                            style={{ transform: 'translate(30%,-30%)' }}
+                            onClick={() => setGalleryImages(galleryImages.filter((_, i) => i !== idx))}
+                            title="Remove"
+                          >
+                            ×
+                          </button>
+                          <button
+                            type="button"
+                            className="absolute bottom-0 left-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-tr rounded-bl opacity-80 hover:opacity-100 transition"
+                            onClick={() => insertMarkdown(`\n\n![alt text](${img})\n\n`)}
+                            title="Insert into post"
+                          >
+                            Insert
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
             {/* Submit Button */}
-            <div className="border-t bg-white px-6 py-4 flex justify-end">
-              <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded font-semibold hover:bg-blue-700 transition">
+            <div className="border-t bg-white px-8 py-6 flex justify-end">
+              <button type="submit" className="bg-blue-600 text-white px-10 py-4 text-xl rounded font-semibold hover:bg-blue-700 transition">
                 {form.id ? 'Update' : 'Create'} Post
               </button>
             </div>

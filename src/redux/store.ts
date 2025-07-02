@@ -1,10 +1,11 @@
-import { configureStore } from '@reduxjs/toolkit'
-import { categoryApi } from './api/categoryApi'
-import { tagsApi } from './api/tagsApi'
-import { productsApi } from './api/productsApi'
-import { ordersApi } from './api/ordersApi'
-import { vouchersApi } from './api/vounchersApi'
-import { postsApi } from './postsApi'
+import { configureStore } from '@reduxjs/toolkit';
+import { categoryApi } from './api/categoryApi';
+import { tagsApi } from './api/tagsApi';
+import { productsApi } from './api/productsApi';
+import { ordersApi } from './api/ordersApi';
+import { vouchersApi } from './api/vounchersApi';
+import { postsApi } from './postsApi';
+import { cataloguesApi } from './api/catalogueApi';
 
 export const store = configureStore({
     reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
         [vouchersApi.reducerPath]: vouchersApi.reducer,
         [ordersApi.reducerPath]: ordersApi.reducer,
         [postsApi.reducerPath]: postsApi.reducer,
+        [cataloguesApi.reducerPath]: cataloguesApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware()
@@ -23,7 +25,8 @@ export const store = configureStore({
             .concat(ordersApi.middleware)
             .concat(vouchersApi.middleware)
             .concat(postsApi.middleware)
-})
+            .concat(cataloguesApi.middleware)
+});
 
-export type RootState = ReturnType<typeof store.getState>
-export type AppDispatch = typeof store.dispatch
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
