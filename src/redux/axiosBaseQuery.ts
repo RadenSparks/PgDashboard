@@ -4,7 +4,7 @@ import type { AxiosRequestConfig, AxiosError } from 'axios'
 
 
 export const axiosBaseQuery =
-    (): BaseQueryFn<
+    (p0: { baseUrl: string }): BaseQueryFn<
         {
             url: string
             method: AxiosRequestConfig['method']

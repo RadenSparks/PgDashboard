@@ -29,6 +29,9 @@ interface Props {
   setPublish: (v: boolean) => void;
   // Add this prop:
   onGalleryImageInsert?: (url: string) => void;
+  onClearFormatting?: () => void;
+  onInsertLink?: () => void;
+  onGalleryImageRemove?: (idx: number) => void;
 }
 
 const PostFormToolbar: React.FC<Props> = ({
@@ -43,7 +46,7 @@ const PostFormToolbar: React.FC<Props> = ({
   fontSize, setFontSize,
   FONT_FAMILIES, FONT_SIZES,
   publish, setPublish,
-  onGalleryImageInsert
+  onClearFormatting, onInsertLink,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -59,6 +62,9 @@ const PostFormToolbar: React.FC<Props> = ({
           <button type="button" title="Bold" className="p-1 hover:bg-gray-200 rounded font-bold" onClick={onBold}><b>B</b></button>
           <button type="button" title="Italic" className="p-1 hover:bg-gray-200 rounded italic" onClick={onItalic}><i>I</i></button>
           <button type="button" title="Underline" className="p-1 hover:bg-gray-200 rounded underline" onClick={onUnderline}><u>U</u></button>
+          <span className="w-px h-5 bg-gray-300 mx-1" />
+          <button type="button" title="Clear Formatting" className="p-1 hover:bg-gray-200 rounded" onClick={() => onClearFormatting?.()}>Tx</button>
+          <button type="button" title="Insert Link" className="p-1 hover:bg-gray-200 rounded" onClick={() => onInsertLink?.()}>🔗</button>
           <span className="w-px h-5 bg-gray-300 mx-1" />
           {/* Gallery Image Upload & Preview */}
           <div className="relative flex items-center">
@@ -170,25 +176,41 @@ const PostFormToolbar: React.FC<Props> = ({
           </label>
         </div>
       </div>
-      {/* Gallery Preview Slider with insert button */}
+      {/* Gallery Preview Row (always visible, not overlay) */}
+      {/*
       {images.length > 0 && (
-        <div className="mt-2">
-          <GallerySlider
-            images={images}
-            renderAction={(url) =>
-              onGalleryImageInsert ? (
+        <div className="w-full mt-2">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 border rounded bg-gray-50 px-2" style={{ maxHeight: 80 }}>
+            {images.map((img, idx) => (
+              <div key={idx} className="relative group flex-shrink-0">
+                <img
+                  src={img}
+                  alt={`Gallery ${idx + 1}`}
+                  className="w-16 h-16 object-cover rounded border"
+                />
                 <button
                   type="button"
-                  className="mt-2 px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs"
-                  onClick={() => onGalleryImageInsert(url)}
+                  className="absolute top-0 right-0 bg-white bg-opacity-80 rounded-full p-1 text-xs text-red-500 hover:bg-red-100 transition"
+                  style={{ transform: 'translate(30%,-30%)' }}
+                  onClick={() => onGalleryImageRemove?.(idx)}
+                  title="Remove"
                 >
-                  Insert to Content
+                  ×
                 </button>
-              ) : null
-            }
-          />
+                <button
+                  type="button"
+                  className="absolute bottom-0 left-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-tr rounded-bl opacity-80 hover:opacity-100 transition"
+                  onClick={() => onGalleryImageInsert?.(img)}
+                  title="Insert into post"
+                >
+                  Insert
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
+      */}
     </div>
   );
 };

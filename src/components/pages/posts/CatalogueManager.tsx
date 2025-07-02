@@ -1,37 +1,32 @@
-import React, { useEffect, useState } from 'react';
-import api from '../../../api/axios-client';
+import React, { useState } from 'react';
+import {
+  useGetCataloguesQuery,
+  useAddCatalogueMutation,
+  useUpdateCatalogueMutation,
+  useDeleteCatalogueMutation,
+} from '../../../redux/api/catalogueApi';
 import { useToast } from '@chakra-ui/react';
 
-interface Catalogue {
-  id: number;
-  name: string;
-  canonical?: string;
-}
-
 const CatalogueManager: React.FC = () => {
-  const [catalogues, setCatalogues] = useState<Catalogue[]>([]);
+  const { data: catalogues = [], refetch } = useGetCataloguesQuery();
+  const [addCatalogue] = useAddCatalogueMutation();
+  const [updateCatalogue] = useUpdateCatalogueMutation();
+  const [deleteCatalogue] = useDeleteCatalogueMutation();
   const [newName, setNewName] = useState('');
   const [editId, setEditId] = useState<number | null>(null);
   const [editName, setEditName] = useState('');
   const [editCanonical, setEditCanonical] = useState('');
   const toast = useToast();
 
-  const fetchCatalogues = async () => {
-    const res = await api.get('/post-catalogues');
-    setCatalogues(res.data);
-  };
-
-  useEffect(() => { fetchCatalogues(); }, []);
-
   const handleAdd = async () => {
     if (!newName.trim()) return;
     const canonical = newName.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
-    await api.post('/post-catalogues', { name: newName, canonical });
+    await addCatalogue({ name: newName, canonical });
     setNewName('');
-    fetchCatalogues();
+    refetch();
   };
 
-  const handleEdit = (cat: Catalogue) => {
+  const handleEdit = (cat: { id: number; name: string; canonical?: string }) => {
     setEditId(cat.id);
     setEditName(cat.name);
     setEditCanonical(cat.canonical || '');
@@ -39,17 +34,17 @@ const CatalogueManager: React.FC = () => {
 
   const handleUpdate = async () => {
     if (!editName.trim() || !editCanonical.trim() || editId === null) return;
-    await api.patch(`/post-catalogues/${editId}`, { name: editName, canonical: editCanonical });
+    await updateCatalogue({ id: editId, name: editName, canonical: editCanonical });
     setEditId(null);
     setEditName('');
     setEditCanonical('');
-    fetchCatalogues();
+    refetch();
   };
 
   const handleDelete = async (id: number) => {
     try {
-      await api.delete(`/post-catalogues/${id}`);
-      fetchCatalogues();
+      await deleteCatalogue(id);
+      refetch();
     } catch (error: any) {
       toast({
         title: 'Cannot delete catalogue',

@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Button } from "../../widgets/button";
 import { IoMdAdd } from "react-icons/io";
-import ReactMarkdown from "react-markdown";
 import { useGetPostsQuery, useDeletePostMutation } from '../../../redux/postsApi';
 import PostForm from "./PostForm";
 import CatalogueManager from './CatalogueManager';
+import BlogPostPreview from './BlogPostPreview';
+
 
 const PostsPage = () => {
   const { data: posts = [], refetch } = useGetPostsQuery();
@@ -13,6 +14,22 @@ const PostsPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [editPost, setEditPost] = useState<any | null>(null);
   const [showCatalogueManager, setShowCatalogueManager] = useState(false);
+
+  // Legacy/unused handlers (commented)
+  // const handleEdit = (post: any) => {
+  //   setEditPost(post);
+  //   setShowForm(true);
+  // };
+  // const handleDelete = async (id: number) => {
+  //   if (window.confirm('Are you sure you want to delete this post?')) {
+  //     await deletePost(id);
+  //     refetch();
+  //   }
+  // };
+  // const handleCreate = () => {
+  //   setEditPost(null);
+  //   setShowForm(true);
+  // };
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
@@ -26,7 +43,7 @@ const PostsPage = () => {
             <span>Manage Catalogues</span>
           </Button>
           <Button
-            className="flex gap-2 px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold shadow"
+            className="flex gap-2 px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
             onClick={() => { setEditPost(null); setShowForm(true); }}
           >
             <IoMdAdd size={22} />
@@ -120,39 +137,24 @@ const PostsPage = () => {
             >
               &times;
             </button>
-            {/* Main site-like layout */}
+            {/* Use BlogPostPreview for modal preview */}
             <div className="w-full">
-              {/* Banner image if available */}
-              {previewPost.image && (
-                <div className="h-56 w-full bg-gray-200 flex items-center justify-center overflow-hidden rounded-t-2xl">
-                  <img
-                    src={previewPost.image}
-                    alt={previewPost.name}
-                    className="object-cover w-full h-full"
-                  />
-                </div>
-              )}
-              <div className="p-8">
-                <div className="mb-4">
-                  <span className="inline-block bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full mr-2">
-                    {previewPost.catalogue?.name || 'Uncategorized'}
-                  </span>
-                  <span className="text-gray-400 text-xs">
-                    {previewPost.created_at?.slice(0, 10)}
-                  </span>
-                </div>
-                <h1 className="text-3xl font-extrabold mb-2 text-gray-900">{previewPost.name}</h1>
-                <div className="mb-4 text-gray-500 italic">{previewPost.description}</div>
-                <div className="prose prose-blue max-w-none text-gray-800 mb-6">
-                  <ReactMarkdown>{previewPost.content}</ReactMarkdown>
-                </div>
-                <div className="border-t pt-4 text-xs text-gray-400 space-y-1">
-                  {previewPost.meta_title && <div><b>Meta Title:</b> {previewPost.meta_title}</div>}
-                  {previewPost.meta_description && <div><b>Meta Desc:</b> {previewPost.meta_description}</div>}
-                  {previewPost.meta_keyword && <div><b>Meta Keyword:</b> {previewPost.meta_keyword}</div>}
-                  <div><b>Canonical:</b> {previewPost.canonical}</div>
-                </div>
-              </div>
+              <BlogPostPreview
+                content={previewPost.content || ''}
+                title={previewPost.name}
+                description={previewPost.description}
+                image={previewPost.image}
+                catalogueName={previewPost.catalogue?.name}
+                date={previewPost.created_at?.slice(0, 10)}
+                fontFamily="sans-serif"
+                fontSize="text-lg"
+                textColor="#0f172a"
+                bgColor="#fff"
+                meta_title={previewPost.meta_title}
+                meta_description={previewPost.meta_description}
+                meta_keyword={previewPost.meta_keyword}
+                canonical={previewPost.canonical}
+              />
             </div>
           </div>
         </div>
