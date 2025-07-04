@@ -24,6 +24,9 @@ const CommentDetailModal = ({ comment, modalRef, onClose }: CommentDetailModalPr
           &times;
         </button>
         <h3 className="text-lg font-bold mb-4">Comment Detail</h3>
+        <div className="mb-2 text-yellow-600 font-semibold">
+          Rating: {comment.rating ?? "-"}
+        </div>
         <div className="mb-4 text-gray-700 whitespace-pre-line">
           {comment.content}
         </div>

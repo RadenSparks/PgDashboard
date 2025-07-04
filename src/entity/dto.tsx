@@ -1,5 +1,5 @@
 export interface SignInRequestDTO {
-    username: string;
+    email: string;
     password: string;
 }
 
