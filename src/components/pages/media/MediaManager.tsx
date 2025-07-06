@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo } from "react";
 import { useToast } from "@chakra-ui/react";
-import { useGetMediaQuery, useAddMediaMutation, useDeleteMediaMutation, useUpdateMediaMutation } from "../../../redux/api/mediaApi";
+import { useGetMediaQuery, useAddMediaMutation, useDeleteMediaMutation, useUpdateMediaMutation, useDeleteFolderMutation } from "../../../redux/api/mediaApi";
 import type { MediaItem } from "../../../redux/api/mediaApi";
 import FolderTree from "./FolderTree";
 import Breadcrumbs from "./Breadcrumbs";
@@ -47,11 +47,12 @@ const MediaManager: React.FC = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<MediaItem | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [treeRefresh, setTreeRefresh] = useState(0);
+  const [] = useState(0);
   const [selectedImages, setSelectedImages] = useState<number[]>([]);
   const [moveTargetFolder, setMoveTargetFolder] = useState<string | null>(null);
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [showDeleteFolderModal, setShowDeleteFolderModal] = useState(false);
+  const [showDeleteMediaModal, setShowDeleteMediaModal] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
   const [folderPath, setFolderPath] = useState<string[]>([]);
   const [virtualFolders, setVirtualFolders] = useState<string[][]>([]);
@@ -63,6 +64,7 @@ const MediaManager: React.FC = () => {
   const [addMedia] = useAddMediaMutation();
   const [deleteMedia] = useDeleteMediaMutation();
   const [updateMedia] = useUpdateMediaMutation(); // Add this to your imports from mediaApi
+  const [deleteFolder] = useDeleteFolderMutation();
 
   // --- Folder tree logic ---
   const folderTree = useMemo(() => {
@@ -235,26 +237,13 @@ const MediaManager: React.FC = () => {
   };
 
   // Helper: get all images in a folder (recursively)
-  function getAllImagesInFolder(node: any): MediaItem[] {
-    let images: MediaItem[] = node.items ? [...node.items] : [];
-    if (node.children) {
-      Object.values(node.children).forEach((child: any) => {
-        images = images.concat(getAllImagesInFolder(child));
-      });
-    }
-    return images;
-  }
 
   // Handler: Delete current folder (all images inside)
   const handleDeleteFolder = async () => {
     setDeleting(true);
     try {
-      const node = getCurrentNode(folderTree, folderPath);
-      if (!node) throw new Error("Folder not found");
-      const imagesToDelete = getAllImagesInFolder(node);
-      for (const img of imagesToDelete) {
-        await handleDelete(img, false); // false = don't refetch each time
-      }
+      const folder = folderPath.join("/");
+      await deleteFolder(folder).unwrap();
       toast({
         title: "Folder deleted",
         description: "All images in this folder have been deleted.",
@@ -303,6 +292,20 @@ const MediaManager: React.FC = () => {
         duration: 4000,
         isClosable: true,
       });
+    }
+  };
+
+  // Handler: Show delete modal for single image
+  const handleShowDeleteMediaModal = (item: MediaItem) => {
+    setDeleteTarget(item);
+    setShowDeleteMediaModal(true);
+  };
+
+  // Handler: Confirm delete single image
+  const handleConfirmDeleteMedia = async () => {
+    if (deleteTarget) {
+      await handleDelete(deleteTarget);
+      setShowDeleteMediaModal(false);
     }
   };
 
@@ -383,7 +386,7 @@ const MediaManager: React.FC = () => {
             setSelectedImages={setSelectedImages}
             handlePreview={handlePreview}
             handleCopy={handleCopy}
-            setDeleteTarget={setDeleteTarget}
+            setDeleteTarget={handleShowDeleteMediaModal}
             previewUrl={previewUrl}
             setPreviewUrl={setPreviewUrl}
           />
@@ -404,7 +407,13 @@ const MediaManager: React.FC = () => {
           onCancel={() => setShowDeleteFolderModal(false)}
           onDelete={handleDeleteFolder}
         />
-        {/* <DeleteMediaModal ... /> */}
+        <DeleteMediaModal
+          show={showDeleteMediaModal}
+          deleting={deleting}
+          target={deleteTarget}
+          onCancel={() => setShowDeleteMediaModal(false)}
+          onDelete={handleConfirmDeleteMedia}
+        />
       </main>
     </div>
   );

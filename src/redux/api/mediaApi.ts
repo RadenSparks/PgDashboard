@@ -1,18 +1,20 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { axiosBaseQuery } from '../axiosBaseQuery';
 
-const baseUrl = import.meta.env.VITE_BASE_API || "http://localhost:3000"; // Use Vite env
+const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export interface MediaItem {
-  id: number; // <-- use id, not _id
+  id?: number; // <-- use id (number) to match backend
   url: string;
   folder: string;
   name: string;
+  ord?: number;
+  product?: { id: number };
 }
 
 export const mediaApi = createApi({
   reducerPath: 'mediaApi',
-  baseQuery: axiosBaseQuery({ baseUrl }), // <-- Pass baseUrl here!
+  baseQuery: axiosBaseQuery({ baseUrl }),
   tagTypes: ['Media'],
   endpoints: (builder) => ({
     getMedia: builder.query<MediaItem[], void>({
@@ -27,18 +29,37 @@ export const mediaApi = createApi({
       }),
       invalidatesTags: ['Media'],
     }),
-    deleteMedia: builder.mutation<void, string>({
+    deleteMedia: builder.mutation<void, number>({
+      // Accepts numeric id
       query: (id) => ({
         url: `/images/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['Media'],
     }),
-    updateMedia: builder.mutation<MediaItem, Partial<MediaItem> & { id: number }>({
-      query: ({ id, ...body }) => ({
+    deleteCloudinary: builder.mutation<{ success: boolean }, { publicId: string }>({
+      query: ({ publicId }) => ({
+        url: '/images/delete-cloudinary',
+        method: 'POST',
+        data: { publicId },
+      }),
+    }),
+    deleteFolder: builder.mutation<{ deleted: number; deletedFromCloudinary: number }, string>({
+      // Accepts folder path as string
+      query: (path) => ({
+        url: `/images/folder?path=${encodeURIComponent(path)}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Media'],
+    }),
+    getFolders: builder.query<string[], void>({
+      query: () => ({ url: '/images/folders', method: 'GET' }),
+    }),
+    updateMedia: builder.mutation<MediaItem, { id: number; data: Partial<MediaItem> }>({
+      query: ({ id, data }) => ({
         url: `/images/${id}`,
         method: 'PATCH',
-        data: body,
+        data,
       }),
       invalidatesTags: ['Media'],
     }),
@@ -49,5 +70,8 @@ export const {
   useGetMediaQuery,
   useAddMediaMutation,
   useDeleteMediaMutation,
+  useDeleteCloudinaryMutation,
+  useDeleteFolderMutation,
+  useGetFoldersQuery,
   useUpdateMediaMutation,
 } = mediaApi;

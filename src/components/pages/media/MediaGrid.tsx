@@ -26,49 +26,53 @@ const MediaGrid: React.FC<MediaGridProps> = ({
     {media.map((item, idx) => (
       <div
         key={item.id || idx}
-        className="border rounded-lg p-2 bg-white shadow hover:shadow-lg transition group relative"
+        className="border rounded-xl p-3 bg-white shadow hover:shadow-xl transition group relative"
       >
         <input
           type="checkbox"
-          className="absolute top-2 left-2"
-          checked={selectedImages.includes(item.id)}
+          className="absolute top-3 left-3 accent-blue-600 w-4 h-4 rounded focus:ring-2 focus:ring-blue-400"
+          checked={item.id !== undefined && selectedImages.includes(item.id)}
           onChange={e => {
-            setSelectedImages(sel =>
-              e.target.checked
+            setSelectedImages(sel => {
+              if (item.id === undefined) return sel;
+              return e.target.checked
                 ? [...sel, item.id]
-                : sel.filter(id => id !== item.id)
-            );
+                : sel.filter(id => id !== item.id);
+            });
           }}
         />
         <img
           src={item.url}
           alt={item.name}
-          className="w-full h-32 object-cover rounded cursor-pointer"
+          className="w-full h-36 object-cover rounded-lg cursor-pointer border border-gray-100 hover:border-blue-400 transition"
           onClick={() => handlePreview(item.url)}
         />
-        <div className="break-all text-xs text-gray-500 mt-2">{item.name}</div>
-        <div className="flex gap-2 mt-2">
+        <div className="break-all text-xs text-gray-700 mt-3 font-medium">{item.name}</div>
+        <div className="flex gap-2 mt-3">
           <button
-            className="text-blue-600 text-xs underline hover:text-blue-800"
+            className="flex items-center gap-1 px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-semibold hover:bg-blue-100 hover:text-blue-900 transition"
             onClick={() => handleCopy(item.url)}
             title="Copy URL"
           >
-            Copy URL
+            <span className="material-symbols-outlined text-base"></span>
+            Copy
           </button>
           <a
             href={item.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 text-xs underline hover:text-blue-800"
+            className="flex items-center gap-1 px-2 py-1 rounded bg-gray-50 text-gray-700 text-xs font-semibold hover:bg-gray-100 hover:text-blue-700 transition"
             title="View Original"
           >
+            <span className="material-symbols-outlined text-base"></span>
             View
           </a>
           <button
-            className="text-red-500 text-xs underline hover:text-red-700"
+            className="flex items-center gap-1 px-2 py-1 rounded bg-red-50 text-red-600 text-xs font-semibold hover:bg-red-100 hover:text-red-800 transition"
             onClick={() => setDeleteTarget(item)}
             title="Delete"
           >
+            <span className="material-symbols-outlined text-base"></span>
             Delete
           </button>
         </div>
