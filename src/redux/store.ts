@@ -7,6 +7,7 @@ import { vouchersApi } from './api/vounchersApi';
 import { postsApi } from './postsApi';
 import { cataloguesApi } from './api/catalogueApi';
 import { reviewsApi } from './api/reviewsApi';
+import { mediaApi } from './api/mediaApi';
 
 export const store = configureStore({
     reducer: {
@@ -18,6 +19,7 @@ export const store = configureStore({
         [postsApi.reducerPath]: postsApi.reducer,
         [cataloguesApi.reducerPath]: cataloguesApi.reducer,
         [reviewsApi.reducerPath]: reviewsApi.reducer,
+        [mediaApi.reducerPath]: mediaApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware()
@@ -29,6 +31,7 @@ export const store = configureStore({
             .concat(postsApi.middleware)
             .concat(cataloguesApi.middleware)
             .concat(reviewsApi.middleware)
+            .concat(mediaApi.middleware)
 });
 
 export type RootState = ReturnType<typeof store.getState>;

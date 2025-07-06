@@ -18,7 +18,7 @@ import CommentsPage from './components/pages/comments/CommentsPage';
 import PermissionPage from './components/pages/permission/PermisionPage';
 import TagsPage from './components/pages/tags/TagsPage';
 import { initialUsers, type User } from './components/pages/users/usersData';
-
+import MediaManager from './components/pages/media/MediaManager';
 const App: React.FC = () => {
   const [users, setUsers] = useState<User[]>(initialUsers);
 
@@ -38,7 +38,8 @@ const App: React.FC = () => {
                 <Route path="/users" element={<ProtectedRoute><UsersPage users={users} setUsers={setUsers} /></ProtectedRoute>} />
                 <Route path="/comments" element={<ProtectedRoute><CommentsPage /></ProtectedRoute>} /> 
                 <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />       
-                <Route path="/tags" element={<ProtectedRoute><TagsPage /></ProtectedRoute>} />          
+                <Route path="/tags" element={<ProtectedRoute><TagsPage /></ProtectedRoute>} />       
+                <Route path="/media" element={<ProtectedRoute><MediaManager /></ProtectedRoute>} />
           </Route>           
             <Route path="/signin" element={<PublicRoute><SignIn /></PublicRoute>} />
             <Route path="/signup" element={<PublicRoute><SignUp /></PublicRoute>} />

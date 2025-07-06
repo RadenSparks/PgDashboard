@@ -11,7 +11,8 @@ import {
   MdInventory2,
   MdAdminPanelSettings,
   MdLabel,
-  MdComment, // <-- Import MdComment
+  MdComment,
+  MdPhotoLibrary, // <-- Add this import
 } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { Drawer, DrawerOverlay, DrawerContent, DrawerCloseButton, useBreakpointValue } from "@chakra-ui/react";
@@ -29,7 +30,8 @@ const tabs = [
   { label: "Voucher", icon: <MdLocalOffer size={22} />, route: "/voucher" },
   { label: "Posts", icon: <MdPostAdd size={22} />, route: "/posts" },
   { label: "Orders", icon: <MdShoppingCart size={22} />, route: "/orders" },
-  { label: "Comments", icon: <MdComment size={22} />, route: "/comments" }, // <-- Add this line
+  { label: "Comments", icon: <MdComment size={22} />, route: "/comments" },
+  { label: "Media", icon: <MdPhotoLibrary size={22} />, route: "/media" }, // <-- Add this line
   { label: "Tags", icon: <MdLabel size={22} />, route: "/tags" },
   { label: "Permission", icon: <MdAdminPanelSettings size={22} />, route: "/permission" },
   { label: "Users", icon: <MdPeople size={22} />, route: "/users" },

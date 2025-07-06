@@ -1,7 +1,9 @@
-import api from '../api/axios-client'
 import type { BaseQueryFn } from '@reduxjs/toolkit/query'
 import type { AxiosRequestConfig, AxiosError } from 'axios'
+import axios from "axios";
 
+const baseURL = import.meta.env.VITE_BASE_API || "http://localhost:3000";
+const axiosInstance = axios.create({ baseURL });
 
 export const axiosBaseQuery =
     (p0: { baseUrl: string }): BaseQueryFn<
@@ -16,8 +18,10 @@ export const axiosBaseQuery =
     > =>
         async ({ url, method, data, params }) => {
             try {
-                const result = await api({ url, method, data, params })
-                console.log(data)
+                // Get token from localStorage or your auth store
+                const token = localStorage.getItem('token');
+                const headers = token ? { Authorization: `Bearer ${token}` } : {};
+                const result = await axiosInstance({ url, method, data, params, headers });
                 return { data: result.data }
             } catch (axiosError) {
                 const err = axiosError as AxiosError
