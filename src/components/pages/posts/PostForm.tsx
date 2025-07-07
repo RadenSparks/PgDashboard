@@ -3,7 +3,8 @@ import { useCreatePostMutation, useUpdatePostMutation, type Post } from '../../.
 import api from '../../../api/axios-client';
 import PostFormToolbar from './PostFormToolbar';
 import PostFormSidebar from './PostFormSidebar';
-import { useToast } from '@chakra-ui/react'; // or your toast lib
+import { useToast } from '@chakra-ui/react';
+import MediaPicker from "../../media/MediaPicker";
 
 interface Props {
   initialData?: Partial<Post>;
@@ -46,14 +47,15 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
   const [catalogues, setCatalogues] = useState<Catalogue[]>([]);
   const [createPost] = useCreatePostMutation();
   const [updatePost] = useUpdatePostMutation();
-  const [fontFamily, setFontFamily] = useState('sans-serif');
-  const [fontSize, setFontSize] = useState('text-lg');
-  const [previewTextColor, setPreviewTextColor] = useState('#000000');
-  const [previewBgColor, setPreviewBgColor] = useState('#ffffff');
+  const [fontFamily, setFontFamily] = useState('Inter, sans-serif');
+  const [fontSize, setFontSize] = useState('text-xl');
+  const [previewTextColor, setPreviewTextColor] = useState('#0f172a');
+  const [previewBgColor, setPreviewBgColor] = useState('#fff');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showBgColorPicker, setShowBgColorPicker] = useState(false);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [showMediaPicker, setShowMediaPicker] = useState<"cover" | "insert" | "gallery" | null>(null);
   const toast = useToast();
 
   useEffect(() => {
@@ -97,10 +99,7 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
   const handleInsertBold = () => insertMarkdown('**', '**', 'bold text');
   const handleInsertItalic = () => insertMarkdown('_', '_', 'italic text');
   const handleInsertUnderline = () => insertMarkdown('<u>', '</u>', 'underlined text');
-  const handleInsertImage = () => {
-    const url = prompt('Enter image URL:');
-    if (url) insertMarkdown(`\n\n![alt text](${url})\n\n`);
-  };
+  const handleInsertImage = () => setShowMediaPicker("insert");
   const handleInsertHr = () => insertMarkdown('\n\n---\n\n');
 
   // Gallery image upload handler
@@ -163,10 +162,11 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="relative w-full max-w-[1600px] mx-auto bg-transparent">
-        {/* Collapse/Close Button */}
+      {/* Main Modal Content */}
+      <div className="relative w-full max-w-[1600px] mx-auto bg-transparent pointer-events-none">
+        {/* Close Button */}
         <button
-          className="absolute top-4 right-4 z-10 bg-white border border-gray-200 rounded-full shadow p-2 hover:bg-gray-100 transition"
+          className="absolute top-4 right-4 z-10 bg-white border border-gray-200 rounded-full shadow p-2 hover:bg-gray-100 transition pointer-events-auto"
           onClick={onSuccess}
           aria-label="Close"
           type="button"
@@ -176,148 +176,166 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
         {/* Main Form Box */}
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col md:flex-row gap-8 h-[95vh] w-full min-w-[1200px] bg-white rounded-2xl shadow-2xl p-0 overflow-hidden"
+          className="flex flex-col md:flex-row gap-8 h-[95vh] w-full min-w-[1200px] bg-white rounded-2xl shadow-2xl p-0 overflow-hidden pointer-events-auto"
           style={{ minHeight: 0 }}
         >
-          {/* Info & Editor Section */}
-          <div className="flex-[2] min-w-[600px] max-w-[1100px] flex flex-col h-full">
-            {/* Post Info */}
-            <div className="p-8 border-b bg-gray-50">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block font-semibold mb-1">Title</label>
-                  <input
-                    name="name"
-                    value={form.name || ''}
+          {/* Main Content Section */}
+          <div className="flex-[2] min-w-[700px] max-w-[1100px] flex flex-col h-full">
+            {/* Make this area scrollable */}
+            <div className="flex-1 flex flex-col overflow-y-auto">
+              {/* Post Info */}
+              <div className="p-8 border-b bg-gray-50 shrink-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block font-semibold mb-1">Title</label>
+                    <input
+                      name="name"
+                      value={form.name || ''}
+                      onChange={handleChange}
+                      placeholder="Title"
+                      className="w-full border rounded p-3 text-2xl font-bold"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold mb-1">Canonical</label>
+                    <input
+                      name="canonical"
+                      value={form.canonical || ''}
+                      onChange={handleChange}
+                      placeholder="Canonical"
+                      className="w-full border rounded p-3 text-lg"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold mb-1">Catalogue</label>
+                    <select
+                      name="catalogueId"
+                      value={form.catalogueId || form.catalogue?.id || ''}
+                      onChange={handleChange}
+                      className="w-full border rounded p-3 text-lg"
+                      required
+                    >
+                      <option value="">Select Catalogue</option>
+                      {catalogues.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block font-semibold mb-1">Order</label>
+                    <input
+                      name="order"
+                      type="number"
+                      value={form.order || ''}
+                      onChange={handleChange}
+                      placeholder="Order"
+                      className="w-full border rounded p-3 text-lg"
+                    />
+                  </div>
+                </div>
+                <div className="mt-6">
+                  <label className="block font-semibold mb-1">Description</label>
+                  <textarea
+                    name="description"
+                    value={form.description || ''}
                     onChange={handleChange}
-                    placeholder="Title"
+                    placeholder="Description"
+                    rows={2}
                     className="w-full border rounded p-3 text-lg"
-                    required
                   />
                 </div>
-                <div>
-                  <label className="block font-semibold mb-1">Canonical</label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
                   <input
-                    name="canonical"
-                    value={form.canonical || ''}
+                    name="meta_title"
+                    value={form.meta_title || ''}
                     onChange={handleChange}
-                    placeholder="Canonical"
-                    className="w-full border rounded p-3 text-lg"
-                    required
+                    placeholder="Meta Title"
+                    className="border rounded p-3 text-lg"
+                  />
+                  <input
+                    name="meta_description"
+                    value={form.meta_description || ''}
+                    onChange={handleChange}
+                    placeholder="Meta Description"
+                    className="border rounded p-3 text-lg"
+                  />
+                  <input
+                    name="meta_keyword"
+                    value={form.meta_keyword || ''}
+                    onChange={handleChange}
+                    placeholder="Meta Keyword"
+                    className="border rounded p-3 text-lg"
                   />
                 </div>
-                <div>
-                  <label className="block font-semibold mb-1">Catalogue</label>
-                  <select
-                    name="catalogueId"
-                    value={form.catalogueId || form.catalogue?.id || ''}
-                    onChange={handleChange}
-                    className="w-full border rounded p-3 text-lg"
-                    required
-                  >
-                    <option value="">Select Catalogue</option>
-                    {catalogues.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
-                  </select>
+                {/* Cover Image Picker replaces main image input */}
+                <div className="mt-8 px-0">
+                  <label className="block font-semibold mb-2 text-lg">Cover Image</label>
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <button
+                      type="button"
+                      className="bg-blue-100 text-blue-700 rounded px-4 py-2 hover:bg-blue-200 text-base font-medium"
+                      onClick={() => setShowMediaPicker("cover")}
+                    >
+                      {form.image ? "Change Cover Image" : "Select from Media Library"}
+                    </button>
+                    {form.image && (
+                      <button
+                        type="button"
+                        className="bg-gray-200 text-gray-600 rounded px-3 py-2 hover:bg-gray-300 text-sm font-medium"
+                        onClick={() => setForm(f => ({ ...f, image: undefined }))}
+                        aria-label="Remove cover image"
+                        title="Remove cover image"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  {form.image && (
+                    <img
+                      src={form.image}
+                      alt="Cover"
+                      className="w-32 h-32 object-cover rounded mt-4 border"
+                    />
+                  )}
                 </div>
-                <div>
-                  <label className="block font-semibold mb-1">Order</label>
-                  <input
-                    name="order"
-                    type="number"
-                    value={form.order || ''}
-                    onChange={handleChange}
-                    placeholder="Order"
-                    className="w-full border rounded p-3 text-lg"
+              </div>
+              {/* Content Editor Area */}
+              <div className="flex-1 bg-white px-8 py-8 flex flex-col">
+                <div className="mb-4">
+                  <PostFormToolbar
+                    onHeading={handleInsertHeading}
+                    onBold={handleInsertBold}
+                    onItalic={handleInsertItalic}
+                    onUnderline={handleInsertUnderline}
+                    onImage={handleInsertImage}
+                    onHr={handleInsertHr}
+                    previewTextColor={previewTextColor}
+                    previewBgColor={previewBgColor}
+                    showColorPicker={showColorPicker}
+                    showBgColorPicker={showBgColorPicker}
+                    setShowColorPicker={setShowColorPicker}
+                    setShowBgColorPicker={setShowBgColorPicker}
+                    setPreviewTextColor={setPreviewTextColor}
+                    setPreviewBgColor={setPreviewBgColor}
+                    COLORS={COLORS}
+                    BG_COLORS={BG_COLORS}
+                    fontFamily={fontFamily}
+                    setFontFamily={setFontFamily}
+                    fontSize={fontSize}
+                    setFontSize={setFontSize}
+                    FONT_FAMILIES={FONT_FAMILIES}
+                    FONT_SIZES={FONT_SIZES}
+                    publish={!!form.publish}
+                    setPublish={v => setForm({ ...form, publish: v })}
+                    onOpenGalleryPicker={() => setShowMediaPicker("gallery")}
+                    images={galleryImages}
+                    onGalleryImageInsert={url => {
+                      insertMarkdown(`\n\n![alt text](${url})\n\n`);
+                    }}
                   />
                 </div>
-              </div>
-              <div className="mt-6">
-                <label className="block font-semibold mb-1">Description</label>
-                <textarea
-                  name="description"
-                  value={form.description || ''}
-                  onChange={handleChange}
-                  placeholder="Description"
-                  rows={2}
-                  className="w-full border rounded p-3 text-lg"
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
-                <input
-                  name="meta_title"
-                  value={form.meta_title || ''}
-                  onChange={handleChange}
-                  placeholder="Meta Title"
-                  className="border rounded p-3 text-lg"
-                />
-                <input
-                  name="meta_description"
-                  value={form.meta_description || ''}
-                  onChange={handleChange}
-                  placeholder="Meta Description"
-                  className="border rounded p-3 text-lg"
-                />
-                <input
-                  name="meta_keyword"
-                  value={form.meta_keyword || ''}
-                  onChange={handleChange}
-                  placeholder="Meta Keyword"
-                  className="border rounded p-3 text-lg"
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-6">
-                <input
-                  name="image"
-                  value={form.image || ''}
-                  onChange={handleImageChange}
-                  placeholder="Cloudinary image URL"
-                  className="border rounded p-2 w-full"
-                />
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Only Cloudinary URLs are accepted (e.g. https://res.cloudinary.com/...)
-              </p>
-            </div>
-            {/* Markdown Editor */}
-            <div className="flex-1 bg-gray-50 px-0 py-0 overflow-y-auto flex flex-col">
-              {/* Sticky Toolbar */}
-              <div className="sticky top-0 z-10 bg-white border-b">
-                <PostFormToolbar
-                  onHeading={handleInsertHeading}
-                  onBold={handleInsertBold}
-                  onItalic={handleInsertItalic}
-                  onUnderline={handleInsertUnderline}
-                  onImage={handleInsertImage}
-                  onHr={handleInsertHr}
-                  previewTextColor={previewTextColor}
-                  previewBgColor={previewBgColor}
-                  showColorPicker={showColorPicker}
-                  showBgColorPicker={showBgColorPicker}
-                  setShowColorPicker={setShowColorPicker}
-                  setShowBgColorPicker={setShowBgColorPicker}
-                  setPreviewTextColor={setPreviewTextColor}
-                  setPreviewBgColor={setPreviewBgColor}
-                  COLORS={COLORS}
-                  BG_COLORS={BG_COLORS}
-                  fontFamily={fontFamily}
-                  setFontFamily={setFontFamily}
-                  fontSize={fontSize}
-                  setFontSize={setFontSize}
-                  FONT_FAMILIES={FONT_FAMILIES}
-                  FONT_SIZES={FONT_SIZES}
-                  publish={!!form.publish}
-                  setPublish={v => setForm({ ...form, publish: v })}
-                  onImageAdd={handleGalleryImageAdd}
-                  images={galleryImages}
-                  onGalleryImageInsert={url => {
-                    insertMarkdown(`\n\n![alt text](${url})\n\n`);
-                  }}
-                />
-              </div>
-              {/* Editor */}
-              <div className="flex-1 flex flex-col">
                 <textarea
                   ref={textareaRef}
                   name="content"
@@ -325,17 +343,20 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
                   onChange={handleChange}
                   onKeyDown={handleKeyDown}
                   placeholder="Write your post in Markdown..."
-                  className="w-full flex-1 min-h-[700px] max-h-[1200px] border-none outline-none rounded-b-xl p-10 font-mono text-2xl bg-white shadow-inner focus:ring-2 focus:ring-blue-400 transition-all resize-vertical"
+                  className="w-full flex-1 min-h-[600px] max-h-[1200px] border-none outline-none rounded-xl p-10 font-serif text-2xl bg-gray-50 shadow-inner focus:ring-2 focus:ring-blue-400 transition-all resize-vertical leading-relaxed"
                   style={{
                     fontFamily,
                     fontSize: fontSize === 'text-base' ? '1.25rem' : fontSize === 'text-lg' ? '1.5rem' : '2rem',
+                    color: previewTextColor,
+                    background: previewBgColor,
                     lineHeight: 1.8,
+                    letterSpacing: "0.01em",
                   }}
                   required
                 />
                 {/* Gallery below editor */}
                 {galleryImages.length > 0 && (
-                  <div className="w-full mt-4">
+                  <div className="w-full mt-6">
                     <div className="flex items-center gap-3 overflow-x-auto pb-2 border rounded bg-gray-50 px-3" style={{ maxHeight: 90 }}>
                       {galleryImages.map((img, idx) => (
                         <div key={idx} className="relative group flex-shrink-0">
@@ -367,12 +388,12 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
                   </div>
                 )}
               </div>
-            </div>
-            {/* Submit Button */}
-            <div className="border-t bg-white px-8 py-6 flex justify-end">
-              <button type="submit" className="bg-blue-600 text-white px-10 py-4 text-xl rounded font-semibold hover:bg-blue-700 transition">
-                {form.id ? 'Update' : 'Create'} Post
-              </button>
+              {/* Submit Button */}
+              <div className="border-t bg-white px-8 py-6 flex justify-end shrink-0">
+                <button type="submit" className="bg-blue-600 text-white px-10 py-4 text-xl rounded font-semibold hover:bg-blue-700 transition">
+                  {form.id ? 'Update' : 'Create'} Post
+                </button>
+              </div>
             </div>
           </div>
           {/* Sidebar: Live Preview & Customization */}
@@ -394,6 +415,27 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
           />
         </form>
       </div>
+      {/* MediaPicker is rendered here, outside the modal content, so it overlays only when open */}
+      <MediaPicker
+        show={!!showMediaPicker}
+        multiple={showMediaPicker === "insert" || showMediaPicker === "gallery"}
+        onSelect={imgs => {
+          if (showMediaPicker === "cover") {
+            const img = Array.isArray(imgs) ? imgs[0] : imgs;
+            setForm(f => ({ ...f, image: img.url }));
+          } else if (showMediaPicker === "insert") {
+            const arr = Array.isArray(imgs) ? imgs : [imgs];
+            arr.forEach(img => {
+              insertMarkdown(`\n\n![alt text](${img.url})\n\n`);
+            });
+          } else if (showMediaPicker === "gallery") {
+            const arr = Array.isArray(imgs) ? imgs : [imgs];
+            setGalleryImages(prev => [...prev, ...arr.map(i => i.url)]);
+          }
+          setShowMediaPicker(null);
+        }}
+        onClose={() => setShowMediaPicker(null)}
+      />
     </div>
   );
 };

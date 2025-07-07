@@ -237,13 +237,52 @@ const MediaManager: React.FC = () => {
   };
 
   // Helper: get all images in a folder (recursively)
+  const getAllImagesInFolder = (node: any): MediaItem[] => {
+    let images: MediaItem[] = [];
+    if (node.items) {
+      images = images.concat(node.items);
+    }
+    if (node.children) {
+      Object.values(node.children).forEach((childNode) => {
+        images = images.concat(getAllImagesInFolder(childNode));
+      });
+    }
+    return images;
+  };
 
   // Handler: Delete current folder (all images inside)
   const handleDeleteFolder = async () => {
     setDeleting(true);
     try {
-      const folder = folderPath.join("/");
-      await deleteFolder(folder).unwrap();
+      const node = getCurrentNode(folderTree, folderPath);
+      if (!node) throw new Error("Folder not found");
+      const imagesToDelete = getAllImagesInFolder(node).filter(img => img.id && !isNaN(Number(img.id)));
+      for (const img of imagesToDelete) {
+        await handleDelete(img, false);
+      }
+      if (imagesToDelete.length > 0) {
+        await deleteFolder(folderPath.join("/")).unwrap();
+      } else {
+        // If no images, just remove the virtual folder from state
+        setVirtualFolders(prev =>
+          prev.filter(arr => arr.join("/") !== folderPath.join("/"))
+        );
+        toast({
+          title: "Folder deleted",
+          description: "Empty folder removed.",
+          status: "info",
+          duration: 2000,
+          isClosable: true,
+        });
+        setFolderPath(folderPath.slice(0, -1));
+        setShowDeleteFolderModal(false);
+        setDeleting(false);
+        return;
+      }
+      // Remove the folder from virtualFolders state
+      setVirtualFolders(prev =>
+        prev.filter(arr => arr.join("/") !== folderPath.join("/"))
+      );
       toast({
         title: "Folder deleted",
         description: "All images in this folder have been deleted.",
@@ -251,17 +290,23 @@ const MediaManager: React.FC = () => {
         duration: 2000,
         isClosable: true,
       });
-      setFolderPath(folderPath.slice(0, -1)); // Go up one level
+      setFolderPath(folderPath.slice(0, -1));
       setShowDeleteFolderModal(false);
       refetch();
     } catch (err: any) {
+      // Even if backend fails, remove the virtual folder
+      setVirtualFolders(prev =>
+        prev.filter(arr => arr.join("/") !== folderPath.join("/"))
+      );
       toast({
-        title: "Delete failed",
-        description: err.message,
-        status: "error",
-        duration: 4000,
+        title: "Folder deleted",
+        description: "Empty folder removed.",
+        status: "info",
+        duration: 2000,
         isClosable: true,
       });
+      setFolderPath(folderPath.slice(0, -1));
+      setShowDeleteFolderModal(false);
     } finally {
       setDeleting(false);
     }

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Product, NamedImage } from "./types";
 import { Button } from "../../widgets/button";
 import GallerySlider from "./GallerySlider";
@@ -7,6 +7,7 @@ import { useGetCategoriesQuery } from "../../../redux/api/categoryApi";
 import Loading from "../../../components/widgets/loading";
 import type { Category } from "../categories/categoriesData";
 import { useGetTagsQuery } from "../../../redux/api/tagsApi";
+import MediaPicker from "../../media/MediaPicker";
 
 type ProductFormModalProps = {
   product: Product;
@@ -29,6 +30,9 @@ const ProductFormModal = ({
   const genreTags = dataTags?.filter(c => c.type === 'genre') ?? [];
   const playerTags = dataTags?.filter(c => c.type === 'players') ?? [];
   const durationTags = dataTags?.filter(c => c.type === 'duration') ?? [];
+
+  // MediaPicker state
+  const [showMediaPicker, setShowMediaPicker] = useState<"main" | "gallery" | null>(null);
 
   // Helper for updating images array
   const updateImage = (idx: number, field: keyof NamedImage, value: string) => {
@@ -309,42 +313,50 @@ const ProductFormModal = ({
             <section className="px-6 py-4">
               <div className="font-semibold mb-2 text-blue-700 text-sm uppercase tracking-wide">Images</div>
               <div className="grid grid-cols-1 gap-3">
+                {/* Main Image */}
                 <label className="block">
                   <span className="block text-sm font-medium text-gray-700 mb-1">Main Image</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    name="image"
-                    className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4
-               file:rounded-lg file:border-0 file:text-sm file:font-semibold
-               file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100
-               border border-gray-300 rounded-md shadow-sm"
-                    onChange={e => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        onChange({ ...product, image: file });
-                      }
-                    }}
-                  />
+                  <button
+                    type="button"
+                    className="bg-blue-100 text-blue-700 rounded px-3 py-2 hover:bg-blue-200"
+                    onClick={() => setShowMediaPicker("main")}
+                  >
+                    Select from Media Library
+                  </button>
+                  {product.image && typeof product.image === "string" && (
+                    <img src={product.image} alt="Main" className="w-14 h-14 object-cover rounded border mt-2" />
+                  )}
                 </label>
+                {/* Gallery Images */}
                 <label className="block">
-                  <span className="block text-sm font-medium text-gray-700 mb-1">Main Image</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    name="images"
-                    multiple
-                    className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4
-               file:rounded-lg file:border-0 file:text-sm file:font-semibold
-               file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100
-               border border-gray-300 rounded-md shadow-sm"
-                    onChange={e => {
-                      const files = e.target.files;
-                      if (files) {
-                        onChange({ ...product, images: Array.from(files) });
-                      }
-                    }}
-                  />
+                  <span className="block text-sm font-medium text-gray-700 mb-1">Gallery Images</span>
+                  <button
+                    type="button"
+                    className="bg-blue-100 text-blue-700 rounded px-3 py-2 hover:bg-blue-200"
+                    onClick={() => setShowMediaPicker("gallery")}
+                  >
+                    Select from Media Library
+                  </button>
+                  <div className="flex gap-3 flex-wrap mt-2">
+                    {product.images?.map((imgObj, idx) => (
+                      imgObj.url ? (
+                        <div key={imgObj.id || idx} className="relative group">
+                          <img
+                            src={imgObj.url}
+                            alt={`Gallery ${idx + 1}`}
+                            className="w-10 h-10 object-cover rounded border"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteImage(imgObj.id)}
+                            className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center transform translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition"
+                          >
+                            x
+                          </button>
+                        </div>
+                      ) : null
+                    ))}
+                  </div>
                 </label>
                 {/* Gallery Preview */}
                 <div className="flex flex-col gap-2 mt-2">
@@ -499,6 +511,25 @@ const ProductFormModal = ({
             </div>
           </form>
         </div>
+        {/* MediaPicker Modal */}
+        <MediaPicker
+          show={!!showMediaPicker}
+          multiple={showMediaPicker === "gallery"}
+          onSelect={imgs => {
+            if (showMediaPicker === "main") {
+              const img = Array.isArray(imgs) ? imgs[0] : imgs;
+              onChange({ ...product, image: img.url });
+            } else if (showMediaPicker === "gallery") {
+              const arr = Array.isArray(imgs) ? imgs : [imgs];
+              onChange({
+                ...product,
+                images: arr.map(i => ({ id: i.id, url: i.url, name: i.name })),
+              });
+            }
+            setShowMediaPicker(null);
+          }}
+          onClose={() => setShowMediaPicker(null)}
+        />
       </div>
     </div>
   );
