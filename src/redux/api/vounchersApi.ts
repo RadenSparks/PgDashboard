@@ -2,7 +2,7 @@ import { createApi } from '@reduxjs/toolkit/query/react'
 import { axiosBaseQuery } from '../axiosBaseQuery'
 
 export interface Voucher {
-  id: number
+  id: number;
   code: string;
   startDate: string;
   endDate: string;
@@ -11,11 +11,12 @@ export interface Voucher {
   usageLimit: number;
   discountPercent: number;
   status: "Active" | "Inactive" | "Expired";
+  milestonePoints?: number | null;
 }
 
 export const vouchersApi = createApi({
   reducerPath: 'vouchersApi',
-  baseQuery: axiosBaseQuery(),
+  baseQuery: axiosBaseQuery({ baseUrl: 'http://localhost:3000' }),
   tagTypes: ['Voucher'],
   endpoints: (builder) => ({
     getVouchers: builder.query<Voucher[], void>({

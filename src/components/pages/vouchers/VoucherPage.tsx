@@ -1,41 +1,39 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "../../widgets/button";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
-import { useGetVouchersQuery, useAddVoucherMutation, useSetStatusVoucherMutation, useUpdateVoucherMutation } from '../../../redux/api/vounchersApi'
+import {
+  useGetVouchersQuery,
+  useAddVoucherMutation,
+  useSetStatusVoucherMutation,
+  useUpdateVoucherMutation,
+  useDeleteVoucherMutation,
+  type Voucher,
+} from '../../../redux/api/vounchersApi'
 import Loading from "../../../components/widgets/loading";
-type Voucher = {
-  id?: number;
-  code: string;
-  startDate: string;
-  endDate: string;
-  maxOrderValue: number;
-  minOrderValue: number;
-  usageLimit: number;
-  discountPercent: number;
-  status: "Active" | "Inactive" | "Expired";
-};
 
-
-const emptyVoucher: Voucher = {
+const emptyVoucher: Omit<Voucher, "id"> = {
   code: "",
   startDate: "",
   endDate: "",
   maxOrderValue: 0,
   minOrderValue: 0,
-  usageLimit: 50,
+  usageLimit: 1,
   discountPercent: 0,
   status: "Inactive",
+  milestonePoints: null,
 };
 
 const VoucherPage = () => {
-  // const [vouchers, setVouchers] = useState<Voucher[]>(mockVouchers);
   const [showModal, setShowModal] = useState(false);
-  const [editVoucher, setEditVoucher] = useState<Voucher | null>(null);
+  const [editVoucher, setEditVoucher] = useState<Partial<Voucher> | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const { data: vouchers, isLoading: isLoadingVoucher } = useGetVouchersQuery();
-  const [addVoucher] = useAddVoucherMutation()
-  const [updateVoucher] = useUpdateVoucherMutation()
-  const [setStatusVoucher] = useSetStatusVoucherMutation()
+
+  const { data: vouchers = [], isLoading: isLoadingVoucher, refetch } = useGetVouchersQuery();
+  const [addVoucher] = useAddVoucherMutation();
+  const [updateVoucher] = useUpdateVoucherMutation();
+  const [deleteVoucher] = useDeleteVoucherMutation();
+  const [setStatusVoucher] = useSetStatusVoucherMutation();
+
   // Modal outside click close
   const modalRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -67,41 +65,64 @@ const VoucherPage = () => {
     setDeleteId(id);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deleteId !== null) {
-      // setVouchers(vouchers.filter(v => v.id !== deleteId));
+      await deleteVoucher(deleteId);
       setDeleteId(null);
+      refetch();
     }
   };
 
   const cancelDelete = () => setDeleteId(null);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editVoucher) return;
-    if (editVoucher.id && vouchers.some(v => v.id === editVoucher.id)) {
-      // Update
-      updateVoucher(editVoucher)
+    // Ensure all required fields are present and not undefined
+    const payload: Voucher = {
+      id: editVoucher.id ?? 0, // 0 for new, will be ignored by backend
+      code: editVoucher.code ?? "",
+      usageLimit: Number(editVoucher.usageLimit ?? 0),
+      discountPercent: Number(editVoucher.discountPercent ?? 0),
+      minOrderValue: Number(editVoucher.minOrderValue ?? 0),
+      maxOrderValue: Number(editVoucher.maxOrderValue ?? 0),
+      startDate: editVoucher.startDate ? String(editVoucher.startDate) : "",
+      endDate: editVoucher.endDate ? String(editVoucher.endDate) : "",
+      status: (editVoucher.status as Voucher["status"]) || "Inactive",
+      milestonePoints:
+        editVoucher.milestonePoints === "" || editVoucher.milestonePoints === undefined
+          ? null
+          : Number(editVoucher.milestonePoints),
+    };
+    if (editVoucher.id) {
+      await updateVoucher(payload);
     } else {
-      // Add
-      addVoucher(editVoucher)
+      // Remove id for creation
+      const { id, ...createPayload } = payload;
+      await addVoucher(createPayload as Omit<Voucher, "id">);
     }
-
     setShowModal(false);
     setEditVoucher(null);
+    refetch();
   };
 
-  const handleChange = (field: keyof Voucher, value: string) => {
+  const handleChange = (field: keyof Voucher, value: string | number | null) => {
     if (!editVoucher) return;
     setEditVoucher({ ...editVoucher, [field]: value });
   };
 
-  const handleStatusToggle = (id: number) => {
-    const voucher = vouchers?.find(v => v.id === id)
-    const status = voucher?.status === "active" ? "inactive" : "active"
-    console.log(voucher, status)
-    setStatusVoucher({ id, status })
+  const handleStatusToggle = async (id: number) => {
+    const voucher = vouchers.find(v => v.id === id);
+    if (!voucher) return;
+    const newStatus =
+      voucher.status === "Active"
+        ? "Inactive"
+        : "Active";
+    await setStatusVoucher({ id, status: newStatus });
+    refetch();
   };
-  if (isLoadingVoucher) { return (<Loading></Loading>) }
+
+  if (isLoadingVoucher) return <Loading />;
+
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-6">
@@ -120,9 +141,14 @@ const VoucherPage = () => {
             <thead>
               <tr className="text-left border-b">
                 <th className="py-2 px-2">Code</th>
-                <th className="py-2 px-2">discountPercent</th>
-                <th className="py-2 px-2">Expiry</th>
+                <th className="py-2 px-2">Discount (%)</th>
+                <th className="py-2 px-2">Min Order</th>
+                <th className="py-2 px-2">Max Order</th>
+                <th className="py-2 px-2">Usage Limit</th>
+                <th className="py-2 px-2">Start</th>
+                <th className="py-2 px-2">End</th>
                 <th className="py-2 px-2">Status</th>
+                <th className="py-2 px-2">Milestone Points</th>
                 <th className="py-2 px-2">Actions</th>
               </tr>
             </thead>
@@ -131,6 +157,10 @@ const VoucherPage = () => {
                 <tr key={voucher.id} className="border-b hover:bg-gray-50">
                   <td className="py-2 px-2">{voucher.code}</td>
                   <td className="py-2 px-2">{voucher.discountPercent}</td>
+                  <td className="py-2 px-2">{voucher.minOrderValue}</td>
+                  <td className="py-2 px-2">{voucher.maxOrderValue}</td>
+                  <td className="py-2 px-2">{voucher.usageLimit}</td>
+                  <td className="py-2 px-2">{voucher.startDate}</td>
                   <td className="py-2 px-2">{voucher.endDate}</td>
                   <td className="py-2 px-2">
                     <span
@@ -145,6 +175,7 @@ const VoucherPage = () => {
                       {voucher.status}
                     </span>
                   </td>
+                  <td className="py-2 px-2">{voucher.milestonePoints ?? "-"}</td>
                   <td className="py-2 px-2 flex gap-2">
                     <Button
                       size="sm"
@@ -178,7 +209,7 @@ const VoucherPage = () => {
               ))}
               {vouchers.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-6 text-center text-gray-400">
+                  <td colSpan={10} className="py-6 text-center text-gray-400">
                     No vouchers found.
                   </td>
                 </tr>
@@ -206,7 +237,7 @@ const VoucherPage = () => {
               &times;
             </button>
             <h3 className="text-xl font-bold mb-4">
-              {vouchers.some(v => v.id === editVoucher.id) ? "Edit Voucher" : "Add Voucher"}
+              {editVoucher.id ? "Edit Voucher" : "Add Voucher"}
             </h3>
             <form
               onSubmit={e => {
@@ -219,68 +250,72 @@ const VoucherPage = () => {
                 <label className="block text-sm font-medium mb-1">Code</label>
                 <input
                   className="w-full border rounded px-3 py-2"
-                  value={editVoucher.code}
+                  value={editVoucher.code || ""}
                   onChange={e => handleChange("code", e.target.value)}
                   required
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">discountPercent</label>
-                <input
-                  className="w-full border rounded px-3 py-2"
-                  value={editVoucher.usageLimit}
-                  onChange={e => handleChange("usageLimit", e.target.value)}
-                  required
-
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">discountPercent</label>
-                <input
-                  className="w-full border rounded px-3 py-2"
-                  value={editVoucher.discountPercent}
-                  onChange={e => handleChange("discountPercent", e.target.value)}
-                  required
-
-                />
-              </div>
-              <div className="flex justify-between">
+              <div className="flex gap-2">
                 <div>
-                  <label className="block text-sm font-medium mb-1">discountPercent</label>
+                  <label className="block text-sm font-medium mb-1">Discount (%)</label>
                   <input
                     className="w-full border rounded px-3 py-2"
-                    value={editVoucher.minOrderValue}
+                    type="number"
+                    value={editVoucher.discountPercent ?? ""}
+                    onChange={e => handleChange("discountPercent", e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Usage Limit</label>
+                  <input
+                    className="w-full border rounded px-3 py-2"
+                    type="number"
+                    value={editVoucher.usageLimit ?? ""}
+                    onChange={e => handleChange("usageLimit", e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Min Order Value</label>
+                  <input
+                    className="w-full border rounded px-3 py-2"
+                    type="number"
+                    value={editVoucher.minOrderValue ?? ""}
                     onChange={e => handleChange("minOrderValue", e.target.value)}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">discountPercent</label>
+                  <label className="block text-sm font-medium mb-1">Max Order Value</label>
                   <input
                     className="w-full border rounded px-3 py-2"
-                    value={editVoucher.maxOrderValue}
+                    type="number"
+                    value={editVoucher.maxOrderValue ?? ""}
                     onChange={e => handleChange("maxOrderValue", e.target.value)}
                     required
                   />
                 </div>
               </div>
-              <div className="flex justify-between">
+              <div className="flex gap-2">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Expiry</label>
+                  <label className="block text-sm font-medium mb-1">Start Date</label>
                   <input
                     className="w-full border rounded px-3 py-2"
                     type="date"
-                    value={editVoucher.startDate}
+                    value={editVoucher.startDate ? String(editVoucher.startDate).slice(0, 10) : ""}
                     onChange={e => handleChange("startDate", e.target.value)}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Expiry</label>
+                  <label className="block text-sm font-medium mb-1">End Date</label>
                   <input
                     className="w-full border rounded px-3 py-2"
                     type="date"
-                    value={editVoucher.endDate}
+                    value={editVoucher.endDate ? String(editVoucher.endDate).slice(0, 10) : ""}
                     onChange={e => handleChange("endDate", e.target.value)}
                     required
                   />
@@ -290,13 +325,29 @@ const VoucherPage = () => {
                 <label className="block text-sm font-medium mb-1">Status</label>
                 <select
                   className="w-full border rounded px-3 py-2"
-                  value={editVoucher.status}
+                  value={editVoucher.status || "inactive"}
                   onChange={e => handleChange("status", e.target.value)}
                 >
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                   <option value="expired">Expired</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Milestone Points (optional)</label>
+                <input
+                  className="w-full border rounded px-3 py-2"
+                  type="number"
+                  min={0}
+                  value={editVoucher.milestonePoints ?? ""}
+                  onChange={e =>
+                    handleChange(
+                      "milestonePoints",
+                      e.target.value === "" ? null : Number(e.target.value)
+                    )
+                  }
+                  placeholder="Leave blank if not a milestone coupon"
+                />
               </div>
               <div className="flex justify-end gap-2">
                 <Button

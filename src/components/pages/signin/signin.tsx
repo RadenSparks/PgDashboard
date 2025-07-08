@@ -17,7 +17,6 @@ import {
 import { useState, useRef } from 'react';
 import { BsEye, BsEyeSlash } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
-import type { SignInResponseDTO } from '@/entity/dto';
 import api from '../../../api/axios-client';
 
 const SignIn = () => {
