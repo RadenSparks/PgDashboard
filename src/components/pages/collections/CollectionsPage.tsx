@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import {
-    Box,
     Button,
-    Grid,
-    GridItem,
     Text,
     Image,
     Modal,
@@ -15,8 +12,6 @@ import {
     ModalFooter,
     Input,
     Textarea,
-    VStack,
-    HStack,
     Badge,
     useDisclosure,
     FormControl,
@@ -27,7 +22,6 @@ import {
     CardBody,
     CardHeader,
     Heading,
-    Avatar,
     IconButton,
     useToast,
     Divider,
@@ -40,13 +34,15 @@ import {
     Wrap,
     WrapItem
 } from '@chakra-ui/react';
-import { Search, Plus, Edit, Trash2, Package, Users, Eye } from 'lucide-react';
-
+import { Search, Plus, Edit, Trash2, Package } from 'lucide-react';
+import { useGetProductsQuery } from '../../../redux/api/productsApi';
+import { useGetCollectionsQuery, useAddCollectionMutation, useDeleteCollectionMutation, useUpdateCollectionMutation } from '../../../redux/api/collectionsApi';
+import Loading from '../../../components/widgets/loading';
 interface Product {
     id: string;
-    name: string;
+    product_name: string;
     category: string;
-    price: number;
+    product_price: number;
     image_url: string;
     in_stock: boolean;
 }
@@ -64,41 +60,47 @@ const CollectionsPage: React.FC = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const toast = useToast();
 
-    // Mock data
-    const [collections, setCollections] = useState<Collection[]>([
-        {
-            id: '1',
-            name: 'Strategy Games',
-            description: 'Các game chiến thuật hay nhất dành cho người chơi thông minh',
-            image_url: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?w=400&h=300&fit=crop',
-            products: [
-                { id: '1', name: 'Catan', category: 'Strategy', price: 850000, image_url: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?w=200&h=200&fit=crop', in_stock: true },
-                { id: '2', name: 'Wingspan', category: 'Strategy', price: 1200000, image_url: 'https://images.unsplash.com/photo-1611891487284-8e40a7c7e0d0?w=200&h=200&fit=crop', in_stock: true }
-            ],
-            created_at: '2024-01-15'
-        },
-        {
-            id: '2',
-            name: 'Family Games',
-            description: 'Những trò chơi thú vị cho cả gia đình',
-            image_url: 'https://images.unsplash.com/photo-1611891487284-8e40a7c7e0d0?w=400&h=300&fit=crop',
-            products: [
-                { id: '3', name: 'Ticket to Ride', category: 'Family', price: 950000, image_url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=200&h=200&fit=crop', in_stock: true }
-            ],
-            created_at: '2024-01-20'
-        }
-    ]);
+    const { data: availableProducts, isLoading, refetch } = useGetProductsQuery()
+    const { data: collections, isLoading: isLoadingCollection } = useGetCollectionsQuery()
+    const [addCollection, { isLoading: addLoading }] = useAddCollectionMutation()
+    const [deleteCollection, { isLoading: updateLoading }] = useDeleteCollectionMutation()
+    const [updateCollection, { isLoading: deleteLoading }] = useUpdateCollectionMutation()
 
-    const [availableProducts] = useState<Product[]>([
-        { id: '1', name: 'Catan', category: 'Strategy', price: 850000, image_url: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?w=200&h=200&fit=crop', in_stock: true },
-        { id: '2', name: 'Wingspan', category: 'Strategy', price: 1200000, image_url: 'https://images.unsplash.com/photo-1611891487284-8e40a7c7e0d0?w=200&h=200&fit=crop', in_stock: true },
-        { id: '3', name: 'Ticket to Ride', category: 'Family', price: 950000, image_url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=200&h=200&fit=crop', in_stock: true },
-        { id: '4', name: 'Azul', category: 'Strategy', price: 750000, image_url: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?w=200&h=200&fit=crop', in_stock: true },
-        { id: '5', name: 'Splendor', category: 'Strategy', price: 650000, image_url: 'https://images.unsplash.com/photo-1611891487284-8e40a7c7e0d0?w=200&h=200&fit=crop', in_stock: false },
-        { id: '6', name: 'Pandemic', category: 'Cooperative', price: 1100000, image_url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=200&h=200&fit=crop', in_stock: true },
-        { id: '7', name: 'Monopoly', category: 'Family', price: 400000, image_url: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?w=200&h=200&fit=crop', in_stock: true },
-        { id: '8', name: 'Scythe', category: 'Strategy', price: 1800000, image_url: 'https://images.unsplash.com/photo-1611891487284-8e40a7c7e0d0?w=200&h=200&fit=crop', in_stock: true }
-    ]);
+    // Mock data
+    // const [collections, setCollections] = useState<Collection[]>([
+    //     {
+    //         id: '1',
+    //         name: 'Strategy Games',
+    //         description: 'Các game chiến thuật hay nhất dành cho người chơi thông minh',
+    //         image_url: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?w=400&h=300&fit=crop',
+    //         products: [
+    //             { id: '1', name: 'Catan', category: 'Strategy', product_price: 850000, image_url: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?w=200&h=200&fit=crop', in_stock: true },
+    //             { id: '2', name: 'Wingspan', category: 'Strategy', product_price: 1200000, image_url: 'https://images.unsplash.com/photo-1611891487284-8e40a7c7e0d0?w=200&h=200&fit=crop', in_stock: true }
+    //         ],
+    //         created_at: '2024-01-15'
+    //     },
+    //     {
+    //         id: '2',
+    //         name: 'Family Games',
+    //         description: 'Những trò chơi thú vị cho cả gia đình',
+    //         image_url: 'https://images.unsplash.com/photo-1611891487284-8e40a7c7e0d0?w=400&h=300&fit=crop',
+    //         products: [
+    //             { id: '3', name: 'Ticket to Ride', category: 'Family', product_price: 950000, image_url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=200&h=200&fit=crop', in_stock: true }
+    //         ],
+    //         created_at: '2024-01-20'
+    //     }
+    // ]);
+
+    // const [availableProducts] = useState<Product[]>([
+    //     { id: '1', name: 'Catan', category: 'Strategy', product_price: 850000, image_url: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?w=200&h=200&fit=crop', in_stock: true },
+    //     { id: '2', name: 'Wingspan', category: 'Strategy', product_price: 1200000, image_url: 'https://images.unsplash.com/photo-1611891487284-8e40a7c7e0d0?w=200&h=200&fit=crop', in_stock: true },
+    //     { id: '3', name: 'Ticket to Ride', category: 'Family', product_price: 950000, image_url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=200&h=200&fit=crop', in_stock: true },
+    //     { id: '4', name: 'Azul', category: 'Strategy', product_price: 750000, image_url: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?w=200&h=200&fit=crop', in_stock: true },
+    //     { id: '5', name: 'Splendor', category: 'Strategy', product_price: 650000, image_url: 'https://images.unsplash.com/photo-1611891487284-8e40a7c7e0d0?w=200&h=200&fit=crop', in_stock: false },
+    //     { id: '6', name: 'Pandemic', category: 'Cooperative', product_price: 1100000, image_url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=200&h=200&fit=crop', in_stock: true },
+    //     { id: '7', name: 'Monopoly', category: 'Family', product_price: 400000, image_url: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?w=200&h=200&fit=crop', in_stock: true },
+    //     { id: '8', name: 'Scythe', category: 'Strategy', product_price: 1800000, image_url: 'https://images.unsplash.com/photo-1611891487284-8e40a7c7e0d0?w=200&h=200&fit=crop', in_stock: true }
+    // ]);
 
     // Form states
     const [formData, setFormData] = useState({
@@ -114,8 +116,8 @@ const CollectionsPage: React.FC = () => {
 
     const categories = ['All', 'Strategy', 'Family', 'Cooperative', 'Party', 'Card Game'];
 
-    const filteredProducts = availableProducts.filter(product => {
-        const matchesSearch = product.name.toLowerCase().includes(productSearch.toLowerCase());
+    const filteredProducts = availableProducts?.filter(product => {
+        const matchesSearch = product.product_name.toLowerCase().includes(productSearch.toLowerCase());
         const matchesCategory = selectedCategory === '' || selectedCategory === 'All' || product.category === selectedCategory;
         return matchesSearch && matchesCategory;
     });
@@ -153,6 +155,7 @@ const CollectionsPage: React.FC = () => {
         setSelectedCategory('');
         onClose();
     };
+    console.log(filteredProducts)
 
     const handleAddProduct = (product: Product) => {
         if (!formData.products.find(p => p.id === product.id)) {
@@ -183,38 +186,71 @@ const CollectionsPage: React.FC = () => {
         }
 
         if (editingId) {
-            setCollections(collections.map(col =>
-                col.id === editingId
-                    ? { ...col, ...formData }
-                    : col
-            ));
-            toast({
-                title: 'Thành công',
-                description: 'Cập nhật collection thành công',
-                status: 'success',
-                duration: 3000,
-                isClosable: true,
-            });
+            // setCollections(collections.map(col =>
+            //     col.id === editingId
+            //         ? { ...col, ...formData }
+            //         : col
+            // ));
+            const data = new FormData();
+            data.append("id", editingId);
+            data.append("name", formData.name);
+            data.append("description", formData.description);
+            data.append("image_url", formData.image_url);
+            const productIds = formData.products.map((p: { id: number }) => p.id);
+            data.append("productIds", JSON.stringify(productIds));
+            if (formData.products.length <= 0) {
+                toast({
+                    title: 'Thất bại',
+                    description: 'Cần ít nhất 1 sản phẩm cho bộ sưu tâp',
+                    status: 'error',
+                    duration: 3000,
+                    isClosable: true,
+                });
+            } else {
+                updateCollection(data)
+                console.log(productIds)
+                toast({
+                    title: 'Thành công',
+                    description: 'Cập nhật collection thành công',
+                    status: 'success',
+                    duration: 3000,
+                    isClosable: true,
+                });
+            }
+
         } else {
-            const newCollection: Collection = {
-                id: Date.now().toString(),
-                ...formData,
-                created_at: new Date().toISOString().split('T')[0]
-            };
-            setCollections([...collections, newCollection]);
-            toast({
-                title: 'Thành công',
-                description: 'Thêm collection mới thành công',
-                status: 'success',
-                duration: 3000,
-                isClosable: true,
-            });
+            const data = new FormData();
+            data.append("id", formData.id);
+            data.append("name", formData.name);
+            data.append("description", formData.description);
+            data.append("image_url", formData.image_url);
+            const productIds = formData.products.map((p: { id: number }) => p.id);
+            data.append("productIds", JSON.stringify(productIds));
+            if (formData.products.length <= 0) {
+                toast({
+                    title: 'Thất bại',
+                    description: 'Cần ít nhất 1 sản phẩm cho bộ sưu tâp',
+                    status: 'error',
+                    duration: 3000,
+                    isClosable: true,
+                });
+            } else {
+                addCollection(data)
+                toast({
+                    title: 'Thành công',
+                    description: 'Tạo collection thành công',
+                    status: 'success',
+                    duration: 3000,
+                    isClosable: true,
+                });
+            }
         }
+        refetch()
         handleCloseModal();
     };
 
     const handleDelete = (id: string) => {
-        setCollections(collections.filter(col => col.id !== id));
+        deleteCollection(id)
         toast({
             title: 'Thành công',
             description: 'Xóa collection thành công',
@@ -222,15 +258,18 @@ const CollectionsPage: React.FC = () => {
             duration: 3000,
             isClosable: true,
         });
+        refetch()
     };
 
-    const formatPrice = (price: number) => {
+    const formatproduct_price = (product_price: number) => {
         return new Intl.NumberFormat('vi-VN', {
             style: 'currency',
             currency: 'VND'
-        }).format(price);
+        }).format(product_price);
     };
-
+    if (isLoading || isLoadingCollection || updateLoading || deleteLoading || addLoading) {
+        return <Loading></Loading>
+    }
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
             <div className="max-w-7xl mx-auto">
@@ -304,7 +343,7 @@ const CollectionsPage: React.FC = () => {
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between text-sm">
                                         <span className="text-gray-600">Ngày tạo:</span>
-                                        <span className="font-medium">{collection.created_at}</span>
+                                        <span className="font-medium">{collection.createdAt}</span>
                                     </div>
 
                                     <Divider />
@@ -314,7 +353,7 @@ const CollectionsPage: React.FC = () => {
                                         <div className="flex flex-wrap gap-2">
                                             {collection.products.slice(0, 3).map((product) => (
                                                 <Badge key={product.id} colorScheme="blue" variant="subtle">
-                                                    {product.name}
+                                                    {product.product_name}
                                                 </Badge>
                                             ))}
                                             {collection.products.length > 3 && (
@@ -364,9 +403,14 @@ const CollectionsPage: React.FC = () => {
                                     <FormControl>
                                         <FormLabel>URL hình ảnh</FormLabel>
                                         <Input
-                                            value={formData.image_url}
-                                            onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                                            placeholder="https://example.com/image.jpg"
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    setFormData({ ...formData, image_url: file });
+                                                }
+                                            }}
                                         />
                                     </FormControl>
 
@@ -398,7 +442,7 @@ const CollectionsPage: React.FC = () => {
                                                     {formData.products.map((product) => (
                                                         <WrapItem key={product.id}>
                                                             <Tag size="md" colorScheme="blue" variant="solid">
-                                                                <TagLabel>{product.name}</TagLabel>
+                                                                <TagLabel>{product.product_name}</TagLabel>
                                                                 <TagCloseButton onClick={() => handleRemoveProduct(product.id)} />
                                                             </Tag>
                                                         </WrapItem>
@@ -452,20 +496,20 @@ const CollectionsPage: React.FC = () => {
                                                     <div
                                                         key={product.id}
                                                         className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${isSelected
-                                                                ? 'border-blue-500 bg-blue-50'
-                                                                : 'border-gray-200 bg-white hover:border-gray-300'
+                                                            ? 'border-blue-500 bg-blue-50'
+                                                            : 'border-gray-200 bg-white hover:border-gray-300'
                                                             }`}
                                                         onClick={() => isSelected ? handleRemoveProduct(product.id) : handleAddProduct(product)}
                                                     >
                                                         <Image
-                                                            src={product.image_url}
-                                                            alt={product.name}
+                                                            src={product.images[0].url}
+                                                            alt={product.product_name}
                                                             className="w-12 h-12 object-cover rounded-md"
                                                             fallbackSrc="https://via.placeholder.com/50x50?text=No+Image"
                                                         />
                                                         <div className="flex-1">
                                                             <div className="flex items-center justify-between">
-                                                                <Text className="font-medium text-gray-900">{product.name}</Text>
+                                                                <Text className="font-medium text-gray-900">{product.product_name}</Text>
                                                                 <Checkbox
                                                                     isChecked={!!isSelected}
                                                                     colorScheme="blue"
@@ -477,14 +521,21 @@ const CollectionsPage: React.FC = () => {
                                                                     {product.category}
                                                                 </Badge>
                                                                 <Text className="text-sm font-semibold text-blue-600">
-                                                                    {formatPrice(product.price)}
+                                                                    {formatproduct_price(product.product_price)}
                                                                 </Text>
                                                                 <Badge
-                                                                    colorScheme={product.in_stock ? "green" : "red"}
+                                                                    colorScheme={product.quantity_stock ? "green" : "red"}
                                                                     variant="subtle"
                                                                     size="sm"
                                                                 >
-                                                                    {product.in_stock ? "Còn hàng" : "Hết hàng"}
+                                                                    {product.quantity_stock ? "Còn hàng" : "Hết hàng"}
+                                                                </Badge>
+                                                                <Badge
+                                                                    colorScheme={product.collection ? "blue" : ""}
+                                                                    variant="subtle"
+                                                                    size="sm"
+                                                                >
+                                                                    {product.collection ? product.collection.name : ""}
                                                                 </Badge>
                                                             </div>
                                                         </div>
