@@ -17,19 +17,19 @@ export interface User {
 export const usersApi = createApi({
   reducerPath: 'usersApi',
   baseQuery: axiosBaseQuery({ baseUrl: 'http://localhost:3000' }),
-  tagTypes: ['User'],
+  tagTypes: ['user'],
   endpoints: (builder) => ({
     getUsers: builder.query<User[], void>({
       query: () => ({ url: '/users', method: 'GET' }),
-      providesTags: ['User'],
+      providesTags: ['user'],
     }),
     addUser: builder.mutation<User, Partial<User>>({
       query: (body) => ({
-        url: '/users',
+        url: '/users/register', // <-- Fix endpoint here
         method: 'POST',
         data: body,
       }),
-      invalidatesTags: ['User'],
+      invalidatesTags: ['user'],
     }),
     updateUser: builder.mutation<User, { id: number; body: Partial<User> }>({
       query: ({ id, body }) => ({
@@ -37,14 +37,22 @@ export const usersApi = createApi({
         method: 'PATCH',
         data: body,
       }),
-      invalidatesTags: ['User'],
+      invalidatesTags: ['user'],
     }),
     deleteUser: builder.mutation<void, number>({
       query: (id) => ({
         url: `/users/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['User'],
+      invalidatesTags: ['user'],
+    }),
+    setUserStatus: builder.mutation<User, { id: number; status: boolean }>({
+      query: ({ id, status }) => ({
+        url: `/users/${id}/status`,
+        method: 'PATCH',
+        data: { status },
+      }),
+      invalidatesTags: ['user'],
     }),
   }),
 })
@@ -54,4 +62,5 @@ export const {
   useAddUserMutation,
   useUpdateUserMutation,
   useDeleteUserMutation,
+  useSetUserStatusMutation,
 } = usersApi;

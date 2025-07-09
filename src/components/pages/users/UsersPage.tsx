@@ -1,17 +1,22 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "../../widgets/button";
-import { FaTrash, FaPlus, FaUndo, FaUserPlus, FaFilter, FaArrowLeft } from "react-icons/fa";
-import clsx from "clsx";
+import { FaPlus, FaArrowLeft, FaUserPlus, FaFilter } from "react-icons/fa";
 import type { User } from "../users/usersData";
+import {
+  useGetUsersQuery,
+  useAddUserMutation,
+  useDeleteUserMutation,
+  useSetUserStatusMutation,
+} from "../../../redux/api/usersApi";
+import UsersTable from "./UsersTable";
+import AddUserModal from "./AddUserModal";
+import RecentlyJoinedUsers from "./RecentlyJoinedUsers";
+import UndoDeleteModal from "./UndoDeleteModal";
+import { useToast } from "@chakra-ui/react";
 
-type UsersPageProps = {
-  users: User[];
-  setUsers: React.Dispatch<React.SetStateAction<User[]>>;
-};
-
-const UNDO_TIMEOUT = 8000; // 8 seconds
-
+const UNDO_TIMEOUT = 8000;
+const RECENT_USER_COUNT = 5;
 const emptyUser: User = {
   id: 0,
   full_name: "",
@@ -21,57 +26,40 @@ const emptyUser: User = {
   address: "",
   avatar_url: "",
   email: "",
-  role: "User",
+  role: "user",
   status: true,
 };
 
-// Mock data for newly joined users (should match dashboard)
-const newUsers = [
-  {
-    name: "Emily Carter",
-    avatar: "/assets/image/profile5.jpg",
-    joined: "2025-06-12",
-    email: "emily.carter@email.com",
-  },
-  {
-    name: "Samuel Lee",
-    avatar: "/assets/image/profile6.jpg",
-    joined: "2025-06-11",
-    email: "samuel.lee@email.com",
-  },
-  {
-    name: "Olivia Smith",
-    avatar: "/assets/image/profile7.jpg",
-    joined: "2025-06-10",
-    email: "olivia.smith@email.com",
-  },
-  {
-    name: "David Kim",
-    avatar: "/assets/image/profile8.jpg",
-    joined: "2025-06-09",
-    email: "david.kim@email.com",
-  },
-];
+const UsersPage = () => {
+  const { data: users = [], refetch } = useGetUsersQuery();
+  const [addUser] = useAddUserMutation();
+  const [deleteUser] = useDeleteUserMutation();
+  const [setUserStatus] = useSetUserStatusMutation();
+  const toast = useToast();
 
-const UsersPage = ({ users, setUsers }: UsersPageProps) => {
   const [pendingDelete, setPendingDelete] = useState<{ user: User; timeLeft: number } | null>(null);
   const [fadingUserId, setFadingUserId] = useState<number | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newUser, setNewUser] = useState<User>({ ...emptyUser });
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "suspended">("all");
 
-  // Filter logic for newly joined users
   const location = useLocation();
   const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
   const filterNew = params.get("filter") === "new";
 
-  // For demo: filter by email matching newUsers mock data
-  const newUserEmails = newUsers.map(u => u.email);
-  const filteredUsers = filterNew
-    ? users.filter(u => newUserEmails.includes(u.email))
-    : users;
+  // Calculate recent users
+  const sortedUsers = [...users].sort((a, b) => b.id - a.id);
+  const recentUsers = sortedUsers.slice(0, RECENT_USER_COUNT);
+  const filteredUsers = filterNew ? recentUsers : users;
+  const visibleUsers = filteredUsers.filter(user => {
+    if (statusFilter === "all") return true;
+    if (statusFilter === "active") return user.status === true;
+    if (statusFilter === "suspended") return user.status === false;
+    return true;
+  });
 
-  // Handle delete timer and fade-out
+  // Delete timer/fade logic
   useEffect(() => {
     if (!pendingDelete) return;
     const fadeOutTime = UNDO_TIMEOUT * 0.8;
@@ -89,10 +77,18 @@ const UsersPage = ({ users, setUsers }: UsersPageProps) => {
       );
     }, 100);
 
-    timeout = setTimeout(() => {
-      setUsers(prev => prev.filter(u => u.id !== pendingDelete.user.id));
+    timeout = setTimeout(async () => {
+      await deleteUser(pendingDelete.user.id);
       setPendingDelete(null);
       setFadingUserId(null);
+      refetch();
+      toast({
+        title: "User deleted",
+        description: `User "${pendingDelete.user.full_name}" has been deleted.`,
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
     }, pendingDelete.timeLeft);
 
     return () => {
@@ -100,21 +96,7 @@ const UsersPage = ({ users, setUsers }: UsersPageProps) => {
       if (interval) clearInterval(interval);
       if (timeout) clearTimeout(timeout);
     };
-  }, [pendingDelete?.user.id, setUsers, pendingDelete]);
-
-  const handleDelete = (id: number) => {
-    const user = users.find(u => u.id === id);
-    if (!user) return;
-    // Prevent deleting users with the Admin role
-    if (user.role === "Admin") return;
-    setPendingDelete({ user, timeLeft: UNDO_TIMEOUT });
-    setFadingUserId(null);
-  };
-
-  const handleUndoDelete = () => {
-    setPendingDelete(null);
-    setFadingUserId(null);
-  };
+  }, [pendingDelete?.user.id, pendingDelete]);
 
   // Add user modal logic
   const handleAddUser = () => {
@@ -122,30 +104,55 @@ const UsersPage = ({ users, setUsers }: UsersPageProps) => {
     setNewUser({ ...emptyUser, id: Date.now() });
   };
 
-  // When adding a new user, always use boolean for status
-  const handleSaveNewUser = () => {
-    setUsers(prev => [{ ...newUser, id: Date.now(), role: "User", status: true }, ...prev]);
-    setShowAddModal(false);
-    setNewUser({ ...emptyUser });
+  const handleSaveNewUser = async () => {
+    try {
+      const result = await addUser({
+        ...newUser,
+        role: "user",
+        status: newUser.status ?? true,
+      }).unwrap();
+      setShowAddModal(false);
+      setNewUser({ ...emptyUser });
+      refetch();
+      toast({
+        title: "User added",
+        description: "The user was added successfully.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (err) {
+      toast({
+        title: "Failed to add user",
+        description: "Please check your input or try again.",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
+    }
   };
 
   const handleChangeNewUser = (field: keyof User, value: string | boolean) => {
     setNewUser(prev => ({ ...prev, [field]: value }));
   };
 
-  // Toggle user status (Active/Suspended)
-  const handleToggleStatus = (id: number) => {
-    setUsers(prev =>
-      prev.map(u =>
-        u.id === id
-          ? { ...u, status: !u.status }
-          : u
-      )
-    );
+  const handleToggleStatus = async (id: number) => {
+    const user = users.find(u => u.id === id);
+    if (!user) return;
+    await setUserStatus({ id, status: !user.status });
+    refetch();
   };
 
-  // Show all users, but highlight the one being deleted
-  const visibleUsers = filteredUsers;
+  const handleDelete = (id: number) => {
+    const user = users.find(u => u.id === id);
+    if (!user) return;
+    setPendingDelete({ user, timeLeft: UNDO_TIMEOUT });
+  };
+
+  const handleUndoDelete = () => {
+    setPendingDelete(null);
+    setFadingUserId(null);
+  };
 
   return (
     <div className="p-8">
@@ -162,48 +169,13 @@ const UsersPage = ({ users, setUsers }: UsersPageProps) => {
         </Button>
       </div>
 
-      {/* Panel for newly joined users */}
       {!filterNew && (
-        <div className="bg-white rounded-xl shadow p-6 mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <FaUserPlus className="text-pink-500" size={22} />
-              <span className="font-semibold text-lg">Recently Joined Users</span>
-            </div>
-            <Button
-              className="flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-700 border border-blue-200 rounded text-sm hover:bg-blue-200 transition"
-              onClick={() => navigate("?filter=new")}
-            >
-              <FaFilter />
-              Show Only New Users
-            </Button>
-          </div>
-          <ul className="flex flex-wrap gap-6">
-            {newUsers.map((user, idx) => (
-              <li
-                key={idx}
-                className="flex flex-col items-center bg-gray-50 rounded-lg p-4 w-48 shadow hover:bg-gray-100 transition"
-              >
-                <img
-                  src={user.avatar}
-                  alt={user.name}
-                  className="rounded-full object-cover border-2 border-pink-400 mb-2"
-                  width={56}
-                  height={56}
-                  style={{ width: 56, height: 56 }}
-                />
-                <span className="font-semibold text-gray-800">{user.name}</span>
-                <span className="text-gray-500 text-sm">{user.email}</span>
-                <span className="text-xs text-gray-400">
-                  Joined {new Date(user.joined).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <RecentlyJoinedUsers
+          recentUsers={recentUsers}
+          onShowOnlyNew={() => navigate("?filter=new")}
+        />
       )}
 
-      {/* Back to all users button when filtered */}
       {filterNew && (
         <div className="mb-6 flex justify-end">
           <Button
@@ -216,265 +188,59 @@ const UsersPage = ({ users, setUsers }: UsersPageProps) => {
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow p-6">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="text-left border-b">
-                <th className="py-2 px-2">Avatar</th>
-                <th className="py-2 px-2">Full Name</th>
-                <th className="py-2 px-2">Username</th>
-                <th className="py-2 px-2">Email</th>
-                <th className="py-2 px-2">Phone</th>
-                <th className="py-2 px-2">Address</th>
-                <th className="py-2 px-2">Role</th>
-                <th className="py-2 px-2">Status</th>
-                <th className="py-2 px-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visibleUsers.map(user => {
-                const isFading = fadingUserId === user.id;
-                const isPendingDelete = pendingDelete?.user.id === user.id;
-                return (
-                  <tr
-                    key={user.id}
-                    className={clsx(
-                      "border-b transition-all duration-700",
-                      isPendingDelete && !isFading && "bg-red-100 ring-2 ring-red-400",
-                      isFading && "opacity-0 pointer-events-none"
-                    )}
-                    style={{
-                      transition: "opacity 1s, background 0.3s",
-                    }}
-                  >
-                    <td className="py-2 px-2">
-                      {user.avatar_url ? (
-                        <img
-                          src={user.avatar_url}
-                          alt={user.full_name}
-                          className="w-10 h-10 object-cover rounded-full border"
-                        />
-                      ) : (
-                        <span className="inline-block w-10 h-10 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center">
-                          {user.full_name ? user.full_name[0].toUpperCase() : "?"}
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-2 px-2">{user.full_name}</td>
-                    <td className="py-2 px-2">{user.username}</td>
-                    <td className="py-2 px-2">{user.email}</td>
-                    <td className="py-2 px-2">{user.phone_number}</td>
-                    <td className="py-2 px-2">{user.address}</td>
-                    <td className="py-2 px-2">{user.role}</td>
-                    <td className="py-2 px-2">
-                      <span
-                        className={
-                          user.status
-                            ? "text-green-600 font-semibold"
-                            : "text-red-600 font-semibold"
-                        }
-                      >
-                        {user.status ? "Active" : "Suspended"}
-                      </span>
-                    </td>
-                    <td className="py-2 px-2 flex gap-2">
-                      <Button
-                        size="sm"
-                        className={
-                          user.status
-                            ? "bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200"
-                            : "bg-green-100 text-green-800 border border-green-300 hover:bg-green-200"
-                        }
-                        onClick={() => handleToggleStatus(user.id)}
-                        disabled={!!pendingDelete}
-                      >
-                        {user.status ? "Set Suspended" : "Set Active"}
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="bg-red-100 text-red-700 border border-red-300 hover:bg-red-200"
-                        onClick={() => handleDelete(user.id)}
-                        disabled={!!pendingDelete || user.role === "Admin"}
-                        title={user.role === "Admin" ? "Cannot delete Admin users" : "Delete"}
-                      >
-                        <FaTrash className="inline mr-1" />
-                        Delete
-                      </Button>
-                    </td>
-                  </tr>
-                );
-              })}
-              {visibleUsers.length === 0 && (
-                <tr>
-                  <td colSpan={9} className="py-6 text-center text-gray-400">
-                    No users found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+      {/* Filter Buttons */}
+      <div className="flex gap-2 mb-4">
+        <button
+          className={`px-3 py-1 rounded ${statusFilter === "all" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+          onClick={() => setStatusFilter("all")}
+        >
+          All
+        </button>
+        <button
+          className={`px-3 py-1 rounded ${statusFilter === "active" ? "bg-green-500 text-white" : "bg-gray-200"}`}
+          onClick={() => setStatusFilter("active")}
+        >
+          Active
+        </button>
+        <button
+          className={`px-3 py-1 rounded ${statusFilter === "suspended" ? "bg-red-500 text-white" : "bg-gray-200"}`}
+          onClick={() => setStatusFilter("suspended")}
+        >
+          Suspended
+        </button>
       </div>
 
-      {/* Add User Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-6 relative">
-            <button
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl"
-              onClick={() => setShowAddModal(false)}
-              aria-label="Close"
-            >
-              &times;
-            </button>
-            <h3 className="text-xl font-bold mb-4">Add User</h3>
-            <form
-              onSubmit={e => {
-                e.preventDefault();
-                handleSaveNewUser();
-              }}
-              className="space-y-4"
-            >
-              <div>
-                <label className="block text-sm font-medium mb-1">Full Name</label>
-                <input
-                  className="w-full border rounded px-3 py-2"
-                  value={newUser.full_name}
-                  onChange={e => handleChangeNewUser("full_name", e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Username</label>
-                <input
-                  className="w-full border rounded px-3 py-2"
-                  value={newUser.username}
-                  onChange={e => handleChangeNewUser("username", e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Password</label>
-                <input
-                  className="w-full border rounded px-3 py-2"
-                  type="password"
-                  value={newUser.password}
-                  onChange={e => handleChangeNewUser("password", e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Phone Number</label>
-                <input
-                  className="w-full border rounded px-3 py-2"
-                  value={newUser.phone_number ?? ""}
-                  onChange={e => handleChangeNewUser("phone_number", e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Address</label>
-                <input
-                  className="w-full border rounded px-3 py-2"
-                  value={newUser.address ?? ""}
-                  onChange={e => handleChangeNewUser("address", e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Avatar URL</label>
-                <input
-                  className="w-full border rounded px-3 py-2"
-                  value={newUser.avatar_url ?? ""}
-                  onChange={e => handleChangeNewUser("avatar_url", e.target.value)}
-                  placeholder="https://..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
-                <input
-                  className="w-full border rounded px-3 py-2"
-                  type="email"
-                  value={newUser.email}
-                  onChange={e => handleChangeNewUser("email", e.target.value)}
-                  required
-                />
-              </div>
-              {/* Role is not selectable, always "User" */}
-              <div>
-                <label className="block text-sm font-medium mb-1">Role</label>
-                <input
-                  className="w-full border rounded px-3 py-2 bg-gray-100 text-gray-500"
-                  value="User"
-                  disabled
-                  readOnly
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Status</label>
-                <select
-                  className="w-full border rounded px-3 py-2"
-                  value={newUser.status ? "Active" : "Suspended"}
-                  onChange={e => handleChangeNewUser("status", e.target.value === "Active")}
-                >
-                  <option value="Active">Active</option>
-                  <option value="Suspended">Suspended</option>
-                </select>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button
-                  className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
-                  type="submit"
-                >
-                  Save
-                </Button>
-                <Button
-                  className="bg-gray-200 px-6 py-2 rounded"
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <UsersTable
+        users={visibleUsers}
+        fadingUserId={fadingUserId}
+        pendingDelete={pendingDelete}
+        onToggleStatus={handleToggleStatus}
+        onDelete={handleDelete}
+      />
 
-      {/* Undo Delete Snackbar as Modal */}
-      {pendingDelete && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-70">
-          <div className="bg-white border-4 border-red-600 text-red-700 px-8 py-8 rounded-2xl shadow-2xl flex flex-col min-w-[340px] max-w-xs w-full items-center animate-pulse">
-            <div className="flex items-center justify-between w-full mb-4">
-              <span className="font-bold text-lg flex-1 text-center">
-                Deleting <b>{pendingDelete.user.full_name}</b>
-              </span>
-              <Button
-                size="sm"
-                className="bg-red-600 text-white border border-red-700 hover:bg-red-700 px-4 py-2 rounded ml-4"
-                onClick={handleUndoDelete}
-              >
-                <FaUndo className="inline mr-1" />
-                Undo
-              </Button>
-            </div>
-            <div className="w-full h-3 bg-red-200 rounded overflow-hidden mb-2">
-              <div
-                className="h-full bg-red-500"
-                style={{
-                  width: `${(pendingDelete.timeLeft / UNDO_TIMEOUT) * 100}%`,
-                  transition: "width 0.1s linear",
-                }}
-              />
-            </div>
-            <div className="text-center text-base font-semibold mt-2">
-              User will be deleted in&nbsp;
-              <span className="font-mono text-lg">
-                {(pendingDelete.timeLeft / 1000).toFixed(1)}s
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
+      <AddUserModal
+        show={showAddModal}
+        newUser={newUser}
+        onChange={handleChangeNewUser}
+        onSave={handleSaveNewUser}
+        onClose={() => setShowAddModal(false)}
+      />
+
+      <UndoDeleteModal
+        pendingDelete={pendingDelete}
+        UNDO_TIMEOUT={UNDO_TIMEOUT}
+        onUndo={handleUndoDelete}
+        onToast={({ title, description, status }) =>
+          toast({
+            title,
+            description,
+            status,
+            duration: 3000,
+            isClosable: true,
+          })
+        }
+      />
+
       <div className="mt-6 text-gray-500 text-sm">
         <strong>Note:</strong> User information is managed and updated from the main site. You cannot edit user info here. Any changes will be reflected automatically when updated on the main site.
       </div>
