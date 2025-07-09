@@ -317,7 +317,7 @@ const MediaManager: React.FC = () => {
     if (!moveTargetFolder || selectedImages.length === 0) return;
     try {
       for (const id of selectedImages) {
-        await updateMedia({ id, folder: moveTargetFolder }).unwrap();
+        await updateMedia({ id, data: { folder: moveTargetFolder } }).unwrap();
       }
       toast({
         title: "Images moved",

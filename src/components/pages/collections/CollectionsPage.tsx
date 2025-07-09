@@ -38,6 +38,8 @@ import { Search, Plus, Edit, Trash2, Package } from 'lucide-react';
 import { useGetProductsQuery } from '../../../redux/api/productsApi';
 import { useGetCollectionsQuery, useAddCollectionMutation, useDeleteCollectionMutation, useUpdateCollectionMutation } from '../../../redux/api/collectionsApi';
 import Loading from '../../../components/widgets/loading';
+import MediaPicker from '../../media/MediaPicker';
+
 interface Product {
     id: string;
     product_name: string;
@@ -113,6 +115,7 @@ const CollectionsPage: React.FC = () => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [productSearch, setProductSearch] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
+    const [showMediaPicker, setShowMediaPicker] = useState(false);
 
     const categories = ['All', 'Strategy', 'Family', 'Cooperative', 'Party', 'Card Game'];
 
@@ -173,6 +176,14 @@ const CollectionsPage: React.FC = () => {
         });
     };
 
+    function slugify(str: string) {
+        return str
+            .toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove accents
+            .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with -
+            .replace(/^-+|-+$/g, ''); // Trim dashes
+    }
+
     const handleSave = () => {
         if (!formData.name || !formData.description) {
             toast({
@@ -184,68 +195,46 @@ const CollectionsPage: React.FC = () => {
             });
             return;
         }
+        if (formData.products.length <= 0) {
+            toast({
+                title: 'Thất bại',
+                description: 'Cần ít nhất 1 sản phẩm cho bộ sưu tập',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
+            return;
+        }
+
+        const productIds = formData.products.map((p: Product) => Number(p.id));
+        const payload = {
+            name: formData.name,
+            slug: slugify(formData.name), // <-- Add this line
+            description: formData.description,
+            image_url: formData.image_url,
+            productIds,
+        };
 
         if (editingId) {
-            // setCollections(collections.map(col =>
-            //     col.id === editingId
-            //         ? { ...col, ...formData }
-            //         : col
-            // ));
-            const data = new FormData();
-            data.append("id", editingId);
-            data.append("name", formData.name);
-            data.append("description", formData.description);
-            data.append("image_url", formData.image_url);
-            const productIds = formData.products.map((p: { id: number }) => p.id);
-            data.append("productIds", JSON.stringify(productIds));
-            if (formData.products.length <= 0) {
-                toast({
-                    title: 'Thất bại',
-                    description: 'Cần ít nhất 1 sản phẩm cho bộ sưu tâp',
-                    status: 'error',
-                    duration: 3000,
-                    isClosable: true,
-                });
-            } else {
-                updateCollection(data)
-                console.log(productIds)
-                toast({
-                    title: 'Thành công',
-                    description: 'Cập nhật collection thành công',
-                    status: 'success',
-                    duration: 3000,
-                    isClosable: true,
-                });
-            }
-
+            updateCollection({ id: editingId, ...payload });
+            toast({
+                title: 'Thành công',
+                description: 'Cập nhật collection thành công',
+                status: 'success',
+                duration: 3000,
+                isClosable: true,
+            });
         } else {
-            const data = new FormData();
-            data.append("id", formData.id);
-            data.append("name", formData.name);
-            data.append("description", formData.description);
-            data.append("image_url", formData.image_url);
-            const productIds = formData.products.map((p: { id: number }) => p.id);
-            data.append("productIds", JSON.stringify(productIds));
-            if (formData.products.length <= 0) {
-                toast({
-                    title: 'Thất bại',
-                    description: 'Cần ít nhất 1 sản phẩm cho bộ sưu tâp',
-                    status: 'error',
-                    duration: 3000,
-                    isClosable: true,
-                });
-            } else {
-                addCollection(data)
-                toast({
-                    title: 'Thành công',
-                    description: 'Tạo collection thành công',
-                    status: 'success',
-                    duration: 3000,
-                    isClosable: true,
-                });
-            }
+            addCollection(payload);
+            toast({
+                title: 'Thành công',
+                description: 'Tạo collection thành công',
+                status: 'success',
+                duration: 3000,
+                isClosable: true,
+            });
         }
-        refetch()
+        refetch();
         handleCloseModal();
     };
 
@@ -292,7 +281,7 @@ const CollectionsPage: React.FC = () => {
 
                 {/* Collections Grid */}
                 <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
-                    {collections.map((collection) => (
+                    {(collections ?? []).map((collection) => (
                         <Card key={collection.id} className="shadow-lg hover:shadow-xl transition-shadow duration-300">
                             <CardHeader className="pb-3">
                                 <div className="flex justify-between items-start">
@@ -401,17 +390,18 @@ const CollectionsPage: React.FC = () => {
                                     </FormControl>
 
                                     <FormControl>
-                                        <FormLabel>URL hình ảnh</FormLabel>
-                                        <Input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={(e) => {
-                                                const file = e.target.files?.[0];
-                                                if (file) {
-                                                    setFormData({ ...formData, image_url: file });
-                                                }
-                                            }}
-                                        />
+                                        <FormLabel>Ảnh đại diện</FormLabel>
+                                        <Button onClick={() => setShowMediaPicker(true)}>
+                                            {formData.image_url ? "Đổi ảnh" : "Chọn ảnh"}
+                                        </Button>
+                                        {formData.image_url && (
+                                            <Image
+                                                src={formData.image_url}
+                                                alt="Preview"
+                                                className="w-full h-40 object-cover rounded-lg mt-2"
+                                                fallbackSrc="https://via.placeholder.com/400x200?text=Invalid+URL"
+                                            />
+                                        )}
                                     </FormControl>
 
                                     {/* Preview */}
@@ -563,6 +553,16 @@ const CollectionsPage: React.FC = () => {
                         </ModalFooter>
                     </ModalContent>
                 </Modal>
+
+                <MediaPicker
+                    show={showMediaPicker}
+                    multiple={false}
+                    onSelect={(img) => {
+                        setFormData({ ...formData, image_url: Array.isArray(img) ? img[0].url : img.url });
+                        setShowMediaPicker(false);
+                    }}
+                    onClose={() => setShowMediaPicker(false)}
+                />
             </div>
         </div>
     );

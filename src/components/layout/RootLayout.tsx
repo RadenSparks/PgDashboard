@@ -12,7 +12,7 @@ const RootLayout = () => {
       </Box>
       <Flex flexDir="column" flex="1" minW={0} h="full">
         {/* Navbar: Sticky on mobile */}
-        <Box position={{ base: "sticky", md: "static" }} top="0" zIndex="1">
+        <Box position={{ base: "sticky", md: "static" }} top="0" zIndex="10" boxShadow="sm">
           <Navbar />
         </Box>
         <Box flex="1" h="full" overflowY="auto">

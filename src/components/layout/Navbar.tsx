@@ -13,28 +13,26 @@ import {
   DrawerCloseButton,
   useDisclosure,
   useBreakpointValue,
+  useColorMode,
 } from "@chakra-ui/react";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const [notifications, setNotifications] = useState([
+    { id: 1, text: "New order received", read: false },
+    { id: 2, text: "Product out of stock", read: false },
+    { id: 3, text: "User signed up", read: false },
+  ]);
   const menuRef = useRef<HTMLDivElement>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
+  const { colorMode, toggleColorMode } = useColorMode();
 
   // Drawer for mobile menu
   const { isOpen, onOpen, onClose } = useDisclosure();
   const isMobile = useBreakpointValue({ base: true, md: false });
-
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [darkMode]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -111,8 +109,8 @@ const Navbar = () => {
           {/* Dark/Light Mode Toggle */}
           <IconButton
             aria-label="Toggle dark mode"
-            icon={darkMode ? <FaSun color="#ECC94B" /> : <FaMoon color="#2D3748" />}
-            onClick={() => setDarkMode((prev) => !prev)}
+            icon={colorMode === "dark" ? <FaSun color="#ECC94B" /> : <FaMoon color="#2D3748" />}
+            onClick={toggleColorMode}
             variant="ghost"
             size="md"
             rounded="full"
@@ -185,9 +183,11 @@ const Navbar = () => {
                 setNotificationOpen((open) => !open);
                 setCalendarOpen(false);
                 setMenuOpen(false);
+                // Mark all as read when opening
+                setNotifications((prev) => prev.map(n => ({ ...n, read: true })));
               }}
             />
-            {!notificationOpen && (
+            {notifications.some(n => !n.read) && !notificationOpen && (
               <Box
                 position="absolute"
                 top={0}
@@ -202,15 +202,19 @@ const Navbar = () => {
                 alignItems="center"
                 justifyContent="center"
               >
-                3
+                {notifications.filter(n => !n.read).length}
               </Box>
             )}
             {notificationOpen && (
               <Box position="absolute" right={0} top={8} zIndex={50} minW="220px" bg="white" border="1px solid" borderColor="gray.200" rounded="lg" shadow="lg" py={2}>
                 <div className="px-4 py-2 font-semibold border-b">Notifications</div>
-                <div className="px-4 py-2 hover:bg-gray-100 cursor-pointer">New order received</div>
-                <div className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Product out of stock</div>
-                <div className="px-4 py-2 hover:bg-gray-100 cursor-pointer">User signed up</div>
+                {notifications.length === 0 ? (
+                  <div className="px-4 py-2 text-gray-400">No notifications</div>
+                ) : (
+                  notifications.map(n => (
+                    <div key={n.id} className="px-4 py-2 hover:bg-gray-100 cursor-pointer">{n.text}</div>
+                  ))
+                )}
                 <div className="px-4 py-2 text-center text-xs text-gray-400 border-t">View all</div>
               </Box>
             )}

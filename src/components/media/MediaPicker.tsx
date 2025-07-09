@@ -29,7 +29,7 @@ const MediaPicker: React.FC<MediaPickerProps> = ({ show, multiple, onSelect, onC
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+    <div className="fixed inset-0 z-[1500] flex items-center justify-center bg-black bg-opacity-40">
       <div className="bg-white rounded-xl shadow-lg max-w-3xl w-full p-8 relative">
         <h3 className="text-lg font-bold mb-4 text-blue-700">Select Image{multiple ? "s" : ""}</h3>
         <div className="grid grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto">

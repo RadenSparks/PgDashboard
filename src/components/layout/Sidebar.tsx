@@ -1,5 +1,5 @@
 import { Button } from "../widgets/button";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   MdDashboard,
   MdCategory,
@@ -12,10 +12,11 @@ import {
   MdAdminPanelSettings,
   MdLabel,
   MdComment,
-  MdPhotoLibrary, // <-- Add this import
+  MdPhotoLibrary,
+  MdCollectionsBookmark, // Add this import if you want a collections icon
 } from "react-icons/md";
-import { useNavigate } from "react-router-dom";
-import { Drawer, DrawerOverlay, DrawerContent, DrawerCloseButton, useBreakpointValue } from "@chakra-ui/react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Drawer, DrawerOverlay, DrawerContent, DrawerCloseButton, useBreakpointValue, Tooltip } from "@chakra-ui/react";
 
 // Mock user data (replace with your auth/user context as needed)
 const user = {
@@ -31,11 +32,13 @@ const tabs = [
   { label: "Posts", icon: <MdPostAdd size={22} />, route: "/posts" },
   { label: "Orders", icon: <MdShoppingCart size={22} />, route: "/orders" },
   { label: "Comments", icon: <MdComment size={22} />, route: "/comments" },
-  { label: "Media", icon: <MdPhotoLibrary size={22} />, route: "/media" }, // <-- Add this line
+  { label: "Media", icon: <MdPhotoLibrary size={22} />, route: "/media" },
   { label: "Tags", icon: <MdLabel size={22} />, route: "/tags" },
   { label: "Permission", icon: <MdAdminPanelSettings size={22} />, route: "/permission" },
   { label: "Users", icon: <MdPeople size={22} />, route: "/users" },
+  { label: "Collections", icon: <MdCollectionsBookmark size={22} />, route: "/collections" }, // <-- Add this line
   { label: "Settings", icon: <MdSettings size={22} />, route: "/settings" },
+
 ];
 
 // Add explicit types for props
@@ -105,21 +108,24 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
     <ul className={`flex flex-col gap-1 py-6 w-full px-2 ${collapsed ? "items-center" : ""}`}>
       {tabs.map((tab) => (
         <li key={tab.label} className="w-full">
-          <button
-            className={`flex items-center gap-3 w-full px-2 py-2 rounded-lg transition-colors
-              ${collapsed ? "justify-center" : ""}
-              ${activeTab === tab.label
+          <Tooltip label={collapsed ? tab.label : ""} placement="right" hasArrow>
+            <button
+              className={`flex items-center gap-3 w-full px-2 py-2 rounded-lg transition-colors
+                ${collapsed ? "justify-center" : ""}
+                ${activeTab === tab.label
                 ? "bg-blue-100 text-blue-800 font-semibold"
                 : "hover:bg-gray-100 text-primary"}
-            `}
-            onClick={() => {
-              setActiveTab(tab.label);
-              navigate(tab.route);
-            }}
-          >
-            {tab.icon}
-            {!collapsed && <span className="truncate">{tab.label}</span>}
-          </button>
+              `}
+              onClick={() => {
+                setActiveTab(tab.label);
+                navigate(tab.route);
+              }}
+              aria-current={activeTab === tab.label ? "page" : undefined}
+            >
+              {tab.icon}
+              {!collapsed && <span className="truncate">{tab.label}</span>}
+            </button>
+          </Tooltip>
         </li>
       ))}
       <hr className="bg-primary h-[1px] mt-6 w-full" />
@@ -137,7 +143,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState("Dashboard");
   const navigate = useNavigate();
+  const location = useLocation();
   const isMobile = useBreakpointValue({ base: true, md: false });
+
+  useEffect(() => {
+    const found = tabs.find(tab => tab.route === location.pathname);
+    if (found) setActiveTab(found.label);
+  }, [location.pathname]);
 
   // Drawer for mobile
   if (isMobile) {
@@ -162,20 +174,22 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   return (
     <div className="relative h-screen">
       {/* Arrow Button between Navbar and Sidebar */}
-      <Button
-        onClick={() => setCollapsed((prev) => !prev)}
-        className="absolute top-6 -right-4 z-20 bg-white border border-[#dbdbdb] shadow p-1 w-8 h-8 flex items-center justify-center transition-colors hover:bg-yellow-100 focus:outline-none rounded-full"
-        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        type="button"
-      >
-        <img
-          src="/assets/icons/lefticon.svg"
-          height={20}
-          width={20}
-          alt="toggle sidebar"
-          className={`transition-transform duration-300 ${collapsed ? "rotate-180" : ""}`}
-        />
-      </Button>
+      <Tooltip label={collapsed ? "Expand sidebar" : "Collapse sidebar"} placement="right" hasArrow>
+        <Button
+          onClick={() => setCollapsed((prev) => !prev)}
+          className="absolute top-6 -right-4 z-20 bg-white border border-[#dbdbdb] shadow p-1 w-8 h-8 flex items-center justify-center transition-colors hover:bg-yellow-100 focus:outline-none rounded-full"
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          type="button"
+        >
+          <img
+            src="/assets/icons/lefticon.svg"
+            height={20}
+            width={20}
+            alt="toggle sidebar"
+            className={`transition-transform duration-300 ${collapsed ? "rotate-180" : ""}`}
+          />
+        </Button>
+      </Tooltip>
       <SidebarContent
         collapsed={collapsed}
         setCollapsed={setCollapsed}

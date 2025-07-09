@@ -19,22 +19,26 @@ export const collectionsApi = createApi({
       query: () => ({ url: '/collections', method: 'GET' }),
       providesTags: ['Collection'],
     }),
-    addCollection: builder.mutation<Collection, FormData>({
-      query: (body) => ({
-        url: '/collections',
-        method: 'POST',
-        data: body,
+    addCollection: builder.mutation<Collection, Partial<Collection> & { productIds?: number[] }>(
+      {
+        query: (body) => ({
+          url: '/collections',
+          method: 'POST',
+          data: body, // This will send JSON
+          headers: { 'Content-Type': 'application/json' },
+        }),
+        invalidatesTags: ['Collection', 'Product'],
       }),
-      invalidatesTags: ['Collection', 'Product'],
-    }),
-    updateCollection: builder.mutation<Collection, FormData>({
-      query: (body) => ({
-        url: '/collections/' + body.get('id'),
-        method: 'PUT',
-        data: body,
+    updateCollection: builder.mutation<Collection, { id: number; name?: string; description?: string; image_url?: string; productIds?: number[] }>(
+      {
+        query: ({ id, ...body }) => ({
+          url: `/collections/${id}`,
+          method: 'PUT',
+          data: body,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+        invalidatesTags: ['Collection', 'Product'],
       }),
-      invalidatesTags: ['Collection', 'Product'],
-    }),
     deleteCollection: builder.mutation<void, number>({
       query: (id) => ({
         url: `/collections/${id}`,

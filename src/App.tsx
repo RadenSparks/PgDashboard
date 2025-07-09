@@ -42,6 +42,7 @@ const App: React.FC = () => {
               <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
               <Route path="/tags" element={<ProtectedRoute><TagsPage /></ProtectedRoute>} />
               <Route path="/collections" element={<ProtectedRoute><CollectionsPage /></ProtectedRoute>} />
+              <Route path="/media" element={<ProtectedRoute><MediaManager /></ProtectedRoute>} />
             </Route>
             <Route path="/signin" element={<PublicRoute><SignIn /></PublicRoute>} />
             <Route path="/signup" element={<PublicRoute><SignUp /></PublicRoute>} />
