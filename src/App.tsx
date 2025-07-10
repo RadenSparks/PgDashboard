@@ -20,7 +20,7 @@ import TagsPage from './components/pages/tags/TagsPage';
 import { initialUsers, type User } from './components/pages/users/usersData';
 import MediaManager from './components/pages/media/MediaManager';
 import CollectionsPage from './components/pages/collections/CollectionsPage';
-
+import PublishersPage from './components/pages/publishers/PublishersPage';
 const App: React.FC = () => {
   const [users, setUsers] = useState<User[]>(initialUsers);
 
@@ -43,6 +43,7 @@ const App: React.FC = () => {
               <Route path="/tags" element={<ProtectedRoute><TagsPage /></ProtectedRoute>} />
               <Route path="/collections" element={<ProtectedRoute><CollectionsPage /></ProtectedRoute>} />
               <Route path="/media" element={<ProtectedRoute><MediaManager /></ProtectedRoute>} />
+              <Route path="/publishers" element={<ProtectedRoute>{<PublishersPage />}</ProtectedRoute>} />
             </Route>
             <Route path="/signin" element={<PublicRoute><SignIn /></PublicRoute>} />
             <Route path="/signup" element={<PublicRoute><SignUp /></PublicRoute>} />

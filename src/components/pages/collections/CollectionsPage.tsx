@@ -332,7 +332,11 @@ const CollectionsPage: React.FC = () => {
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between text-sm">
                                         <span className="text-gray-600">Ngày tạo:</span>
-                                        <span className="font-medium">{collection.createdAt}</span>
+                                        <span className="font-medium">
+                                          {collection.createdAt
+                                            ? new Date(collection.createdAt).toLocaleDateString()
+                                            : ""}
+                                        </span>
                                     </div>
 
                                     <Divider />

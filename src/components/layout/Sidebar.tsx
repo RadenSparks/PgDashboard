@@ -33,7 +33,7 @@ const tabs = [
   { label: "Permission", icon: <MdAdminPanelSettings size={22} />, route: "/permission" },
   { label: "Users", icon: <MdPeople size={22} />, route: "/users" },
   { label: "Collections", icon: <MdCollectionsBookmark size={22} />, route: "/collections" },
-  { label: "Settings", icon: <MdSettings size={22} />, route: "/settings" },
+  { label: "Publishers", icon: <MdAdminPanelSettings size={22} />, route: "/publishers" },
 ];
 
 type SidebarContentProps = {

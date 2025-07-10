@@ -8,6 +8,7 @@ export interface Collection {
   slug: string
   image_url: string
   products: Product[]
+  createdAt: string // <-- Add this line
 }
 
 export const collectionsApi = createApi({

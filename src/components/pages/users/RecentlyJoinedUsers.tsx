@@ -42,9 +42,6 @@ const RecentlyJoinedUsers: React.FC<RecentlyJoinedUsersProps> = ({
           />
           <span className="font-semibold text-gray-800">{user.full_name}</span>
           <span className="text-gray-500 text-sm">{user.email}</span>
-          <span className="text-xs text-gray-400">
-            Joined N/A
-          </span>
         </li>
       ))}
     </ul>
