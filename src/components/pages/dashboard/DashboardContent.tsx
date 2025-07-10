@@ -11,88 +11,14 @@ import DashboardHeader from "./DashboardHeader";
 import StatsCards from "./StatsCards";
 import RecentCommentsPanel from "./RecentCommentsPanel";
 import NewUsersPanel from "./NewUsersPanel";
+import { useGetUsersQuery } from "../../../redux/api/usersApi";
+import { useGetAllReviewsQuery } from "../../../redux/api/reviewsApi";
+import { useGetOrdersQuery } from "../../../redux/api/ordersApi";
 
 // --- Mock Data for New Users and Comments ---
 const newUsersCount = 17; // Example: number of new users this week
 
-const recentComments = [
-  {
-    user: "Alice",
-    avatar: "/assets/image/profile1.jpg",
-    comment: "Great product! Fast shipping.",
-    product: "Wireless Mouse",
-    date: "2025-06-12",
-  },
-  {
-    user: "Bob",
-    avatar: "/assets/image/profile2.jpg",
-    comment: "Quality could be better.",
-    product: "Bluetooth Headphones",
-    date: "2025-06-11",
-  },
-  {
-    user: "Jane",
-    avatar: "/assets/image/profile3.jpg",
-    comment: "Amazing value for the price.",
-    product: "USB-C Charger",
-    date: "2025-06-10",
-  },
-  {
-    user: "Mike",
-    avatar: "/assets/image/profile4.jpg",
-    comment: "Customer service was very helpful.",
-    product: "Laptop Stand",
-    date: "2025-06-09",
-  },
-];
-
-// Mock data for newly joined users
-const newUsers = [
-  {
-    name: "Emily Carter",
-    avatar: "/assets/image/profile5.jpg",
-    joined: "2025-06-12",
-    email: "emily.carter@email.com",
-  },
-  {
-    name: "Samuel Lee",
-    avatar: "/assets/image/profile6.jpg",
-    joined: "2025-06-11",
-    email: "samuel.lee@email.com",
-  },
-  {
-    name: "Olivia Smith",
-    avatar: "/assets/image/profile7.jpg",
-    joined: "2025-06-10",
-    email: "olivia.smith@email.com",
-  },
-  {
-    name: "David Kim",
-    avatar: "/assets/image/profile8.jpg",
-    joined: "2025-06-09",
-    email: "david.kim@email.com",
-  },
-];
-
-// OrderProduct and Order types (should match OrdersPage)
-type OrderProduct = {
-  name: string;
-  quantity: number;
-  price: number;
-};
-
-type Order = {
-  id: string;
-  customer: string;
-  date: string;
-  status: string;
-  total: number;
-  items: number;
-  paymentType: string;
-  deliveryMethod: string;
-  trackingNumber: string;
-  products: OrderProduct[];
-};
+const RECENT_USER_COUNT = 4; // or any number you want
 
 const ordersWithProducts: Order[] = mockOrders.map((order, idx) => ({
   ...order,
@@ -104,6 +30,20 @@ const ordersWithProducts: Order[] = mockOrders.map((order, idx) => ({
 
 const DashboardContent = () => {
   const navigate = useNavigate();
+  const { data: users = [] } = useGetUsersQuery();
+  const { data: allReviews = [] } = useGetAllReviewsQuery();
+  const { data: orders = [] } = useGetOrdersQuery();
+
+  // Sort reviews by createdAt ascending (earliest first)
+  const earliestReviews = [...allReviews]
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    .slice(0, 4) // Show the first 4 earliest reviews
+    .map(r => ({
+      user: r.user?.username || "Unknown User",
+      comment: r.content,
+      product: r.product?.name || "Product",
+      date: r.createdAt ? new Date(r.createdAt).toLocaleDateString() : "",
+    }));
 
   // Calculate stats from products and orders
   const {
@@ -146,7 +86,17 @@ const DashboardContent = () => {
       .slice(0, 5);
 
     // Recent orders
-    const recentOrders = orders.slice(0, 3);
+    const recentOrders = [...orders]
+      .sort((a, b) => new Date(b.order_date).getTime() - new Date(a.order_date).getTime())
+      .slice(0, 5)
+      .map(order => ({
+        id: order.id,
+        customer: order.user?.full_name || order.user?.username || "Unknown",
+        date: order.order_date,
+        status: order.productStatus,
+        total: Number(order.total_price),
+        items: Array.isArray(order.details) ? order.details.length : 0,
+      }));
 
     return {
       totalRevenue,
@@ -164,15 +114,19 @@ const DashboardContent = () => {
   const [fade, setFade] = useState(true);
 
   useEffect(() => {
+    setCurrentComment(0); // Reset to first comment when reviews change
+    if (earliestReviews.length <= 1) return; // No need to cycle
+
     const interval = setInterval(() => {
       setFade(false);
       setTimeout(() => {
-        setCurrentComment((prev) => (prev + 1) % recentComments.length);
+        setCurrentComment((prev) => (prev + 1) % earliestReviews.length);
         setFade(true);
-      }, 350); // Duration matches the CSS transition
+      }, 350);
     }, 3500);
+
     return () => clearInterval(interval);
-  }, []);
+  }, [earliestReviews.length]);
 
   // Handler for navigating to the comments page and focusing on the user
   const handleNavigateToComment = (user: string) => {
@@ -183,6 +137,16 @@ const DashboardContent = () => {
   const handleNavigateToNewUsers = () => {
     navigate("/users?filter=new");
   };
+
+  const recentUsers = [...users]
+    .sort((a, b) => b.id - a.id) // or use a joined/createdAt field if available
+    .slice(0, RECENT_USER_COUNT)
+    .map(user => ({
+      name: user.full_name,
+      avatar: user.avatar_url || "/assets/image/profile5.jpg",
+      joined: user.joined || "",
+      email: user.email,
+    }));
 
   return (
     <main className="flex flex-1 px-8 py-8 bg-gray-50 min-h-screen">
@@ -229,13 +193,13 @@ const DashboardContent = () => {
         {/* Info Panels: Recent Comments & New Users */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <RecentCommentsPanel
-            recentComments={recentComments}
+            recentComments={earliestReviews}
             currentComment={currentComment}
             fade={fade}
             handleNavigateToComment={handleNavigateToComment}
           />
           <NewUsersPanel
-            newUsers={newUsers}
+            newUsers={recentUsers}
             handleNavigateToNewUsers={handleNavigateToNewUsers}
           />
         </div>

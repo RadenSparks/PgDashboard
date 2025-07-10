@@ -15,6 +15,8 @@ import {
   useBreakpointValue,
   useColorMode,
 } from "@chakra-ui/react";
+import { useGetUserByIdQuery } from "../../redux/api/usersApi";
+import { getCurrentUserId } from "../../utils/auth";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -29,6 +31,8 @@ const Navbar = () => {
   const calendarRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
   const { colorMode, toggleColorMode } = useColorMode();
+  const userId = getCurrentUserId();
+  const { data: currentUser } = useGetUserByIdQuery(userId!, { skip: !userId });
 
   // Drawer for mobile menu
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -229,7 +233,13 @@ const Navbar = () => {
                 setNotificationOpen(false);
               }}
             >
-              <span className="text-lg">Belrose</span>
+              {/* Avatar removed */}
+              <span
+                className="text-lg max-w-[100px] truncate"
+                title={currentUser?.username}
+              >
+                {currentUser?.username || "User"}
+              </span>
               <MdOutlineKeyboardArrowDown
                 color="#292D32"
                 className="cursor-pointer"

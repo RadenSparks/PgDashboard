@@ -7,6 +7,7 @@ export interface Review {
   content: string;
   createdAt: string;
   user: { id: number; username: string };
+  product?: { id: number; name: string }; // <-- add this
   status: 'Visible' | 'Hidden';
 }
 
@@ -15,6 +16,13 @@ export const reviewsApi = createApi({
   baseQuery: axiosBaseQuery(),
   tagTypes: ['Review'],
   endpoints: (builder) => ({
+    getAllReviews: builder.query<Review[], void>({
+      query: () => ({
+        url: `/reviews`,
+        method: 'GET',
+      }),
+      providesTags: ['Review'],
+    }),
     getProductReviews: builder.query<Review[], number>({
       query: (productId) => ({
         url: `/reviews/product/${productId}`,
@@ -22,8 +30,7 @@ export const reviewsApi = createApi({
       }),
       providesTags: ['Review'],
     }),
-    // ...other endpoints
   }),
 });
 
-export const { useGetProductReviewsQuery } = reviewsApi;
+export const { useGetAllReviewsQuery, useGetProductReviewsQuery } = reviewsApi;

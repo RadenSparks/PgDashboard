@@ -7,7 +7,7 @@ export interface User {
   full_name: string;
   password: string;
   email: string;
-  role: 'USER' | 'ADMIN';
+  role: 'user' | 'admin';
   phone_number: string;
   avatar_url: string | null;
   status: boolean;

@@ -13,16 +13,12 @@ import {
   MdLabel,
   MdComment,
   MdPhotoLibrary,
-  MdCollectionsBookmark, // Add this import if you want a collections icon
+  MdCollectionsBookmark,
 } from "react-icons/md";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Drawer, DrawerOverlay, DrawerContent, DrawerCloseButton, useBreakpointValue, Tooltip } from "@chakra-ui/react";
-
-// Mock user data (replace with your auth/user context as needed)
-const user = {
-  name: "Belrose",
-  avatar: "/assets/image/profile.jpg",
-};
+import { useGetUserByIdQuery } from "../../redux/api/usersApi";
+import { getCurrentUserId } from "../../utils/auth";
 
 const tabs = [
   { label: "Dashboard", icon: <MdDashboard size={22} />, route: "/" },
@@ -36,12 +32,10 @@ const tabs = [
   { label: "Tags", icon: <MdLabel size={22} />, route: "/tags" },
   { label: "Permission", icon: <MdAdminPanelSettings size={22} />, route: "/permission" },
   { label: "Users", icon: <MdPeople size={22} />, route: "/users" },
-  { label: "Collections", icon: <MdCollectionsBookmark size={22} />, route: "/collections" }, // <-- Add this line
+  { label: "Collections", icon: <MdCollectionsBookmark size={22} />, route: "/collections" },
   { label: "Settings", icon: <MdSettings size={22} />, route: "/settings" },
-
 ];
 
-// Add explicit types for props
 type SidebarContentProps = {
   collapsed: boolean;
   setCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
@@ -55,85 +49,91 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
   activeTab,
   setActiveTab,
   navigate,
-}) => (
-  <div
-    className={`flex flex-col h-full border-r-2 border-[#dbdbdb] py-4 transition-all duration-300 bg-gradient-to-b from-white via-gray-50 to-gray-200 ${collapsed ? "w-[72px]" : "w-[260px]"
-      }`}
-  >
-    {/* Logo Section */}
-    <div className="flex items-center justify-center px-3 mb-4">
-      <span
-        className="inline-flex items-center justify-center shadow-lg border-2 border-red-200 bg-gradient-to-br from-red-400 to-red-600 rounded-full"
-        style={{ width: collapsed ? 44 : 56, height: collapsed ? 44 : 56 }}
-      >
-        <img
-          src="/assets/icons/logo.svg"
-          alt="Logo"
-          width={collapsed ? 24 : 32}
-          height={collapsed ? 24 : 32}
-        />
-      </span>
-    </div>
+}) => {
+  const userId = getCurrentUserId();
+  const { data: currentUser } = useGetUserByIdQuery(userId!, { skip: !userId });
 
-    {/* Welcome Section */}
-    <section className="w-full px-3 border-b-2 border-[#dbdbdb] py-6 flex flex-col items-center">
-      {!collapsed ? (
-        <div className="w-full max-w-xs mx-auto flex flex-col items-center gap-2 bg-gradient-to-br from-yellow-100 to-yellow-200 px-4 py-4 rounded-2xl shadow border border-yellow-200">
+  return (
+    <div
+      className={`flex flex-col h-full border-r-2 border-[#dbdbdb] py-4 transition-all duration-300 bg-gradient-to-b from-white via-gray-50 to-gray-200 ${collapsed ? "w-[72px]" : "w-[260px]"
+        }`}
+    >
+      {/* Logo Section */}
+      <div className="flex items-center justify-center px-3 mb-4">
+        <span
+          className="inline-flex items-center justify-center shadow-lg border-2 border-red-200 bg-gradient-to-br from-red-400 to-red-600 rounded-full"
+          style={{ width: collapsed ? 44 : 56, height: collapsed ? 44 : 56 }}
+        >
           <img
-            src={user.avatar}
-            alt={user.name}
-            className="rounded-full object-cover border-4 border-yellow-400"
-            width={56}
-            height={56}
+            src="/assets/icons/logo.svg"
+            alt="Logo"
+            width={collapsed ? 24 : 32}
+            height={collapsed ? 24 : 32}
           />
-          <span className="text-yellow-800 text-lg font-bold mt-2">
-            Welcome, {user.name.split(" ")[0]}!
-          </span>
-          <span className="text-yellow-700 text-sm font-medium text-center">
-            Glad to see you back 👋
-          </span>
-        </div>
-      ) : (
-        <img
-          src={user.avatar}
-          alt={user.name}
-          className="rounded-full object-cover border-2 border-yellow-400"
-          width={32}
-          height={32}
-        />
-      )}
-    </section>
+        </span>
+      </div>
 
-    {/* Tabs */}
-    <ul className={`flex flex-col gap-1 py-6 w-full px-2 ${collapsed ? "items-center" : ""}`}>
-      {tabs.map((tab) => (
-        <li key={tab.label} className="w-full">
-          <Tooltip label={collapsed ? tab.label : ""} placement="right" hasArrow>
-            <button
-              className={`flex items-center gap-3 w-full px-2 py-2 rounded-lg transition-colors
+      {/* Welcome Section */}
+      <section className="w-full px-3 border-b-2 border-[#dbdbdb] py-6 flex flex-col items-center">
+        {!collapsed ? (
+          <div className="w-full max-w-xs mx-auto flex flex-col items-center gap-2 bg-gradient-to-br from-yellow-100 to-yellow-200 px-4 py-4 rounded-2xl shadow border border-yellow-200">
+            <img
+              src={currentUser?.avatar_url}
+              alt={currentUser?.username}
+              className="rounded-full object-cover border-4 border-yellow-400"
+              width={56}
+              height={56}
+            />
+            <span
+              className="text-yellow-800 text-lg font-bold mt-2 max-w-[140px] truncate"
+              title={currentUser?.username}
+            >
+              Welcome, {currentUser?.username || "User"}!
+            </span>
+            <span className="text-yellow-700 text-sm font-medium text-center">
+              Glad to see you back 👋
+            </span>
+          </div>
+        ) : (
+          <img
+            src={currentUser?.avatar_url}
+            alt={currentUser?.username}
+            className="rounded-full object-cover border-2 border-yellow-400"
+            width={32}
+            height={32}
+          />
+        )}
+      </section>
+
+      {/* Tabs */}
+      <ul className={`flex flex-col gap-1 py-6 w-full px-2 ${collapsed ? "items-center" : ""}`}>
+        {tabs.map((tab) => (
+          <li key={tab.label} className="w-full">
+            <Tooltip label={collapsed ? tab.label : ""} placement="right" hasArrow>
+              <button
+                className={`flex items-center gap-3 w-full px-2 py-2 rounded-lg transition-colors
                 ${collapsed ? "justify-center" : ""}
                 ${activeTab === tab.label
-                ? "bg-blue-100 text-blue-800 font-semibold"
-                : "hover:bg-gray-100 text-primary"}
+                  ? "bg-blue-100 text-blue-800 font-semibold"
+                  : "hover:bg-gray-100 text-primary"}
               `}
-              onClick={() => {
-                setActiveTab(tab.label);
-                navigate(tab.route);
-              }}
-              aria-current={activeTab === tab.label ? "page" : undefined}
-            >
-              {tab.icon}
-              {!collapsed && <span className="truncate">{tab.label}</span>}
-            </button>
-          </Tooltip>
-        </li>
-      ))}
-      <hr className="bg-primary h-[1px] mt-6 w-full" />
-    </ul>
-  </div>
-);
-
-// Add explicit types for Sidebar props
+                onClick={() => {
+                  setActiveTab(tab.label);
+                  navigate(tab.route);
+                }}
+                aria-current={activeTab === tab.label ? "page" : undefined}
+              >
+                {tab.icon}
+                {!collapsed && <span className="truncate">{tab.label}</span>}
+              </button>
+            </Tooltip>
+          </li>
+        ))}
+        <hr className="bg-primary h-[1px] mt-6 w-full" />
+      </ul>
+    </div>
+  );
+};
 type SidebarProps = {
   isOpen?: boolean;
   onClose?: () => void;
