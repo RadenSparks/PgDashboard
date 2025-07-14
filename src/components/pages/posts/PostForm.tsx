@@ -151,6 +151,10 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
       ...form,
       catalogueId: form.catalogueId || form.catalogue?.id,
       galleryImages,
+      textColor: previewTextColor,
+      bgColor: previewBgColor,
+      fontFamily,
+      fontSize,
     };
     if (form.id) {
       await updatePost({ id: form.id, body: payload });

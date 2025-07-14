@@ -37,7 +37,7 @@ const DashboardContent = () => {
   // Sort reviews by createdAt ascending (earliest first)
   const earliestReviews = [...allReviews]
     .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-    .slice(0, 4) // Show the first 4 earliest reviews
+    .slice(0, 4)
     .map(r => ({
       user: r.user?.username || "Unknown User",
       comment: r.content,
@@ -55,25 +55,18 @@ const DashboardContent = () => {
     topProductsData,
     recentOrders,
   } = useMemo(() => {
-    // Products
     const products = mockProducts;
     const totalProducts = products.length;
-
-    // Orders
     const orders = ordersWithProducts;
     const totalOrders = orders.length;
     const totalCustomers = Array.from(new Set(orders.map(o => o.customer))).length;
-
-    // Revenue: sum of all order totals
     const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
 
-    // Sales chart: group by date (for demo, just use order dates)
     const salesChartData = orders.map(order => ({
       name: order.date,
       sales: order.total,
     }));
 
-    // Top products by sales (from orders)
     const productSales: Record<string, number> = {};
     orders.forEach(order => {
       order.products.forEach(prod => {
@@ -85,7 +78,6 @@ const DashboardContent = () => {
       .sort((a, b) => b.sales - a.sales)
       .slice(0, 5);
 
-    // Recent orders
     const recentOrders = [...orders]
       .sort((a, b) => new Date(b.order_date).getTime() - new Date(a.order_date).getTime())
       .slice(0, 5)
@@ -114,9 +106,8 @@ const DashboardContent = () => {
   const [fade, setFade] = useState(true);
 
   useEffect(() => {
-    setCurrentComment(0); // Reset to first comment when reviews change
-    if (earliestReviews.length <= 1) return; // No need to cycle
-
+    setCurrentComment(0);
+    if (earliestReviews.length <= 1) return;
     const interval = setInterval(() => {
       setFade(false);
       setTimeout(() => {
@@ -124,22 +115,19 @@ const DashboardContent = () => {
         setFade(true);
       }, 350);
     }, 3500);
-
     return () => clearInterval(interval);
   }, [earliestReviews.length]);
 
-  // Handler for navigating to the comments page and focusing on the user
   const handleNavigateToComment = (user: string) => {
     navigate(`/comments?user=${encodeURIComponent(user)}`);
   };
 
-  // Handler for navigating to the users page filtered by newly joined users
   const handleNavigateToNewUsers = () => {
     navigate("/users?filter=new");
   };
 
   const recentUsers = [...users]
-    .sort((a, b) => b.id - a.id) // or use a joined/createdAt field if available
+    .sort((a, b) => b.id - a.id)
     .slice(0, RECENT_USER_COUNT)
     .map(user => ({
       name: user.full_name,
@@ -149,8 +137,8 @@ const DashboardContent = () => {
     }));
 
   return (
-    <main className="flex flex-1 px-8 py-8 bg-gray-50 min-h-screen">
-      <div className="flex flex-col gap-8 w-full">
+    <main className="flex flex-1 px-6 md:px-12 py-8 bg-gradient-to-br from-blue-50 to-white min-h-screen">
+      <div className="flex flex-col gap-10 w-full">
         <DashboardHeader />
         <StatsCards
           totalRevenue={totalRevenue}
@@ -159,39 +147,39 @@ const DashboardContent = () => {
           totalProducts={totalProducts}
           newUsersCount={newUsersCount}
         />
-        {/* Orders Table - moved above charts */}
-        <div className="bg-white rounded-xl shadow p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-semibold text-lg">Recent Orders</h3>
-            <Button className="flex gap-2 px-3 py-1 border bg-white border-primary rounded-lg cursor-pointer">
-              <span className="text-primary font-medium">Export</span>
+        {/* Orders Table */}
+        <div className="bg-white rounded-2xl shadow-lg p-8">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="font-bold text-xl text-blue-700">Recent Orders</h3>
+            <Button className="flex gap-2 px-4 py-2 border bg-white border-blue-300 rounded-xl shadow hover:bg-blue-50 transition font-semibold">
+              <span className="text-blue-700 font-medium">Export</span>
             </Button>
           </div>
           <OrdersTable orders={recentOrders} />
         </div>
 
         {/* Charts and Top Products */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           {/* Sales Chart */}
-          <div className="bg-white rounded-xl shadow p-6 col-span-2">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-semibold text-lg">Sales Overview</h3>
-              <Button className="flex gap-2 px-3 py-1 border bg-white border-primary rounded-lg cursor-pointer">
-                <span className="text-primary font-medium">This Month</span>
-                <MdOutlineKeyboardArrowDown size={20} className="text-primary" />
+          <div className="bg-white rounded-2xl shadow-lg p-8 col-span-2">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-bold text-xl text-blue-700">Sales Overview</h3>
+              <Button className="flex gap-2 px-4 py-2 border bg-white border-blue-300 rounded-xl shadow hover:bg-blue-50 transition font-semibold">
+                <span className="text-blue-700 font-medium">This Month</span>
+                <MdOutlineKeyboardArrowDown size={20} className="text-blue-700" />
               </Button>
             </div>
             <SalesChart salesChartData={salesChartData} />
           </div>
           {/* Top Products */}
-          <div className="bg-white rounded-xl shadow p-6">
-            <h3 className="font-semibold text-lg mb-4">Top Products</h3>
+          <div className="bg-white rounded-2xl shadow-lg p-8">
+            <h3 className="font-bold text-xl text-blue-700 mb-6">Top Products</h3>
             <TopProducts topProductsData={topProductsData} />
           </div>
         </div>
 
         {/* Info Panels: Recent Comments & New Users */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <RecentCommentsPanel
             recentComments={earliestReviews}
             currentComment={currentComment}

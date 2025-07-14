@@ -22,15 +22,15 @@ const MediaGrid: React.FC<MediaGridProps> = ({
   previewUrl,
   setPreviewUrl,
 }) => (
-  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-8">
     {media.map((item, idx) => (
       <div
         key={item.id || idx}
-        className="border rounded-xl p-3 bg-white shadow hover:shadow-xl transition group relative"
+        className={`border rounded-2xl p-4 bg-white shadow hover:shadow-xl transition group relative`}
       >
         <input
           type="checkbox"
-          className="absolute top-3 left-3 accent-blue-600 w-4 h-4 rounded focus:ring-2 focus:ring-blue-400"
+          className="absolute top-4 left-4 accent-blue-600 w-5 h-5 rounded focus:ring-2 focus:ring-blue-400"
           checked={item.id !== undefined && selectedImages.includes(item.id)}
           onChange={e => {
             setSelectedImages(sel => {
@@ -44,35 +44,32 @@ const MediaGrid: React.FC<MediaGridProps> = ({
         <img
           src={item.url}
           alt={item.name}
-          className="w-full h-36 object-cover rounded-lg cursor-pointer border border-gray-100 hover:border-blue-400 transition"
+          className="w-full h-40 object-cover rounded-xl cursor-pointer border border-gray-100 hover:border-blue-400 transition"
           onClick={() => handlePreview(item.url)}
         />
-        <div className="break-all text-xs text-gray-700 mt-3 font-medium">{item.name}</div>
-        <div className="flex gap-2 mt-3">
+        <div className="break-all text-xs text-gray-700 mt-4 font-medium">{item.name}</div>
+        <div className="flex gap-2 mt-4">
           <button
-            className="flex items-center gap-1 px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-semibold hover:bg-blue-100 hover:text-blue-900 transition"
+            className="flex items-center gap-1 px-3 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-semibold hover:bg-blue-100 hover:text-blue-900 transition"
             onClick={() => handleCopy(item.url)}
             title="Copy URL"
           >
-            <span className="material-symbols-outlined text-base"></span>
             Copy
           </button>
           <a
             href={item.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1 px-2 py-1 rounded bg-gray-50 text-gray-700 text-xs font-semibold hover:bg-gray-100 hover:text-blue-700 transition"
+            className="flex items-center gap-1 px-3 py-1 rounded-lg bg-gray-50 text-gray-700 text-xs font-semibold hover:bg-gray-100 hover:text-blue-700 transition"
             title="View Original"
           >
-            <span className="material-symbols-outlined text-base"></span>
             View
           </a>
           <button
-            className="flex items-center gap-1 px-2 py-1 rounded bg-red-50 text-red-600 text-xs font-semibold hover:bg-red-100 hover:text-red-800 transition"
+            className="flex items-center gap-1 px-3 py-1 rounded-lg bg-red-50 text-red-600 text-xs font-semibold hover:bg-red-100 hover:text-red-800 transition"
             onClick={() => setDeleteTarget(item)}
             title="Delete"
           >
-            <span className="material-symbols-outlined text-base"></span>
             Delete
           </button>
         </div>
@@ -84,7 +81,7 @@ const MediaGrid: React.FC<MediaGridProps> = ({
             <img
               src={item.url}
               alt={item.name}
-              className="max-h-[80vh] max-w-[90vw] rounded-lg shadow-2xl border-4 border-white"
+              className="max-h-[80vh] max-w-[90vw] rounded-2xl shadow-2xl border-4 border-white"
             />
           </div>
         )}

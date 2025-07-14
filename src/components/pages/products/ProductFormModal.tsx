@@ -5,9 +5,10 @@ import GallerySlider from "./GallerySlider";
 import type { Tag } from "../tags/availableTags";
 import { useGetCategoriesQuery } from "../../../redux/api/categoryApi";
 import Loading from "../../../components/widgets/loading";
-import type { Category } from "../categories/categoriesData";
 import { useGetTagsQuery } from "../../../redux/api/tagsApi";
 import MediaPicker from "../../media/MediaPicker";
+import { useGetPublishersQuery } from "../../../redux/api/publishersApi";
+import { useToast } from "@chakra-ui/react";
 
 type ProductFormModalProps = {
   product: Product;
@@ -26,6 +27,8 @@ const ProductFormModal = ({
 }: ProductFormModalProps) => {
   const { data: initialCategories, isLoading: loadCat } = useGetCategoriesQuery();
   const { data: dataTags, isLoading: loadTags } = useGetTagsQuery();
+  const { data: publishers } = useGetPublishersQuery();
+  const toast = useToast();
 
   const genreTags = dataTags?.filter(c => c.type === 'genre') ?? [];
   const playerTags = dataTags?.filter(c => c.type === 'players') ?? [];
@@ -34,17 +37,6 @@ const ProductFormModal = ({
   // MediaPicker state
   const [showMediaPicker, setShowMediaPicker] = useState<"main" | "gallery" | null>(null);
 
-  // Helper for updating images array
-  const updateImage = (idx: number, field: keyof NamedImage, value: string) => {
-    const newImages = [...product.images];
-    newImages[idx] = { ...newImages[idx], [field]: value };
-    onChange({ ...product, images: newImages });
-  };
-  const handleDeleteImage = (id: number) => {
-    const updatedImages = [...product.images];
-    const data = updatedImages.filter(f => !(f.id === id));
-    onChange({ ...product, images: data, deleteImages: [...(product.deleteImages ?? []), id] });
-  };
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,17 +50,16 @@ const ProductFormModal = ({
   }, [onClose]);
 
   // Tag assignment handlers
-  // Genres: multi-select, Players/Duration: single-select
-
-  // Ensure product.tags is always an array of numbers
+  // Always keep product.tags as Tag[]
   const tagsArray: number[] = Array.isArray(product.tags)
-    ? product.tags.map(Number)
+    ? product.tags.map((t: Tag) => t.id)
     : [];
 
   const handleGenreChange = (selected: number[]) => {
-    // Remove all genre tags, then add selected
-    let tags = tagsArray.filter((t) => !genreTags.some((g) => g.id === t));
-    tags = [...tags, ...selected];
+    const tags = [
+      ...dataTags.filter(tag => selected.includes(tag.id)),
+      ...product.tags.filter((t: Tag) => !genreTags.some(g => g.id === t.id)),
+    ];
     onChange({ ...product, tags });
   };
 
@@ -86,15 +77,72 @@ const ProductFormModal = ({
     type: "players" | "duration",
     value: number
   ) => {
-    let tags = [...tagsArray];
-    if (type === "players") {
-      tags = tags.filter((t) => !playerTags.some((p) => p.id === t));
-      if (value) tags.push(value);
-    } else if (type === "duration") {
-      tags = tags.filter((t) => !durationTags.some((d) => d.id === t));
-      if (value) tags.push(value);
+    let tags = product.tags.filter((t: Tag) => t.type !== type);
+    if (value) {
+      const tagObj = [...playerTags, ...durationTags].find(t => t.id === value);
+      if (tagObj) tags.push(tagObj);
     }
     onChange({ ...product, tags });
+  };
+
+  const handleDeleteImage = (id: number) => {
+    onChange({
+      ...product,
+      images: product.images.filter(img => img.id !== id),
+      deleteImages: [...(product.deleteImages || []), id],
+    });
+  };
+
+  const handleImageSelect = async imgs => {
+    try {
+      if (showMediaPicker === "main") {
+        const img = Array.isArray(imgs) ? imgs[0] : imgs;
+        // Download image as File for upload
+        const blob = await fetch(img.url).then(res => res.blob());
+        const file = new File([blob], img.name || "main.jpg", { type: blob.type });
+        const mainImage: NamedImage = { id: img.id, url: img.url, name: "main", file };
+        // Remove previous main image, keep gallery images
+        const galleryImages = product.images.filter(i => i.name !== "main");
+        onChange({
+          ...product,
+          images: [mainImage, ...galleryImages],
+          mainImage: file,
+        });
+      } else if (showMediaPicker === "gallery") {
+        const arr = Array.isArray(imgs) ? imgs : [imgs];
+        // Fetch each gallery image as a File
+        const galleryImages: NamedImage[] = await Promise.all(arr.map(async i => {
+          const blob = await fetch(i.url).then(res => res.blob());
+          const file = new File([blob], i.name || `gallery-${i.id}.jpg`, { type: blob.type });
+          return {
+            id: i.id,
+            url: i.url,
+            name: i.name || "",
+            file,
+          };
+        }));
+        // Keep main image (if exists), then gallery images
+        const mainImage = product.images.find(i => i.name === "main");
+        onChange({
+          ...product,
+          images: mainImage ? [mainImage, ...galleryImages] : [...galleryImages],
+        });
+      }
+      setShowMediaPicker(null);
+      toast({
+        title: "Images updated!",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (err: any) {
+      toast({
+        title: "Failed to update images.",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
+    }
   };
 
   if (loadCat || loadTags) { return <Loading></Loading>; }
@@ -102,12 +150,12 @@ const ProductFormModal = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 overflow-y-auto">
       <div
         ref={modalRef}
-        className="bg-white rounded-xl shadow-lg max-w-2xl w-full p-0 relative flex flex-row items-stretch my-12"
+        className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-0 relative flex flex-row items-stretch my-12"
         style={{ maxHeight: "90vh", overflowY: "auto" }}
       >
         <div className="w-full">
-          <div className="border-b px-6 py-4 flex items-center justify-between rounded-t-xl bg-blue-50">
-            <h3 className="text-xl font-bold">
+          <div className="border-b px-8 py-6 flex items-center justify-between rounded-t-2xl bg-blue-50">
+            <h3 className="text-2xl font-bold">
               {mode === "edit" ? "Edit Product" : "Add Product"}
             </h3>
             <button
@@ -127,13 +175,13 @@ const ProductFormModal = ({
             }}
           >
             {/* Basic Info */}
-            <section className="px-6 py-4">
-              <div className="font-semibold mb-2 text-blue-700 text-sm uppercase tracking-wide">Basic Info</div>
-              <div className="grid grid-cols-1 gap-3">
+            <section className="px-8 py-6">
+              <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide">Basic Info</div>
+              <div className="grid grid-cols-1 gap-4">
                 <label>
                   <span className="block text-xs font-medium text-gray-600 mb-1">Name</span>
                   <input
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
                     name="name"
                     placeholder="Name"
                     value={product.product_name}
@@ -144,7 +192,7 @@ const ProductFormModal = ({
                 <label>
                   <span className="block text-xs font-medium text-gray-600 mb-1">Slug</span>
                   <input
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
                     name="slug"
                     placeholder="Slug"
                     value={product.slug}
@@ -155,7 +203,7 @@ const ProductFormModal = ({
                 <label>
                   <span className="block text-xs font-medium text-gray-600 mb-1">Description</span>
                   <textarea
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
                     name="description"
                     placeholder="Description"
                     value={product.description}
@@ -166,7 +214,7 @@ const ProductFormModal = ({
                 <label>
                   <span className="block text-xs font-medium text-gray-600 mb-1">Category</span>
                   <select
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
                     name="category"
                     value={product.category_ID && typeof product.category_ID === "object" ? product.category_ID.id : ""}
                     onChange={e => {
@@ -186,12 +234,12 @@ const ProductFormModal = ({
                   </select>
                 </label>
                 {/* Tag selectors */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Genre: Multi-select */}
                   <label>
                     <span className="block text-xs font-medium text-gray-600 mb-1">Genres</span>
                     <select
-                      className="w-full border rounded px-3 py-2"
+                      className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
                       multiple
                       value={selectedGenres}
                       onChange={e =>
@@ -214,7 +262,7 @@ const ProductFormModal = ({
                   <label>
                     <span className="block text-xs font-medium text-gray-600 mb-1">Players</span>
                     <select
-                      className="w-full border rounded px-3 py-2"
+                      className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
                       value={selectedPlayers}
                       onChange={e => handleSingleTagChange("players", Number(e.target.value))}
                     >
@@ -230,7 +278,7 @@ const ProductFormModal = ({
                   <label>
                     <span className="block text-xs font-medium text-gray-600 mb-1">Duration</span>
                     <select
-                      className="w-full border rounded px-3 py-2"
+                      className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
                       value={selectedDuration}
                       onChange={e => handleSingleTagChange("duration", Number(e.target.value))}
                     >
@@ -246,7 +294,7 @@ const ProductFormModal = ({
                 <label>
                   <span className="block text-xs font-medium text-gray-600 mb-1">Status</span>
                   <select
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
                     name="status"
                     value={product.status}
                     onChange={e => onChange({ ...product, status: e.target.value })}
@@ -257,16 +305,35 @@ const ProductFormModal = ({
                     <option value="Discontinued">Discontinued</option>
                   </select>
                 </label>
+                {/* Publisher: Single-select */}
+                <label>
+                  <span className="block text-xs font-medium text-gray-600 mb-1">Publisher</span>
+                  <select
+                    className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
+                    value={product.publisher_ID?.id || ""}
+                    onChange={e => {
+                      const selectedPub = (publishers || []).find(pub => pub.id === Number(e.target.value));
+                      if (selectedPub) {
+                        onChange({ ...product, publisher_ID: selectedPub });
+                      }
+                    }}
+                  >
+                    <option value="">Select publisher</option>
+                    {(publishers || []).map(pub => (
+                      <option key={pub.id} value={pub.id}>{pub.name}</option>
+                    ))}
+                  </select>
+                </label>
               </div>
             </section>
             {/* Inventory & Pricing */}
-            <section className="px-6 py-4">
-              <div className="font-semibold mb-2 text-blue-700 text-sm uppercase tracking-wide">Inventory & Pricing</div>
-              <div className="grid grid-cols-2 gap-3">
+            <section className="px-8 py-6">
+              <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide">Inventory & Pricing</div>
+              <div className="grid grid-cols-2 gap-4">
                 <label>
                   <span className="block text-xs font-medium text-gray-600 mb-1">Price</span>
                   <input
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
                     name="price"
                     type="number"
                     placeholder="Price"
@@ -277,7 +344,7 @@ const ProductFormModal = ({
                 <label>
                   <span className="block text-xs font-medium text-gray-600 mb-1">Discount (%)</span>
                   <input
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
                     name="discount"
                     type="number"
                     placeholder="Discount"
@@ -288,7 +355,7 @@ const ProductFormModal = ({
                 <label>
                   <span className="block text-xs font-medium text-gray-600 mb-1">Stock</span>
                   <input
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
                     name="stock"
                     type="number"
                     placeholder="Stock"
@@ -299,7 +366,7 @@ const ProductFormModal = ({
                 <label>
                   <span className="block text-xs font-medium text-gray-600 mb-1">Sold</span>
                   <input
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
                     name="sold"
                     type="number"
                     placeholder="Sold"
@@ -310,21 +377,25 @@ const ProductFormModal = ({
               </div>
             </section>
             {/* Images */}
-            <section className="px-6 py-4">
-              <div className="font-semibold mb-2 text-blue-700 text-sm uppercase tracking-wide">Images</div>
-              <div className="grid grid-cols-1 gap-3">
+            <section className="px-8 py-6">
+              <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide">Images</div>
+              <div className="grid grid-cols-1 gap-4">
                 {/* Main Image */}
                 <label className="block">
                   <span className="block text-sm font-medium text-gray-700 mb-1">Main Image</span>
                   <button
                     type="button"
-                    className="bg-blue-100 text-blue-700 rounded px-3 py-2 hover:bg-blue-200"
+                    className="bg-blue-100 text-blue-700 rounded px-3 py-2 hover:bg-blue-200 font-semibold"
                     onClick={() => setShowMediaPicker("main")}
                   >
                     Select from Media Library
                   </button>
-                  {product.image && typeof product.image === "string" && (
-                    <img src={product.image} alt="Main" className="w-14 h-14 object-cover rounded border mt-2" />
+                  {product.images[0] && product.images[0].url && (
+                    <img
+                      src={product.images[0].url}
+                      alt="Main"
+                      className="w-14 h-14 object-cover rounded border mt-2"
+                    />
                   )}
                 </label>
                 {/* Gallery Images */}
@@ -332,13 +403,13 @@ const ProductFormModal = ({
                   <span className="block text-sm font-medium text-gray-700 mb-1">Gallery Images</span>
                   <button
                     type="button"
-                    className="bg-blue-100 text-blue-700 rounded px-3 py-2 hover:bg-blue-200"
+                    className="bg-blue-100 text-blue-700 rounded px-3 py-2 hover:bg-blue-200 font-semibold"
                     onClick={() => setShowMediaPicker("gallery")}
                   >
                     Select from Media Library
                   </button>
                   <div className="flex gap-3 flex-wrap mt-2">
-                    {product.images?.map((imgObj, idx) => (
+                    {product.images.filter(img => img.name !== "main").map((imgObj, idx) => (
                       imgObj.url ? (
                         <div key={imgObj.id || idx} className="relative group">
                           <img
@@ -362,21 +433,20 @@ const ProductFormModal = ({
                 <div className="flex flex-col gap-2 mt-2">
                   <div>
                     <div className="text-xs text-gray-500 mb-1">Main</div>
-                    {product.images &&
-                      product.images.find((img) => img.name === 'main') && (
-                        <img
-                          src={product.images.find((img) => img.name === 'main')!.url}
-                          alt="Main"
-                          className="w-14 h-14 object-cover rounded border"
-                        />
-                      )}
+                    {product.images.find(img => img.name === "main")?.url && (
+                      <img
+                        src={product.images.find(img => img.name === "main")!.url}
+                        alt="Main"
+                        className="w-14 h-14 object-cover rounded border"
+                      />
+                    )}
                   </div>
                   <div>
                     <div className="text-xs text-gray-500 mb-1">Gallery</div>
                     <div className="flex gap-3 flex-wrap">
-                      {product.images.map((imgObj, idx) => (
+                      {product.images.filter(img => img.name !== "main").map((imgObj, idx) => (
                         imgObj.url ? (
-                          <div key={imgObj.id} className="relative group">
+                          <div key={imgObj.id || idx} className="relative group">
                             <img
                               src={imgObj.url}
                               alt={`Gallery ${idx + 1}`}
@@ -396,23 +466,20 @@ const ProductFormModal = ({
                   </div>
                   {/* Slider Carousel */}
                   <GallerySlider
-                    images={[
-                      product.image,
-                      ...product.images.map(imgObj => imgObj.url)
-                    ].filter(Boolean)}
+                    images={product.images.map(imgObj => imgObj.url).filter(Boolean)}
                   />
                 </div>
               </div>
             </section>
             {/* Featured */}
-            <section className="px-6 py-4">
-              <div className="font-semibold mb-2 text-blue-700 text-sm uppercase tracking-wide">Featured</div>
+            <section className="px-8 py-6">
+              <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide">Featured</div>
               {(product.featured || []).map((item, idx) => (
-                <div key={idx} className="grid grid-cols-1 gap-3">
+                <div key={idx} className="grid grid-cols-1 gap-4 mb-4 border rounded-lg p-4 bg-gray-50 shadow-sm">
                   <label>
                     <span className="block text-xs font-medium text-gray-600 mb-1">Meta Title</span>
                     <input
-                      className="w-full border rounded px-3 py-2"
+                      className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
                       name="meta.title"
                       placeholder="Meta Title"
                       value={item.title}
@@ -427,7 +494,7 @@ const ProductFormModal = ({
                   <label>
                     <span className="block text-xs font-medium text-gray-600 mb-1">Description</span>
                     <textarea
-                      className="w-full border rounded px-3 py-2"
+                      className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
                       name="description"
                       placeholder="Description"
                       value={item.content}
@@ -469,13 +536,13 @@ const ProductFormModal = ({
               </button>
             </section>
             {/* Meta Data */}
-            <section className="px-6 py-4">
-              <div className="font-semibold mb-2 text-blue-700 text-sm uppercase tracking-wide">Meta Data</div>
-              <div className="grid grid-cols-1 gap-3">
+            <section className="px-8 py-6">
+              <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide">Meta Data</div>
+              <div className="grid grid-cols-1 gap-4">
                 <label>
                   <span className="block text-xs font-medium text-gray-600 mb-1">Meta Title</span>
                   <input
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
                     name="meta.title"
                     placeholder="Meta Title"
                     value={product.meta_title}
@@ -485,7 +552,7 @@ const ProductFormModal = ({
                 <label>
                   <span className="block text-xs font-medium text-gray-600 mb-1">Meta Description</span>
                   <input
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
                     name="meta.description"
                     placeholder="Meta Description"
                     value={product.meta_description}
@@ -494,15 +561,15 @@ const ProductFormModal = ({
                 </label>
               </div>
             </section>
-            <div className="flex justify-end gap-2 px-6 py-4">
+            <div className="flex justify-end gap-3 px-8 py-6">
               <Button
-                className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+                className="bg-blue-600 text-white px-8 py-2 rounded-lg hover:bg-blue-700 font-semibold text-base"
                 type="submit"
               >
                 Save
               </Button>
               <Button
-                className="bg-gray-200 px-6 py-2 rounded"
+                className="bg-gray-200 px-8 py-2 rounded-lg font-semibold text-base"
                 type="button"
                 onClick={onClose}
               >
@@ -515,19 +582,8 @@ const ProductFormModal = ({
         <MediaPicker
           show={!!showMediaPicker}
           multiple={showMediaPicker === "gallery"}
-          onSelect={imgs => {
-            if (showMediaPicker === "main") {
-              const img = Array.isArray(imgs) ? imgs[0] : imgs;
-              onChange({ ...product, image: img.url });
-            } else if (showMediaPicker === "gallery") {
-              const arr = Array.isArray(imgs) ? imgs : [imgs];
-              onChange({
-                ...product,
-                images: arr.map(i => ({ id: i.id, url: i.url, name: i.name })),
-              });
-            }
-            setShowMediaPicker(null);
-          }}
+          folder={product.slug} // <-- Pass the product's slug as folder
+          onSelect={handleImageSelect}
           onClose={() => setShowMediaPicker(null)}
         />
       </div>

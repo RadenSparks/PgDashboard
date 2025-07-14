@@ -55,8 +55,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
 
   return (
     <div
-      className={`flex flex-col h-full border-r-2 border-[#dbdbdb] py-4 transition-all duration-300 bg-gradient-to-b from-white via-gray-50 to-gray-200 ${collapsed ? "w-[72px]" : "w-[260px]"
-        }`}
+      className={`flex flex-col h-full border-r-2 border-gray-200 py-4 transition-all duration-300 bg-gradient-to-b from-white via-blue-50 to-blue-100 ${collapsed ? "w-[72px]" : "w-[260px]"}`}
     >
       {/* Logo Section */}
       <div className="flex items-center justify-center px-3 mb-4">
@@ -74,7 +73,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
       </div>
 
       {/* Welcome Section */}
-      <section className="w-full px-3 border-b-2 border-[#dbdbdb] py-6 flex flex-col items-center">
+      <section className="w-full px-3 border-b-2 border-gray-200 py-6 flex flex-col items-center">
         {!collapsed ? (
           <div className="w-full max-w-xs mx-auto flex flex-col items-center gap-2 bg-gradient-to-br from-yellow-100 to-yellow-200 px-4 py-4 rounded-2xl shadow border border-yellow-200">
             <img
@@ -111,11 +110,11 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
           <li key={tab.label} className="w-full">
             <Tooltip label={collapsed ? tab.label : ""} placement="right" hasArrow>
               <button
-                className={`flex items-center gap-3 w-full px-2 py-2 rounded-lg transition-colors
+                className={`flex items-center gap-3 w-full px-2 py-2 rounded-xl transition-colors
                 ${collapsed ? "justify-center" : ""}
                 ${activeTab === tab.label
-                  ? "bg-blue-100 text-blue-800 font-semibold"
-                  : "hover:bg-gray-100 text-primary"}
+                  ? "bg-blue-200 text-blue-900 font-semibold shadow"
+                  : "hover:bg-blue-50 text-blue-700"}
               `}
                 onClick={() => {
                   setActiveTab(tab.label);
@@ -129,11 +128,12 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
             </Tooltip>
           </li>
         ))}
-        <hr className="bg-primary h-[1px] mt-6 w-full" />
+        <hr className="bg-blue-200 h-[1px] mt-6 w-full" />
       </ul>
     </div>
   );
 };
+
 type SidebarProps = {
   isOpen?: boolean;
   onClose?: () => void;
@@ -177,7 +177,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       <Tooltip label={collapsed ? "Expand sidebar" : "Collapse sidebar"} placement="right" hasArrow>
         <Button
           onClick={() => setCollapsed((prev) => !prev)}
-          className="absolute top-6 -right-4 z-20 bg-white border border-[#dbdbdb] shadow p-1 w-8 h-8 flex items-center justify-center transition-colors hover:bg-yellow-100 focus:outline-none rounded-full"
+          className="absolute top-6 -right-4 z-20 bg-white border border-gray-200 shadow p-1 w-8 h-8 flex items-center justify-center transition-colors hover:bg-yellow-100 focus:outline-none rounded-full"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           type="button"
         >

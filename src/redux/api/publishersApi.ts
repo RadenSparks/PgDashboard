@@ -1,11 +1,11 @@
 import { createApi } from '@reduxjs/toolkit/query/react'
 import { axiosBaseQuery } from '../axiosBaseQuery'
-import type { Product } from '../../components/pages/products/types'
+import type { Product } from '../../components/pages/products/types';
 
 export interface Publisher {
-  id: number
-  name: string
-  products: Product[]
+  id: number;
+  name: string;
+  products: Product[];
 }
 
 export const publishersApi = createApi({

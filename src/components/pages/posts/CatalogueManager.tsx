@@ -62,7 +62,6 @@ const CatalogueManager: React.FC = () => {
     <div className="w-full max-w-2xl mx-auto">
       <h3 className="font-bold mb-4 text-lg text-blue-700 flex items-center gap-2 sticky top-0 bg-white z-10 py-2">
         <span className="inline-block bg-blue-100 text-blue-700 rounded-full px-2 py-1 text-sm">Catalogues</span>
-        <span className="text-xs text-gray-400 font-normal">Manage your post categories</span>
       </h3>
       <div className="flex gap-2 mb-4">
         <input
@@ -79,14 +78,14 @@ const CatalogueManager: React.FC = () => {
           Add
         </button>
       </div>
-      <ul className="max-h-[500px] min-h-[300px] overflow-y-auto divide-y bg-gray-50 rounded-lg shadow-inner">
+      <ul className="max-h-[500px] min-h-[300px] overflow-y-auto divide-y bg-gray-50 rounded-xl shadow-inner">
         {catalogues.length === 0 && (
           <li className="py-6 text-center text-gray-400">No catalogues yet.</li>
         )}
         {catalogues.map(cat => (
           <li
             key={cat.id}
-            className="flex flex-wrap items-center gap-3 py-3 px-3 group hover:bg-blue-50 transition"
+            className="flex flex-wrap items-center gap-3 py-3 px-3 group hover:bg-blue-50 transition rounded-lg"
           >
             {editId === cat.id ? (
               <>
@@ -106,7 +105,7 @@ const CatalogueManager: React.FC = () => {
                 <div className="flex gap-2 mt-2 sm:mt-0">
                   <button
                     onClick={handleUpdate}
-                    className="text-green-600 font-semibold px-3 py-1 hover:underline text-base"
+                    className="bg-green-100 text-green-700 font-semibold px-4 py-1 rounded-lg hover:bg-green-200 transition"
                     title="Save"
                   >
                     Save
@@ -117,7 +116,7 @@ const CatalogueManager: React.FC = () => {
                       setEditName('');
                       setEditCanonical('');
                     }}
-                    className="text-gray-500 px-3 py-1 hover:underline text-base"
+                    className="bg-gray-100 text-gray-600 px-4 py-1 rounded-lg hover:bg-gray-200 transition"
                     title="Cancel"
                   >
                     Cancel
@@ -130,14 +129,14 @@ const CatalogueManager: React.FC = () => {
                 <span className="text-xs text-gray-400 bg-gray-200 rounded px-2 py-0.5">{cat.canonical}</span>
                 <button
                   onClick={() => handleEdit(cat)}
-                  className="text-blue-600 hover:underline px-3 py-1 opacity-0 group-hover:opacity-100 transition text-base"
+                  className="bg-blue-100 text-blue-700 px-4 py-1 rounded-lg hover:bg-blue-200 transition font-semibold"
                   title="Edit"
                 >
                   Edit
                 </button>
                 <button
                   onClick={() => handleDelete(cat.id)}
-                  className="text-red-600 hover:underline px-3 py-1 opacity-0 group-hover:opacity-100 transition text-base"
+                  className="bg-red-100 text-red-600 px-4 py-1 rounded-lg hover:bg-red-200 transition font-semibold"
                   title="Delete"
                 >
                   Delete

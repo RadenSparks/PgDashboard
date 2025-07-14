@@ -33,12 +33,12 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         return (
           <li key={folder} className="relative group">
             <div
-              className={`flex items-center cursor-pointer rounded pr-2 ${
+              className={`flex items-center cursor-pointer rounded-lg pr-2 py-2 ${
                 isSelected
                   ? "bg-blue-100 font-bold text-blue-700"
                   : "hover:bg-blue-50"
               }`}
-              style={{ minHeight: 32 }}
+              style={{ minHeight: 36 }}
               onClick={() => setSelectedPath(thisPath)}
             >
               {hasChildren ? (
@@ -56,7 +56,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
                   type="button"
                 >
                   <span className="material-symbols-outlined text-base align-middle">
-                    {isExpanded ? "▼" : "▶"}
+                    {isExpanded ? "expand_more" : "chevron_right"}
                   </span>
                 </button>
               ) : (
@@ -64,11 +64,11 @@ const FolderTree: React.FC<FolderTreeProps> = ({
               )}
               <span className="mr-1">
                 <span className="material-symbols-outlined text-blue-500 align-middle">
-                  {isExpanded && hasChildren}
+                  folder
                 </span>
-                <span className="text-xs text-gray-500 ml-1"></span>
               </span>
               <span className="truncate">{folder}</span>
+              {/* Removed redundant description, only folder name remains */}
               <span className="ml-auto text-xs text-gray-400 group-hover:text-blue-400">
                 {node.children[folder].items?.length || 0}
               </span>

@@ -93,17 +93,30 @@ const Navbar = () => {
             fontSize="2xl"
             onClick={onOpen}
             mr={2}
+            rounded="full"
+            bg="white"
+            boxShadow="md"
+            _hover={{ bg: "blue.50" }}
           />
         )}
 
         {/* Center: Search Bar */}
         <Box flex="1" display={{ base: "none", sm: "flex" }} justifyContent="center">
-          <Flex align="center" gap={1} px={4} w={{ base: "100%", md: "415px" }} rounded="lg" bg="gray.100">
+          <Flex
+            align="center"
+            gap={2}
+            px={4}
+            w={{ base: "100%", md: "415px" }}
+            rounded="xl"
+            bg="gray.100"
+            boxShadow="sm"
+            border="1px solid #e5e7eb"
+          >
             <FaSearch className="text-primary" />
             <Input
               type="text"
               placeholder="Search for anything..."
-              className="h-10 md:h-12 w-full border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+              className="h-10 md:h-12 w-full border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
             />
           </Flex>
         </Box>
@@ -118,15 +131,18 @@ const Navbar = () => {
             variant="ghost"
             size="md"
             rounded="full"
+            bg="white"
+            boxShadow="md"
+            _hover={{ bg: "yellow.50" }}
           />
           {/* Calendar Button */}
           <Box position="relative" ref={calendarRef} display={{ base: "none", sm: "block" }}>
             <img
               src="/assets/icons/calendar.svg"
               alt="calendar"
-              width={24}
-              height={24}
-              className="cursor-pointer"
+              width={28}
+              height={28}
+              className="cursor-pointer rounded-lg hover:bg-blue-50 transition"
               onClick={() => {
                 setCalendarOpen((open) => !open);
                 setNotificationOpen(false);
@@ -134,8 +150,7 @@ const Navbar = () => {
               }}
             />
             {calendarOpen && (
-              <Box position="absolute" left={0} top={8} zIndex={50} minW="260px" bg="white" border="1px solid" borderColor="gray.200" rounded="lg" shadow="lg" p={4}>
-                {/* Simple calendar mockup, replace with a real calendar component if needed */}
+              <Box position="absolute" left={0} top={10} zIndex={50} minW="260px" bg="white" border="1px solid" borderColor="gray.200" rounded="xl" shadow="xl" p={4}>
                 <div className="text-center font-semibold mb-2">May 2025</div>
                 <div className="grid grid-cols-7 gap-1 text-xs text-gray-700">
                   <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
@@ -180,14 +195,13 @@ const Navbar = () => {
             <img
               src="/assets/icons/notification.svg"
               alt="notification"
-              width={24}
-              height={24}
-              className="cursor-pointer"
+              width={28}
+              height={28}
+              className="cursor-pointer rounded-lg hover:bg-blue-50 transition"
               onClick={() => {
                 setNotificationOpen((open) => !open);
                 setCalendarOpen(false);
                 setMenuOpen(false);
-                // Mark all as read when opening
                 setNotifications((prev) => prev.map(n => ({ ...n, read: true })));
               }}
             />
@@ -205,12 +219,13 @@ const Navbar = () => {
                 display="flex"
                 alignItems="center"
                 justifyContent="center"
+                boxShadow="md"
               >
                 {notifications.filter(n => !n.read).length}
               </Box>
             )}
             {notificationOpen && (
-              <Box position="absolute" right={0} top={8} zIndex={50} minW="220px" bg="white" border="1px solid" borderColor="gray.200" rounded="lg" shadow="lg" py={2}>
+              <Box position="absolute" right={0} top={10} zIndex={50} minW="220px" bg="white" border="1px solid" borderColor="gray.200" rounded="xl" shadow="xl" py={2}>
                 <div className="px-4 py-2 font-semibold border-b">Notifications</div>
                 {notifications.length === 0 ? (
                   <div className="px-4 py-2 text-gray-400">No notifications</div>
@@ -226,14 +241,13 @@ const Navbar = () => {
           {/* User Menu */}
           <Box position="relative" ref={menuRef} display={{ base: "none", sm: "flex" }} gap={2}>
             <button
-              className="flex items-center gap-2 px-4 py-2 bg-yellow-100 border border-yellow-300 rounded-lg shadow font-semibold text-yellow-800 hover:bg-yellow-200 transition"
+              className="flex items-center gap-2 px-4 py-2 bg-yellow-100 border border-yellow-300 rounded-xl shadow font-semibold text-yellow-800 hover:bg-yellow-200 transition"
               onClick={() => {
                 setMenuOpen((open) => !open);
                 setCalendarOpen(false);
                 setNotificationOpen(false);
               }}
             >
-              {/* Avatar removed */}
               <span
                 className="text-lg max-w-[100px] truncate"
                 title={currentUser?.username}
@@ -247,10 +261,10 @@ const Navbar = () => {
               />
             </button>
             {menuOpen && (
-              <Box position="absolute" right={0} top={14} zIndex={50} minW="160px" bg="white" border="1px solid" borderColor="gray.200" rounded="lg" shadow="lg" py={2}>
-                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">Profile</button>
-                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">Settings</button>
-                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100" onClick={handleSignout}>Signout</button>
+              <Box position="absolute" right={0} top={16} zIndex={50} minW="180px" bg="white" border="1px solid" borderColor="gray.200" rounded="xl" shadow="xl" py={2}>
+                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg">Profile</button>
+                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg">Settings</button>
+                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg" onClick={handleSignout}>Signout</button>
               </Box>
             )}
           </Box>
@@ -263,9 +277,8 @@ const Navbar = () => {
         <DrawerContent>
           <DrawerCloseButton />
           <Box p={4}>
-            {/* You can add Sidebar or user menu here for mobile */}
             <button
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg"
               onClick={handleSignout}
             >
               Signout

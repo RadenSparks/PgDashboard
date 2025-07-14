@@ -1,42 +1,40 @@
 import { useRef, useEffect, useState } from "react";
 import { Button } from "../../widgets/button";
-import { IoMdAdd } from "react-icons/io";
+import { IoMdAdd, IoMdSearch } from "react-icons/io";
 import ProductTable from "./ProductTable";
 import ProductDetailsModal from "./ProductDetailsModal";
 import ProductFormModal from "./ProductFormModal";
 import ProductCmsModal from "./ProductCmsModal";
-import { mockProducts, emptyProduct } from "./mockProducts";
-import type { Product, CmsContent } from "./types";
-import { useAddProductMutation, useGetProductsQuery, useUpdateProductMutation } from "../../../redux/api/productsApi";
+import type { Product, CmsContent, Tag } from "./types";
+import { useAddProductMutation, useGetProductsQuery, useUpdateProductMutation, useDeleteProductMutation, useGetProductCmsQuery, useUpdateProductCmsMutation } from "../../../redux/api/productsApi";
 import Loading from "../../../components/widgets/loading";
+import { toaster } from "../../widgets/toaster";
+
 
 // Main Products Page
 const ProductsPage = () => {
     //Store
     const [addProduct, { isLoading: isAdding }] = useAddProductMutation();
     const [updateProduct] = useUpdateProductMutation();
-    const { data: products, isLoading } = useGetProductsQuery();
+    const [deleteProduct] = useDeleteProductMutation();
+    const { data: products = [], isLoading } = useGetProductsQuery() as { data: Product[], isLoading: boolean };
     //
     const [detailProduct, setDetailProduct] = useState<Product | null>(null);
     const [editProduct, setEditProduct] = useState<Product | null>(null);
     const [showAddModal, setShowAddModal] = useState(false);
-
-    // Per-product CMS modal state
     const [cmsProductId, setCmsProductId] = useState<number | null>(null);
-    const [cmsProductContent, setCmsProductContent] = useState<CmsContent>({
-        heroTitle: "",
-        heroSubtitle: "",
-        heroImages: [],
-        aboutTitle: "",
-        aboutText: "",
-        aboutImages: []
-    });
-    const [productCmsMap, setProductCmsMap] = useState<Record<number, CmsContent>>({});
+    const [cmsProductContent, setCmsProductContent] = useState<CmsContent | null>(null);
+    const [searchTerm, setSearchTerm] = useState("");
 
-    // Delete confirmation modal state
-    const [deleteProductId, setDeleteProductId] = useState<number | null>(null);
+    const { data: fetchedCmsContent, refetch: refetchCmsContent } = useGetProductCmsQuery(cmsProductId!, { skip: cmsProductId === null });
+    const [updateProductCms] = useUpdateProductCmsMutation();
 
-    // Modal ref for outside click
+    useEffect(() => {
+        if (cmsProductId && fetchedCmsContent) {
+            setCmsProductContent(fetchedCmsContent);
+        }
+    }, [cmsProductId, fetchedCmsContent]);
+
     const modalRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -53,173 +51,198 @@ const ProductsPage = () => {
 
     // CREATE
     const handleAddProduct = () => {
-        setEditProduct({ ...emptyProduct });
+        setEditProduct({
+            id: 0,
+            product_name: "",
+            description: "",
+            product_price: 0,
+            discount: 0,
+            slug: "",
+            meta_title: "",
+            meta_description: "",
+            quantity_sold: 0,
+            quantity_stock: 0,
+            status: "Available",
+            category_ID: { id: 0, name: "" },
+            publisher_ID: { id: 0, name: "" },
+            tags: [], // <-- always an array of Tag objects
+            images: [],
+            featured: [],
+        });
         setShowAddModal(true);
     };
 
-    const handleSaveNewProduct = () => {
-        if (editProduct) {
-            const formData = new FormData();
-            formData.append("product_name", editProduct.product_name)
-            formData.append("product_price", editProduct.product_price.toString())
-            formData.append("description", editProduct.description)
-            // formData.append("tags", editProduct.tags.join(" "))
-            formData.append("tags", "1 2 3")
-            formData.append("discount", editProduct.discount.toString())
-            formData.append("category_ID", "1")
-            // formData.append("category_ID", editProduct.category.toString())
-            formData.append("publisher_ID", "1")
-            formData.append("quantity_sold", editProduct.quantity_sold.toString())
-            formData.append("quantity_stock", editProduct.quantity_stock.toString())
-            formData.append("meta_description", editProduct.meta_description)
-            formData.append("meta_title", editProduct.meta_title)
-            formData.append("status", editProduct.status)
-            formData.append('featured', JSON.stringify(editProduct.featured.map((f, i) => ({
-                title: f.title,
-                content: f.content,
-                ord: String(i)
-            }))));
-            console.log(editProduct.featuredImage)
-            editProduct.featuredImage.forEach((f) => {
-                formData.append('featureImages', f);
-            });
-            formData.append('mainImage', editProduct.image as Blob);
-
-            editProduct?.images.forEach((file) => {
-                formData.append('detailImages', file);
-            });
-            for (const [key, value] of formData.entries()) {
-                console.log(key, value);
+    const handleSaveNewProduct = async () => {
+        try {
+            const toastId = toaster.show({ title: "Saving product...", type: "loading" });
+            if (editProduct) {
+                const formData = new FormData();
+                formData.append("product_name", editProduct.product_name);
+                formData.append("product_price", editProduct.product_price.toString());
+                formData.append("description", editProduct.description);
+                formData.append("discount", editProduct.discount.toString());
+                formData.append("slug", editProduct.slug);
+                formData.append("meta_title", editProduct.meta_title);
+                formData.append("meta_description", editProduct.meta_description);
+                formData.append("quantity_sold", editProduct.quantity_sold.toString());
+                formData.append("quantity_stock", editProduct.quantity_stock.toString());
+                formData.append("status", editProduct.status);
+                formData.append("category_ID", editProduct.category_ID.id.toString());
+                formData.append("publisher_ID", editProduct.publisher_ID?.id?.toString() || "");
+                formData.append("tags", editProduct.tags.map((t: Tag | number) => typeof t === "object" ? t.id : t).join(" "));
+                formData.append('featured', JSON.stringify(editProduct.featured.map((f, i) => ({
+                    title: f.title,
+                    content: f.content,
+                    ord: String(i)
+                }))));
+                // Main image
+                if (editProduct.mainImage instanceof File) {
+                    formData.append("mainImage", editProduct.mainImage);
+                }
+                // Gallery images
+                editProduct.images
+                    .filter(img => img.name !== "main" && img.file instanceof File)
+                    .forEach(img => {
+                        formData.append('detailImages', img.file);
+                    });
+                await addProduct(formData);
+                toaster.dismiss(toastId);
+                toaster.show({ title: "Product saved successfully!", type: "success" });
+                setEditProduct(null);
+                setShowAddModal(false);
             }
-            // console.log(editProduct)
-            addProduct(formData)
-            // setProducts([
-            //     { ...editProduct, id: Date.now(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-            //     ...products
-            // ]);
-            setEditProduct(null);
-            setShowAddModal(false);
+        } catch (err: any) {
+            toaster.dismiss();
+            toaster.show({ title: "Failed to save product", description: err.message || "Unknown error", type: "error" });
         }
     };
 
     // UPDATE
     const handleEdit = (prod: Product) => {
-        setEditProduct({ ...prod, tags: prod.tags || [], featured: prod.featured || [], deleteImages: [] });
-        console.log(editProduct)
+        setEditProduct({
+            ...prod,
+            tags: prod.tags || [], // Ensure tags are full objects
+            featured: prod.featured || [],
+            deleteImages: [],
+        });
         setShowAddModal(true);
     };
 
-    const handleSaveEditProduct = () => {
-        if (editProduct) {
-            const formData = new FormData();
-            formData.append("id", editProduct.id.toString())
-            formData.append("product_name", editProduct.product_name)
-            formData.append("product_price", editProduct.product_price.toString())
-            formData.append("description", editProduct.description)
-            // formData.append("tags", editProduct.tags.join(" "))
-            formData.append("tags", "1 2 3")
-            formData.append("discount", editProduct.discount.toString())
-            formData.append("category_ID", "1")
-            // formData.append("category_ID", editProduct.category.toString())
-            formData.append("publisher_ID", "1")
-            formData.append("quantity_sold", editProduct.quantity_sold.toString())
-            formData.append("quantity_stock", editProduct.quantity_stock.toString())
-            formData.append("meta_description", editProduct.meta_description)
-            formData.append("meta_title", editProduct.meta_title)
-            formData.append("status", editProduct.status)
-            formData.append('featured', JSON.stringify(editProduct.featured.map((f, i) => ({
-                title: f.title,
-                content: f.content,
-                ord: String(i)
-            }))));
-            console.log(editProduct.featuredImage)
-            editProduct.featuredImage?.forEach((f) => {
-                formData.append('featureImages', f);
-            });
-            if (editProduct.image) {
-                formData.append('mainImage', editProduct.image as Blob);
-            }
-
-            editProduct.images?.forEach((file) => {
-                if (file instanceof Blob) {
-                    formData.append('detailImages', file);
+    const handleSaveEditProduct = async () => {
+        try {
+            toaster.show({ title: "Updating product...", type: "loading" });
+            if (editProduct) {
+                const formData = new FormData();
+                formData.append("id", editProduct.id.toString());
+                formData.append("product_name", editProduct.product_name);
+                formData.append("product_price", editProduct.product_price.toString());
+                formData.append("description", editProduct.description);
+                formData.append("discount", editProduct.discount.toString());
+                formData.append("slug", editProduct.slug);
+                formData.append("meta_title", editProduct.meta_title);
+                formData.append("meta_description", editProduct.meta_description);
+                formData.append("quantity_sold", editProduct.quantity_sold.toString());
+                formData.append("quantity_stock", editProduct.quantity_stock.toString());
+                formData.append("status", editProduct.status);
+                formData.append("category_ID", editProduct.category_ID.id.toString());
+                formData.append("publisher_ID", editProduct.publisher_ID?.id?.toString() || "");
+                formData.append("tags", editProduct.tags.map((t: Tag | number) => typeof t === "object" ? t.id : t).join(" "));
+                formData.append('featured', JSON.stringify(editProduct.featured.map((f, i) => ({
+                    title: f.title,
+                    content: f.content,
+                    ord: String(i)
+                }))));
+                // Images
+                editProduct.images.forEach((img) => {
+                    if (img.file) formData.append('detailImages', img.file);
+                });
+                if (editProduct.mainImage instanceof File) {
+                    formData.append("mainImage", editProduct.mainImage);
                 }
-            });
-            if (editProduct.deleteImages) {
-                formData.append('deleteImages', JSON.stringify(editProduct.deleteImages))
+                if (editProduct.deleteImages) {
+                    formData.append('deleteImages', JSON.stringify(editProduct.deleteImages));
+                }
+                await updateProduct(formData);
+                toaster.show({ title: "Product updated successfully!", type: "success" });
+                setEditProduct(null);
+                setShowAddModal(false);
             }
-
-            for (const [key, value] of formData.entries()) {
-                console.log(key, value);
-            }
-            updateProduct(formData);
-            setEditProduct(null);
-            setShowAddModal(false);
+        } catch (err: any) {
+            toaster.show({ title: "Failed to update product", description: err.message || "Unknown error", type: "error" });
         }
     };
 
-    // DELETE (open confirmation modal)
-    const handleDelete = (id: number) => {
-        setDeleteProductId(id);
-    };
-
-    // Confirm delete
-    const confirmDelete = () => {
-        if (deleteProductId !== null) {
-            // setProducts(products.filter(p => p.id !== deleteProductId));
-            setDeleteProductId(null);
+    // DELETE
+    const handleDelete = async (id: number) => {
+        if (window.confirm("Are you sure you want to delete this product? This action cannot be undone.")) {
+            const toastId = toaster.show({ title: "Deleting product...", type: "loading" });
+            await deleteProduct(id);
+            toaster.dismiss(toastId);
+            toaster.show({ title: "Product deleted.", type: "success" });
         }
-    };
-
-    // Cancel delete
-    const cancelDelete = () => {
-        setDeleteProductId(null);
     };
 
     // FORM HANDLER
     const handleChange = (product: Product) => {
-        console.log(product)
         setEditProduct(product);
     };
 
     // Handler for opening CMS modal for a product
     const handleOpenProductCms = (productId: number) => {
         setCmsProductId(productId);
-        setCmsProductContent(productCmsMap[productId] || {
-            heroTitle: "",
-            heroSubtitle: "",
-            heroImages: [],
-            aboutTitle: "",
-            aboutText: "",
-            aboutImages: []
-        });
+        setTimeout(() => refetchCmsContent && refetchCmsContent(), 0);
     };
 
     // Handler for saving CMS content for a product
-    const handleSaveProductCms = () => {
-        setProductCmsMap(prev => ({
-            ...prev,
-            [cmsProductId as number]: cmsProductContent
-        }));
-        setCmsProductId(null);
+    const handleSaveProductCms = async () => {
+        if (!cmsProductId || !cmsProductContent) {
+            alert("No product or content to save!");
+            return;
+        }
+        try {
+            await updateProductCms({ productId: cmsProductId, data: cmsProductContent }).unwrap();
+            // Optionally refetch products or CMS content here
+            alert("Saved!");
+            setCmsProductId(null);
+        } catch (err) {
+            alert("Failed to save: " + (err?.message || "Unknown error"));
+        }
     };
 
-    // const productToDelete = products.find(p => p.id === deleteProductId);
-    if (isAdding || isLoading) return <Loading></Loading>
+    // Filter products by exact name match (case-insensitive)
+    const filteredProducts = searchTerm.trim()
+        ? products.filter(p => p.product_name.toLowerCase() === searchTerm.trim().toLowerCase())
+        : products;
+
+    if (isAdding || isLoading) return <Loading />;
     return (
         <div className="p-8">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <h2 className="text-2xl font-bold">Products</h2>
-                <Button
-                    className="flex gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                    onClick={handleAddProduct}
-                >
-                    <IoMdAdd size={20} />
-                    <span>Add Product</span>
-                </Button>
+                <div className="flex gap-2 items-center w-full md:w-auto">
+                    <div className="relative w-full md:w-64">
+                        <input
+                            type="text"
+                            className="w-full border rounded-lg px-4 py-2 pl-10 focus:ring-2 focus:ring-blue-300"
+                            placeholder="Search exact product name..."
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                        />
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                            <IoMdSearch size={20} />
+                        </span>
+                    </div>
+                    <Button
+                        className="flex gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                        onClick={handleAddProduct}
+                    >
+                        <IoMdAdd size={20} />
+                        <span>Add Product</span>
+                    </Button>
+                </div>
             </div>
             <ProductTable
-                products={products}
+                products={filteredProducts}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onShowDetails={setDetailProduct}
@@ -230,6 +253,7 @@ const ProductsPage = () => {
             {detailProduct && (
                 <ProductDetailsModal
                     product={detailProduct}
+                    cmsContent={cmsProductContent}
                     onClose={() => setDetailProduct(null)}
                 />
             )}
@@ -254,7 +278,7 @@ const ProductsPage = () => {
             )}
 
             {/* Per-Product CMS Modal */}
-            {cmsProductId !== null && (
+            {cmsProductId !== null && cmsProductContent && (
                 <ProductCmsModal
                     product={products.find(p => p.id === cmsProductId)!}
                     cmsContent={cmsProductContent}
@@ -263,35 +287,6 @@ const ProductsPage = () => {
                     onClose={() => setCmsProductId(null)}
                 />
             )}
-
-            {/* Delete Confirmation Modal */}
-            {/* {deleteProductId !== null && productToDelete && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                    <div className="bg-white rounded-xl shadow-lg max-w-sm w-full p-8 relative">
-                        <h3 className="text-lg font-bold mb-4 text-red-600">Delete Product</h3>
-                        <p className="mb-4">
-                            Are you sure you want to delete <span className="font-semibold">{productToDelete.name}</span>?<br />
-                            <span className="text-sm text-gray-500">This action cannot be undone.</span>
-                        </p>
-                        <div className="flex justify-end gap-2">
-                            <Button
-                                className="bg-gray-200 px-6 py-2 rounded"
-                                type="button"
-                                onClick={cancelDelete}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700"
-                                type="button"
-                                onClick={confirmDelete}
-                            >
-                                Delete
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )} */}
         </div>
     );
 };

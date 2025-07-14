@@ -83,6 +83,26 @@ const LiveProductMarkdownPreview: React.FC<Props> = ({
           <ReactMarkdown>{cmsContent.detailsContent || "*Nothing to preview*"}</ReactMarkdown>
         </div>
       </div>
+      {cmsContent.tabs && cmsContent.tabs.length > 0 && (
+        <section className="mb-10">
+          <h4 className="text-xl font-semibold mb-2">Product Tabs</h4>
+          {cmsContent.tabs.map((tab, idx) => (
+            <div key={idx} className="mb-4">
+              <h5 className="text-lg font-bold">{tab.title}</h5>
+              <div className="prose">
+                <ReactMarkdown>{tab.content}</ReactMarkdown>
+              </div>
+              {tab.images && tab.images.length > 0 && (
+                <div className="flex gap-2 mt-2">
+                  {tab.images.map((img, i) => (
+                    <img key={i} src={img} alt={`Tab ${idx + 1} Img ${i + 1}`} className="w-16 h-16 object-cover rounded border" />
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </section>
+      )}
     </div>
   </div>
 );

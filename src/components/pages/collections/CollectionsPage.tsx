@@ -282,7 +282,7 @@ const CollectionsPage: React.FC = () => {
                 {/* Collections Grid */}
                 <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
                     {(collections ?? []).map((collection) => (
-                        <Card key={collection.id} className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+                        <Card key={collection.id} className="shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100 rounded-2xl">
                             <CardHeader className="pb-3">
                                 <div className="flex justify-between items-start">
                                     <div className="flex-1">
@@ -320,7 +320,7 @@ const CollectionsPage: React.FC = () => {
                                     <Image
                                         src={collection.image_url}
                                         alt={collection.name}
-                                        className="w-full h-48 object-cover rounded-lg"
+                                        className="w-full h-48 object-cover rounded-xl border border-gray-200"
                                         fallbackSrc="https://via.placeholder.com/400x300?text=No+Image"
                                     />
                                 </div>
@@ -345,12 +345,12 @@ const CollectionsPage: React.FC = () => {
                                         <Text className="text-sm font-semibold text-gray-700 mb-2">Sản phẩm:</Text>
                                         <div className="flex flex-wrap gap-2">
                                             {collection.products.slice(0, 3).map((product) => (
-                                                <Badge key={product.id} colorScheme="blue" variant="subtle">
+                                                <Badge key={product.id} colorScheme="blue" variant="subtle" className="rounded-lg px-2 py-1 text-xs">
                                                     {product.product_name}
                                                 </Badge>
                                             ))}
                                             {collection.products.length > 3 && (
-                                                <Badge colorScheme="gray" variant="subtle">
+                                                <Badge colorScheme="gray" variant="subtle" className="rounded-lg px-2 py-1 text-xs">
                                                     +{collection.products.length - 3} khác
                                                 </Badge>
                                             )}
@@ -365,8 +365,8 @@ const CollectionsPage: React.FC = () => {
                 {/* Modal */}
                 <Modal isOpen={isOpen} onClose={handleCloseModal} size="6xl">
                     <ModalOverlay />
-                    <ModalContent className="max-h-[90vh] overflow-hidden">
-                        <ModalHeader className="bg-blue-50 border-b">
+                    <ModalContent className="max-h-[90vh] overflow-hidden rounded-2xl">
+                        <ModalHeader className="bg-blue-50 border-b rounded-t-2xl">
                             {editingId ? 'Chỉnh sửa Collection' : 'Thêm Collection mới'}
                         </ModalHeader>
                         <ModalCloseButton />
@@ -380,6 +380,7 @@ const CollectionsPage: React.FC = () => {
                                             value={formData.name}
                                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                             placeholder="Nhập tên collection"
+                                            className="rounded-lg"
                                         />
                                     </FormControl>
 
@@ -390,19 +391,20 @@ const CollectionsPage: React.FC = () => {
                                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                             placeholder="Nhập mô tả collection"
                                             rows={4}
+                                            className="rounded-lg"
                                         />
                                     </FormControl>
 
                                     <FormControl>
                                         <FormLabel>Ảnh đại diện</FormLabel>
-                                        <Button onClick={() => setShowMediaPicker(true)}>
+                                        <Button onClick={() => setShowMediaPicker(true)} className="rounded-lg">
                                             {formData.image_url ? "Đổi ảnh" : "Chọn ảnh"}
                                         </Button>
                                         {formData.image_url && (
                                             <Image
                                                 src={formData.image_url}
                                                 alt="Preview"
-                                                className="w-full h-40 object-cover rounded-lg mt-2"
+                                                className="w-full h-40 object-cover rounded-xl mt-2 border border-gray-200"
                                                 fallbackSrc="https://via.placeholder.com/400x200?text=Invalid+URL"
                                             />
                                         )}
@@ -415,7 +417,7 @@ const CollectionsPage: React.FC = () => {
                                             <Image
                                                 src={formData.image_url}
                                                 alt="Preview"
-                                                className="w-full h-40 object-cover rounded-lg"
+                                                className="w-full h-40 object-cover rounded-xl border border-gray-200"
                                                 fallbackSrc="https://via.placeholder.com/400x200?text=Invalid+URL"
                                             />
                                         </div>
@@ -426,7 +428,7 @@ const CollectionsPage: React.FC = () => {
                                         <Text className="text-sm font-medium text-gray-700 mb-2">
                                             Sản phẩm đã chọn ({formData.products.length}):
                                         </Text>
-                                        <div className="bg-gray-50 rounded-lg p-3 max-h-40 overflow-y-auto">
+                                        <div className="bg-gray-50 rounded-lg p-3 max-h-40 overflow-y-auto border border-gray-100">
                                             {formData.products.length === 0 ? (
                                                 <Text className="text-gray-500 text-center py-4">
                                                     Chưa có sản phẩm nào được chọn
@@ -435,7 +437,7 @@ const CollectionsPage: React.FC = () => {
                                                 <Wrap spacing={2}>
                                                     {formData.products.map((product) => (
                                                         <WrapItem key={product.id}>
-                                                            <Tag size="md" colorScheme="blue" variant="solid">
+                                                            <Tag size="md" colorScheme="blue" variant="solid" className="rounded-lg">
                                                                 <TagLabel>{product.product_name}</TagLabel>
                                                                 <TagCloseButton onClick={() => handleRemoveProduct(product.id)} />
                                                             </Tag>
@@ -464,6 +466,7 @@ const CollectionsPage: React.FC = () => {
                                                     placeholder="Tìm kiếm sản phẩm..."
                                                     value={productSearch}
                                                     onChange={(e) => setProductSearch(e.target.value)}
+                                                    className="rounded-lg"
                                                 />
                                             </InputGroup>
 
@@ -471,6 +474,7 @@ const CollectionsPage: React.FC = () => {
                                                 placeholder="Tất cả danh mục"
                                                 value={selectedCategory}
                                                 onChange={(e) => setSelectedCategory(e.target.value)}
+                                                className="rounded-lg"
                                             >
                                                 {categories.slice(1).map(category => (
                                                     <option key={category} value={category}>
@@ -482,7 +486,7 @@ const CollectionsPage: React.FC = () => {
                                     </div>
 
                                     {/* Products List */}
-                                    <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
+                                    <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto border border-gray-100">
                                         <div className="grid grid-cols-1 gap-3">
                                             {filteredProducts.map((product) => {
                                                 const isSelected = formData.products.find(p => p.id === product.id);
@@ -496,10 +500,9 @@ const CollectionsPage: React.FC = () => {
                                                         onClick={() => isSelected ? handleRemoveProduct(product.id) : handleAddProduct(product)}
                                                     >
                                                         <Image
-                                                            src={product.images[0].url}
-                                                            alt={product.product_name}
-                                                            className="w-12 h-12 object-cover rounded-md"
-                                                            fallbackSrc="https://via.placeholder.com/50x50?text=No+Image"
+                                                            src={product.images?.[0]?.url || "/default-image.jpg"}
+                                                            alt={product.product_name || "Product image"}
+                                                            className="w-14 h-14 object-cover rounded-lg border border-gray-200"
                                                         />
                                                         <div className="flex-1">
                                                             <div className="flex items-center justify-between">
@@ -511,7 +514,7 @@ const CollectionsPage: React.FC = () => {
                                                                 />
                                                             </div>
                                                             <div className="flex items-center gap-2 mt-1">
-                                                                <Badge colorScheme="purple" variant="subtle" size="sm">
+                                                                <Badge colorScheme="purple" variant="subtle" size="sm" className="rounded-lg px-2 py-1 text-xs">
                                                                     {product.category}
                                                                 </Badge>
                                                                 <Text className="text-sm font-semibold text-blue-600">
@@ -521,6 +524,7 @@ const CollectionsPage: React.FC = () => {
                                                                     colorScheme={product.quantity_stock ? "green" : "red"}
                                                                     variant="subtle"
                                                                     size="sm"
+                                                                    className="rounded-lg px-2 py-1 text-xs"
                                                                 >
                                                                     {product.quantity_stock ? "Còn hàng" : "Hết hàng"}
                                                                 </Badge>
@@ -528,6 +532,7 @@ const CollectionsPage: React.FC = () => {
                                                                     colorScheme={product.collection ? "blue" : ""}
                                                                     variant="subtle"
                                                                     size="sm"
+                                                                    className="rounded-lg px-2 py-1 text-xs"
                                                                 >
                                                                     {product.collection ? product.collection.name : ""}
                                                                 </Badge>
@@ -547,11 +552,11 @@ const CollectionsPage: React.FC = () => {
                                 </div>
                             </div>
                         </ModalBody>
-                        <ModalFooter className="bg-gray-50 border-t">
-                            <Button variant="ghost" mr={3} onClick={handleCloseModal}>
+                        <ModalFooter className="bg-gray-50 border-t rounded-b-2xl">
+                            <Button variant="ghost" mr={3} onClick={handleCloseModal} className="rounded-lg">
                                 Hủy
                             </Button>
-                            <Button colorScheme="blue" onClick={handleSave}>
+                            <Button colorScheme="blue" onClick={handleSave} className="rounded-lg">
                                 {editingId ? 'Cập nhật' : 'Thêm mới'}
                             </Button>
                         </ModalFooter>

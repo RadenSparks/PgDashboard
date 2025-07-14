@@ -1,5 +1,4 @@
 import React from 'react';
-import LiveMarkdownPreview from './LiveMarkdownPreview';
 import BlogPostPreview from './BlogPostPreview';
 
 interface Props {
@@ -27,10 +26,13 @@ const PostFormSidebar: React.FC<Props> = ({
   previewBgColor, setPreviewBgColor,
   FONT_FAMILIES, FONT_SIZES, COLORS, BG_COLORS
 }) => (
-  <div className="flex-1 min-w-[400px] max-w-[600px] flex flex-col overflow-y-auto bg-gray-50 border-l">
+  <div className="flex-1 min-w-[400px] max-w-[600px] flex flex-col overflow-y-auto bg-gradient-to-br from-blue-50 to-white border-l">
     <div className="p-6 pb-2">
-      <h4 className="font-bold mb-2 text-blue-700">Live Preview</h4>
-      <div className="rounded-xl overflow-hidden border shadow bg-white" style={{ background: previewBgColor }}>
+      <h4 className="font-bold mb-4 text-blue-700 text-lg flex items-center gap-2">
+        <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" />
+        Live Preview
+      </h4>
+      <div className="rounded-2xl overflow-hidden border shadow bg-white transition-all" style={{ background: previewBgColor }}>
         <BlogPostPreview
           content={form.content || ''}
           title={form.name}
@@ -53,15 +55,18 @@ const PostFormSidebar: React.FC<Props> = ({
         />
       </div>
     </div>
-    <div className="bg-white rounded-xl shadow p-4 m-6 mt-4">
-      <h5 className="font-semibold mb-2 text-gray-700">Preview Customization</h5>
-      <div className="flex flex-col gap-3">
+    <div className="bg-white rounded-2xl shadow p-6 m-6 mt-4">
+      <h5 className="font-semibold mb-4 text-gray-700 text-base flex items-center gap-2">
+        <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" />
+        Preview Customization
+      </h5>
+      <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Font Family</label>
+          <label className="block text-xs text-gray-500 mb-1 font-medium">Font Family</label>
           <select
             value={fontFamily}
             onChange={e => setFontFamily(e.target.value)}
-            className="border rounded p-1 w-full"
+            className="border rounded p-2 w-full focus:ring-2 focus:ring-blue-300"
           >
             {FONT_FAMILIES.map(f => (
               <option key={f.value} value={f.value}>{f.label}</option>
@@ -69,11 +74,11 @@ const PostFormSidebar: React.FC<Props> = ({
           </select>
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Font Size</label>
+          <label className="block text-xs text-gray-500 mb-1 font-medium">Font Size</label>
           <select
             value={fontSize}
             onChange={e => setFontSize(e.target.value)}
-            className="border rounded p-1 w-full"
+            className="border rounded p-2 w-full focus:ring-2 focus:ring-blue-300"
           >
             {FONT_SIZES.map(f => (
               <option key={f.value} value={f.value}>{f.label}</option>
@@ -81,13 +86,15 @@ const PostFormSidebar: React.FC<Props> = ({
           </select>
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Preview Text Color</label>
-          <div className="flex gap-1 flex-wrap w-full">
+          <label className="block text-xs text-gray-500 mb-1 font-medium">Preview Text Color</label>
+          <div className="flex gap-2 flex-wrap w-full">
             {COLORS.map(color => (
               <button
                 key={color}
                 type="button"
-                className={`w-6 h-6 rounded-full border-2 ${previewTextColor === color ? 'border-blue-500 ring-2 ring-blue-300' : 'border-white'} hover:border-gray-400 transition`}
+                className={`w-7 h-7 rounded-full border-2 transition
+                  ${previewTextColor === color ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-200'}
+                  hover:border-blue-400 focus:ring-2 focus:ring-blue-400`}
                 style={{ background: color }}
                 onClick={() => setPreviewTextColor(color)}
                 title={color}
@@ -96,13 +103,15 @@ const PostFormSidebar: React.FC<Props> = ({
           </div>
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Preview Background Color</label>
-          <div className="flex gap-1 flex-wrap w-full">
+          <label className="block text-xs text-gray-500 mb-1 font-medium">Preview Background Color</label>
+          <div className="flex gap-2 flex-wrap w-full">
             {BG_COLORS.map(color => (
               <button
                 key={color}
                 type="button"
-                className={`w-6 h-6 rounded-full border-2 ${previewBgColor === color ? 'border-blue-500 ring-2 ring-blue-300' : 'border-white'} hover:border-gray-400 transition`}
+                className={`w-7 h-7 rounded-full border-2 transition
+                  ${previewBgColor === color ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-200'}
+                  hover:border-blue-400 focus:ring-2 focus:ring-blue-400`}
                 style={{ background: color }}
                 onClick={() => setPreviewBgColor(color)}
                 title={color}

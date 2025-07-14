@@ -10,6 +10,7 @@ import {
   useUpdatePublisherMutation,
   useDeletePublisherMutation,
 } from "../../../redux/api/publishersApi";
+import type { Product } from "../../components/pages/products/types";
 
 const PublishersPage: React.FC = () => {
   const { data: publishers = [], isLoading, refetch } = useGetPublishersQuery();
@@ -88,7 +89,15 @@ const PublishersPage: React.FC = () => {
                 <Td>
                   <Box display="flex" flexWrap="wrap" gap={2}>
                     {pub.products?.slice(0, 3).map((p) => (
-                      <Text key={p.id} fontSize="sm" bg="blue.50" px={2} py={1} rounded="md">{p.product_name}</Text>
+                      <Text key={p.id} fontSize="sm" bg="blue.50" px={2} py={1} rounded="md">
+                        {p.product_name}
+                        <span className="ml-2 text-gray-500">{p.category_ID?.name}</span>
+                        {p.tags?.length > 0 && (
+                          <span className="ml-2 text-blue-600">
+                            {p.tags.filter(t => t.type === "genre").map(t => t.name).join(", ")}
+                          </span>
+                        )}
+                      </Text>
                     ))}
                     {pub.products?.length > 3 && (
                       <Text fontSize="sm" color="gray.500">+{pub.products.length - 3} khác</Text>

@@ -1,20 +1,66 @@
 "use client"
 
 import {
-  Toaster as ChakraToaster,
+  Toast as ChakraToaster,
   Portal,
   Spinner,
   Stack,
   Toast,
-  createToaster,
+  useToast,
 } from "@chakra-ui/react"
+import React, { useEffect } from "react"
 
-// eslint-disable-next-line react-refresh/only-export-components
-export const toaster = createToaster({
-  placement: "bottom-end",
-  pauseOnPageIdle: true,
-})
+// Export a singleton toast function for use in your app
+export const toaster = {
+  show: ({
+    title,
+    description,
+    type = "info",
+    duration = 3000,
+    position = "bottom-right",
+  }: {
+    title: string
+    description?: string
+    type?: "success" | "error" | "info" | "warning" | "loading"
+    duration?: number
+    position?:
+      | "top"
+      | "top-right"
+      | "top-left"
+      | "bottom"
+      | "bottom-right"
+      | "bottom-left"
+  }) => {
+    // Use Chakra's useToast hook inside a component
+    // For global usage, you must wrap your app with <ToasterProvider />
+    window.dispatchEvent(
+      new CustomEvent("chakra-toast", {
+        detail: { title, description, type, duration, position },
+      })
+    )
+  },
+}
 
+// ToasterProvider component to listen for global toast events
+export const ToasterProvider: React.FC = ({ children }) => {
+  const toast = useToast()
+  useEffect(() => {
+    const handler = (e: any) => {
+      const { title, description, type, duration, position } = e.detail
+      toast({
+        title,
+        description,
+        status: type === "loading" ? "info" : type,
+        duration,
+        position,
+        isClosable: true,
+      })
+    }
+    window.addEventListener("chakra-toast", handler)
+    return () => window.removeEventListener("chakra-toast", handler)
+  }, [toast])
+  return <>{children}</>
+}
 
 export const Toaster = () => {
   return (

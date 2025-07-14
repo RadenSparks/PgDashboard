@@ -38,22 +38,25 @@ const BlogPostPreview: React.FC<BlogPostPreviewProps> = ({
 }) => {
   return (
     <article
-      className="rounded-2xl overflow-hidden border max-w-2xl mx-auto shadow-lg bg-white animate-fade-in"
+      className="rounded-3xl overflow-hidden border max-w-2xl mx-auto shadow-2xl bg-white animate-fade-in"
       style={{
         fontFamily,
         background: bgColor,
         color: textColor,
         transition: 'background 0.2s, color 0.2s',
         minHeight: 200,
+        maxHeight: 700,
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
       {/* Banner image or placeholder */}
-      <div className="h-56 w-full bg-gray-100 flex items-center justify-center overflow-hidden relative">
+      <div className="h-56 w-full bg-gradient-to-br from-blue-100 to-white flex items-center justify-center overflow-hidden relative flex-shrink-0">
         {image ? (
           <img
             src={image}
             alt={title}
-            className="object-cover w-full h-full transition-all duration-300"
+            className="object-cover w-full h-full transition-all duration-300 rounded-t-3xl"
           />
         ) : (
           <span className="text-gray-300 text-5xl">🖼️</span>
@@ -64,11 +67,14 @@ const BlogPostPreview: React.FC<BlogPostPreviewProps> = ({
           </span>
         )}
       </div>
-      <div className={`p-5 sm:p-8 md:p-10 ${fontSize}`}>
+      <div
+        className={`p-6 sm:p-8 md:p-10 ${fontSize} overflow-y-auto`}
+        style={{ flex: 1, minHeight: 0 }}
+      >
         {/* Tag & Date */}
         <div className="mb-4 flex flex-wrap items-center gap-2">
           {catalogueName && (
-            <span className="inline-block bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full font-semibold">
+            <span className="inline-block bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full font-semibold shadow">
               {catalogueName}
             </span>
           )}
@@ -90,7 +96,10 @@ const BlogPostPreview: React.FC<BlogPostPreviewProps> = ({
           <div className="mb-6 italic text-gray-500 text-base">{description}</div>
         )}
         {/* Markdown Content */}
-        <div className="prose prose-blue max-w-none text-gray-800 mb-8" style={{ color: textColor }}>
+        <div
+          className="prose prose-blue max-w-none mb-8"
+          style={{ color: textColor }}
+        >
           <ReactMarkdown>{content}</ReactMarkdown>
         </div>
         {/* Meta info */}

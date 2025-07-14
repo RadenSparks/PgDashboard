@@ -110,13 +110,15 @@ const MediaManager: React.FC = () => {
   };
 
   // --- Handlers (upload, preview, copy, delete, move, etc) ---
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, productSlug?: string) => {
     const files = e.target.files;
     if (!files) return;
 
     setUploading(true);
     try {
-      const folder = folderPath.length ? folderPath.join("/") : "default";
+      const folder = productSlug
+        ? productSlug
+        : folderPath.length ? folderPath.join("/") : "default";
       const uploads = Array.from(files).map(async (file) => {
         if (file.size > 10 * 1024 * 1024) {
           toast({
@@ -354,17 +356,25 @@ const MediaManager: React.FC = () => {
     }
   };
 
+  // Add this function:
+  const addProductFolder = (slug: string) => {
+    setVirtualFolders(prev => {
+      if (prev.some(arr => arr.join("/") === slug)) return prev;
+      return [...prev, [slug]];
+    });
+  };
+
   // --- UI ---
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-blue-50 to-white">
       {/* Sidebar */}
-      <aside className="w-64 border-r bg-white p-4 flex flex-col">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-bold text-lg text-blue-700">Folders</h3>
+      <aside className="w-72 border-r bg-white p-6 flex flex-col shadow-lg">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold text-xl text-blue-700">Thư mục</h3>
           <button
-            className="ml-2 flex items-center gap-1 text-xs bg-blue-600 text-white px-3 py-1 rounded shadow hover:bg-blue-700 focus:ring-2 focus:ring-blue-400"
+            className="ml-2 flex items-center gap-1 text-xs bg-blue-600 text-white px-3 py-1 rounded-lg shadow hover:bg-blue-700 focus:ring-2 focus:ring-blue-400 transition"
             onClick={() => {
-              const folder = prompt("Enter new folder name (use / for subfolders):");
+              const folder = prompt("Nhập tên thư mục mới (dùng / cho thư mục con):");
               if (folder) {
                 const newPath = [...folderPath, ...folder.split("/").filter(Boolean)];
                 setFolderPath(newPath);
@@ -374,10 +384,10 @@ const MediaManager: React.FC = () => {
                 });
               }
             }}
-            title="Create new folder"
+            title="Tạo thư mục mới"
           >
             <span className="material-symbols-outlined text-base"></span>
-            New
+            Thêm
           </button>
         </div>
         <FolderTree
@@ -388,42 +398,48 @@ const MediaManager: React.FC = () => {
           setSelectedPath={setFolderPath}
         />
         {folderPath.length > 0 && (
-          <div className="mt-4 flex flex-col gap-2">
+          <div className="mt-6 flex flex-col gap-2">
             <button
-              className="flex items-center gap-1 bg-red-500 text-white px-3 py-1 rounded shadow hover:bg-red-700 focus:ring-2 focus:ring-red-400 text-xs"
+              className="flex items-center gap-1 bg-red-500 text-white px-3 py-1 rounded-lg shadow hover:bg-red-700 focus:ring-2 focus:ring-red-400 text-xs transition"
               onClick={() => setShowDeleteFolderModal(true)}
             >
               <span className="material-symbols-outlined text-base"></span>
-              Delete Folder
+              Xóa thư mục
             </button>
             {selectedImages.length > 0 && (
               <button
-                className="flex items-center gap-1 bg-blue-500 text-white px-3 py-1 rounded shadow hover:bg-blue-700 focus:ring-2 focus:ring-blue-400 text-xs"
+                className="flex items-center gap-1 bg-blue-500 text-white px-3 py-1 rounded-lg shadow hover:bg-blue-700 focus:ring-2 focus:ring-blue-400 text-xs transition"
                 onClick={() => setShowMoveModal(true)}
               >
                 <span className="material-symbols-outlined text-base"></span>
-                Move Selected
+                Di chuyển ảnh
               </button>
             )}
           </div>
         )}
       </aside>
       {/* Main Content */}
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-10">
         <Breadcrumbs folderPath={folderPath} setFolderPath={setFolderPath} />
         <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept="image/*,video/*"
-            onChange={handleUpload}
-            className="border px-2 py-1 rounded"
-            disabled={uploading}
-          />
+          <label className="flex items-center gap-2 cursor-pointer">
+            <span className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition text-sm font-semibold">
+              Tải ảnh lên
+            </span>
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={e => handleUpload(e)}
+              className="hidden"
+              disabled={uploading}
+              ref={fileInputRef}
+            />
+          </label>
+          {uploading && <span className="text-blue-600 font-semibold">Đang tải lên...</span>}
         </div>
         {isLoading ? (
-          <div className="text-blue-600 font-semibold">Loading media...</div>
+          <div className="text-blue-600 font-semibold">Đang tải dữ liệu...</div>
         ) : (
           <MediaGrid
             media={currentMedia}
@@ -436,7 +452,6 @@ const MediaManager: React.FC = () => {
             setPreviewUrl={setPreviewUrl}
           />
         )}
-        {uploading && <div className="mt-4 text-blue-600">Uploading...</div>}
         <MoveModal
           show={showMoveModal}
           onClose={() => setShowMoveModal(false)}

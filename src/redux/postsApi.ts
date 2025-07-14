@@ -18,6 +18,10 @@ export interface Post {
   catalogueId?: number;
   catalogue?: any;
   galleryImages?: string[];
+  textColor?: string;
+  bgColor?: string;
+  fontFamily?: string;
+  fontSize?: string;
 }
 
 export const postsApi = createApi({
