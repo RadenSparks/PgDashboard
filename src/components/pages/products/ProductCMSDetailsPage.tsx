@@ -99,36 +99,44 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
         </section>
       )}
 
-      {/* EDITOR SECTION - FOR MODAL FIELDS */}
-      <section>
-        <h5>Product Banner</h5>
-        <input value={cmsContent.aboutTitle} onChange={...} placeholder="Banner Title" />
-        <textarea value={cmsContent.aboutText} onChange={...} placeholder="Banner Subtitle" />
-        {/* MediaPicker for aboutImages */}
-      </section>
-
-      <section>
-        <h5>Product Gallery (Image Slider)</h5>
-        {/* MediaPicker for sliderImages */}
-      </section>
-
-      <section>
-        <h5>Product Detail Section</h5>
-        <input value={cmsContent.detailsTitle} onChange={...} placeholder="Details Title" />
-        <textarea value={cmsContent.detailsContent} onChange={...} placeholder="Details Content" />
-        <input value={cmsContent.warranty} onChange={...} placeholder="Warranty" />
-        <input value={cmsContent.shippingInfo} onChange={...} placeholder="Shipping Info" />
-      </section>
-
-      <section>
-        <h5>Product Tabs</h5>
-        {/* Dynamic fields for tabs: title, content, images[] */}
-      </section>
-
-      <section>
-        <h5>Featured Section (Two Columns Blocks)</h5>
-        {/* Dynamic fields for featuredSections: title, description, imageSrc, imageAlt, textBgColor, isImageRight */}
-      </section>
+      {/* FEATURED SECTION (Alternating 2-column blocks) */}
+      {cmsContent.featuredSections && cmsContent.featuredSections.length > 0 && (
+        <section className="mb-10">
+          <h4 className="text-xl font-semibold mb-6" style={{ color: textColor, fontFamily }}>Featured Section</h4>
+          <div className="grid grid-cols-1 gap-8">
+            {cmsContent.featuredSections.map((block, idx) => (
+              <div
+                key={idx}
+                className={`flex flex-col md:flex-row items-center gap-8 rounded-2xl shadow-lg border bg-white p-6 transition-all`}
+                style={{
+                  background: block.textBgColor || "#fff",
+                  flexDirection: idx % 2 === 0 ? "row" : "row-reverse",
+                }}
+              >
+                {/* Image */}
+                {block.imageSrc && (
+                  <div className="flex-shrink-0">
+                    <img
+                      src={block.imageSrc}
+                      alt={block.imageAlt || `Block ${idx + 1}`}
+                      className="w-40 h-40 object-cover rounded-xl border shadow"
+                    />
+                  </div>
+                )}
+                {/* Text */}
+                <div className="flex-1 flex flex-col justify-center">
+                  <h5 className="text-2xl font-bold mb-2" style={{ color: textColor, fontFamily }}>{block.title}</h5>
+                  <div className="mb-2 text-base" style={{ color: textColor }}>{block.description}</div>
+                  <div className="text-xs text-gray-500 mb-1">
+                    {block.isImageRight ? "Image Right" : "Image Left"}
+                  </div>
+                  <div className="text-xs text-gray-400">Background: <span style={{ background: block.textBgColor, padding: "0 8px", borderRadius: 4 }}>{block.textBgColor}</span></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 };

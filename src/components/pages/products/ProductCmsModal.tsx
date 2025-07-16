@@ -38,7 +38,7 @@ const ProductCmsModal = ({
   onClose,
 }: ProductCmsModalProps) => {
   const modalRef = useRef<HTMLDivElement>(null);
-  const [showMediaPicker, setShowMediaPicker] = useState<null | { field: keyof CmsContent | "tabImages"; tabIdx?: number; imgIdx?: number; idx?: number }>(null);
+  const [showMediaPicker, setShowMediaPicker] = useState<null | { field: keyof CmsContent | "tabImages" | "heroImage" | "featuredSections"; tabIdx?: number; imgIdx?: number; idx?: number }>(null);
 
   // Preview customization state
   const [fontFamily, setFontFamily] = useState(cmsContent.fontFamily || "sans-serif");
@@ -169,21 +169,21 @@ const ProductCmsModal = ({
               placeholder="Hero Subtitle"
             />
             <div className="flex items-center gap-3 mt-2">
-              {cmsContent.heroImage && (
-                <img src={cmsContent.heroImage} alt="Hero" className="w-24 h-24 object-cover rounded-lg border shadow" />
+              {cmsContent.heroImages && (
+                <img src={cmsContent.heroImages} alt="Hero" className="w-24 h-24 object-cover rounded-lg border shadow" />
               )}
               <button
                 type="button"
                 className="bg-blue-100 text-blue-700 rounded px-4 py-2 hover:bg-blue-200 font-semibold transition"
                 onClick={() => setShowMediaPicker({ field: "heroImage", idx: 0 })}
               >
-                {cmsContent.heroImage ? "Change" : "Select"} Image
+                {cmsContent.heroImages ? "Change" : "Select"} Image
               </button>
-              {cmsContent.heroImage && (
+              {cmsContent.heroImages && (
                 <button
                   type="button"
                   className="text-red-500 hover:text-red-700 text-xl"
-                  onClick={() => onChange({ ...cmsContent, heroImage: "" })}
+                  onClick={() => onChange({ ...cmsContent, heroImages: [] })}
                   aria-label="Remove image"
                   title="Remove hero image"
                 >
@@ -641,17 +641,28 @@ const ProductCmsModal = ({
           multiple={false}
           onSelect={img => {
             if (showMediaPicker) {
-              if (showMediaPicker.field === "heroImage") {
-                onChange({ ...cmsContent, heroImage: img.url });
+              if (showMediaPicker.field === "heroImages") {
+                onChange({ ...cmsContent, heroImages: Array.isArray(img) ? [img[0]?.url ?? ""] : [img.url] });
               } else if (showMediaPicker.field === "tabImages" && showMediaPicker.tabIdx !== undefined && showMediaPicker.imgIdx !== undefined) {
-                updateTabImage(showMediaPicker.tabIdx, showMediaPicker.imgIdx, img.url);
+                updateTabImage(
+                  showMediaPicker.tabIdx,
+                  showMediaPicker.imgIdx,
+                  Array.isArray(img) ? img[0]?.url ?? "" : img.url
+                );
               } else if (showMediaPicker.field === "featuredSections" && typeof showMediaPicker.idx === "number") {
                 const arr = [...(cmsContent.featuredSections || [])];
-                arr[showMediaPicker.idx] = { ...arr[showMediaPicker.idx], imageSrc: img.url };
+                arr[showMediaPicker.idx] = { ...arr[showMediaPicker.idx], imageSrc: Array.isArray(img) ? img[0]?.url ?? "" : img.url };
                 onChange({ ...cmsContent, featuredSections: arr });
-              } else if (showMediaPicker.field && typeof showMediaPicker.idx === "number") {
-                const arr = [...(cmsContent[showMediaPicker.field] as string[] || [])];
-                arr[showMediaPicker.idx] = img.url;
+              } else if (
+                showMediaPicker.field &&
+                typeof showMediaPicker.idx === "number" &&
+                // Only allow keys that exist on CmsContent
+                ["aboutImages", "sliderImages"].includes(showMediaPicker.field)
+              ) {
+                const arr = [...(cmsContent[showMediaPicker.field as keyof CmsContent] as string[] || [])];
+                if (!Array.isArray(img)) {
+                  arr[showMediaPicker.idx] = img.url;
+                }
                 onChange({ ...cmsContent, [showMediaPicker.field]: arr });
               }
               setShowMediaPicker(null);

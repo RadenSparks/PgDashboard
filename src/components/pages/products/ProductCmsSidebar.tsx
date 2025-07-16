@@ -131,20 +131,63 @@ const ProductCmsSidebar: React.FC<Props> = ({
           <section className="mb-6">
             <h5 className="text-lg font-semibold mb-2" style={{ color: previewTextColor }}>Featured Section</h5>
             {cmsContent.featuredSections.map((block, idx) => (
-              <div key={idx} className="border rounded-lg p-3 mb-3 bg-white shadow-sm flex flex-col md:flex-row gap-4">
-                <div className="flex-1">
-                  <div className="font-bold" style={{ color: previewTextColor }}>{block.title}</div>
-                  <div className="mb-1" style={{ color: previewTextColor }}>{block.description}</div>
-                  <div className="text-xs text-gray-500">Background: <span style={{ background: block.textBgColor, padding: "0 8px", borderRadius: 4 }}>{block.textBgColor}</span></div>
+              <div
+                key={idx}
+                className="flex flex-col md:flex-row w-full border rounded-lg bg-white shadow-sm mb-3 overflow-hidden"
+              >
+                {/* Alternate order for checkered pattern */}
+                {/* Text Box */}
+                <div
+                  className={`
+                    md:w-1/2 w-full flex items-center
+                    ${block.isImageRight ? 'md:order-2' : ''}
+                    p-0
+                  `}
+                >
+                  <div
+                    className="w-full h-full flex flex-col justify-center px-6 py-6 bg-white"
+                    style={{
+                      background: block.textBgColor || "#fff",
+                      borderTopRightRadius: block.isImageRight ? 0 : '1rem',
+                      borderBottomRightRadius: block.isImageRight ? 0 : '1rem',
+                      borderTopLeftRadius: block.isImageRight ? '1rem' : 0,
+                      borderBottomLeftRadius: block.isImageRight ? '1rem' : 0,
+                    }}
+                  >
+                    <div className="font-bold text-base mb-1" style={{ color: previewTextColor }}>{block.title}</div>
+                    <div className="mb-1 text-sm" style={{ color: previewTextColor }}>{block.description}</div>
+                    <div className="text-xs text-gray-400">Background: <span style={{ background: block.textBgColor, padding: "0 8px", borderRadius: 4 }}>{block.textBgColor}</span></div>
+                  </div>
                 </div>
-                {block.imageSrc && (
-                  <img
-                    src={block.imageSrc}
-                    alt={block.imageAlt || `Block ${idx + 1}`}
-                    className="w-16 h-16 object-cover rounded border shadow"
-                  />
-                )}
-                <div className="text-xs text-gray-500">{block.isImageRight ? "Image Right" : "Image Left"}</div>
+                {/* Image Box */}
+                <div
+                  className={`
+                    md:w-1/2 w-full flex items-center justify-center
+                    ${block.isImageRight ? 'md:order-1' : ''}
+                    p-0
+                  `}
+                  style={{
+                    background: "#f9fafb",
+                    minHeight: 120,
+                    borderTopLeftRadius: block.isImageRight ? 0 : '1rem',
+                    borderBottomLeftRadius: block.isImageRight ? 0 : '1rem',
+                    borderTopRightRadius: block.isImageRight ? '1rem' : 0,
+                    borderBottomRightRadius: block.isImageRight ? '1rem' : 0,
+                  }}
+                >
+                  {block.imageSrc ? (
+                    <img
+                      src={block.imageSrc}
+                      alt={block.imageAlt || `Block ${idx + 1}`}
+                      className="object-cover w-32 h-32 md:w-48 md:h-48 rounded-none border"
+                      style={{ background: "#f3f4f6" }}
+                    />
+                  ) : (
+                    <div className="w-32 h-32 md:w-48 md:h-48 flex items-center justify-center text-gray-300 bg-gray-100 rounded-none border">
+                      No Image
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </section>

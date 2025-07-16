@@ -7,7 +7,6 @@ import {
   MdPostAdd,
   MdShoppingCart,
   MdPeople,
-  MdSettings,
   MdInventory2,
   MdAdminPanelSettings,
   MdLabel,

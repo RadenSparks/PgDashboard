@@ -33,7 +33,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         return (
           <li key={folder} className="relative group">
             <div
-              className={`flex items-center cursor-pointer rounded-lg pr-2 py-2 ${
+              className={`flex items-center cursor-pointer rounded-lg pr-2 py-2 gap-1 ${
                 isSelected
                   ? "bg-blue-100 font-bold text-blue-700"
                   : "hover:bg-blue-50"
@@ -43,7 +43,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
             >
               {hasChildren ? (
                 <button
-                  className="mr-1 text-gray-400 hover:text-blue-600 focus:outline-none"
+                  className="mr-1 flex items-center justify-center w-6 h-6 rounded hover:bg-blue-100 focus:outline-none transition"
                   onClick={e => {
                     e.stopPropagation();
                     setExpanded({
@@ -52,23 +52,30 @@ const FolderTree: React.FC<FolderTreeProps> = ({
                     });
                   }}
                   tabIndex={-1}
-                  aria-label={isExpanded ? "Collapse" : "Expand"}
+                  aria-label={isExpanded ? "Thu gọn" : "Mở rộng"}
                   type="button"
                 >
-                  <span className="material-symbols-outlined text-base align-middle">
-                    {isExpanded ? "expand_more" : "chevron_right"}
-                  </span>
+                  {/* Use Heroicons chevron-down and chevron-right */}
+                  {isExpanded ? (
+                    <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  )}
                 </button>
               ) : (
-                <span className="w-5 inline-block" />
+                <span className="w-6 inline-block" />
               )}
-              <span className="mr-1">
-                <span className="material-symbols-outlined text-blue-500 align-middle">
-                  folder
-                </span>
+              {/* Folder icon */}
+              <span className="mr-1 flex items-center">
+                <svg className="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M2 6a2 2 0 012-2h4l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+                </svg>
               </span>
               <span className="truncate">{folder}</span>
-              {/* Removed redundant description, only folder name remains */}
               <span className="ml-auto text-xs text-gray-400 group-hover:text-blue-400">
                 {node.children[folder].items?.length || 0}
               </span>
