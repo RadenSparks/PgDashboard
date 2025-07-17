@@ -169,21 +169,21 @@ const ProductCmsModal = ({
               placeholder="Hero Subtitle"
             />
             <div className="flex items-center gap-3 mt-2">
-              {cmsContent.heroImages && (
-                <img src={cmsContent.heroImages} alt="Hero" className="w-24 h-24 object-cover rounded-lg border shadow" />
+              {cmsContent.heroImage && (
+                <img src={cmsContent.heroImage} alt="Hero" className="w-24 h-24 object-cover rounded-lg border shadow" />
               )}
               <button
                 type="button"
                 className="bg-blue-100 text-blue-700 rounded px-4 py-2 hover:bg-blue-200 font-semibold transition"
                 onClick={() => setShowMediaPicker({ field: "heroImage", idx: 0 })}
               >
-                {cmsContent.heroImages ? "Change" : "Select"} Image
+                {cmsContent.heroImage ? "Change" : "Select"} Image
               </button>
-              {cmsContent.heroImages && (
+              {cmsContent.heroImage && (
                 <button
                   type="button"
                   className="text-red-500 hover:text-red-700 text-xl"
-                  onClick={() => onChange({ ...cmsContent, heroImages: [] })}
+                  onClick={() => onChange({ ...cmsContent, heroImage: "" })}
                   aria-label="Remove image"
                   title="Remove hero image"
                 >
@@ -641,8 +641,8 @@ const ProductCmsModal = ({
           multiple={false}
           onSelect={img => {
             if (showMediaPicker) {
-              if (showMediaPicker.field === "heroImages") {
-                onChange({ ...cmsContent, heroImages: Array.isArray(img) ? [img[0]?.url ?? ""] : [img.url] });
+              if (showMediaPicker.field === "heroImage") {
+                onChange({ ...cmsContent, heroImage: Array.isArray(img) ? img[0]?.url ?? "" : img.url });
               } else if (showMediaPicker.field === "tabImages" && showMediaPicker.tabIdx !== undefined && showMediaPicker.imgIdx !== undefined) {
                 updateTabImage(
                   showMediaPicker.tabIdx,
@@ -656,7 +656,6 @@ const ProductCmsModal = ({
               } else if (
                 showMediaPicker.field &&
                 typeof showMediaPicker.idx === "number" &&
-                // Only allow keys that exist on CmsContent
                 ["aboutImages", "sliderImages"].includes(showMediaPicker.field)
               ) {
                 const arr = [...(cmsContent[showMediaPicker.field as keyof CmsContent] as string[] || [])];
