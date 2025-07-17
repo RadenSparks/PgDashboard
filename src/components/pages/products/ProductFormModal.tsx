@@ -196,7 +196,11 @@ const ProductFormModal = ({
                     name="slug"
                     placeholder="Slug"
                     value={product.slug}
-                    onChange={e => onChange({ ...product, slug: e.target.value })}
+                    onChange={e => {
+                      // Replace spaces with "-" and lowercase the input
+                      const formatted = e.target.value.replace(/\s+/g, "-").toLowerCase();
+                      onChange({ ...product, slug: formatted });
+                    }}
                     required
                   />
                 </label>
@@ -471,7 +475,7 @@ const ProductFormModal = ({
                 </div>
               </div>
             </section>
-            {/* Featured */}
+            {/* Featured
             <section className="px-8 py-6">
               <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide">Featured</div>
               {(product.featured || []).map((item, idx) => (
@@ -534,7 +538,7 @@ const ProductFormModal = ({
               >
                 + Add Featured
               </button>
-            </section>
+            </section> */}
             {/* Meta Data */}
             <section className="px-8 py-6">
               <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide">Meta Data</div>
@@ -582,7 +586,7 @@ const ProductFormModal = ({
         <MediaPicker
           show={!!showMediaPicker}
           multiple={showMediaPicker === "gallery"}
-          folder={product.slug} // <-- Pass the product's slug as folder
+          folder={product.slug}
           onSelect={handleImageSelect}
           onClose={() => setShowMediaPicker(null)}
         />
