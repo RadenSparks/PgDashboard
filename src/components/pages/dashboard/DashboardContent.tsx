@@ -173,7 +173,7 @@ const DashboardContent = () => {
             </div>
 
             {/* Charts and Top Products */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
               {/* Sales Chart */}
               <div className="bg-white rounded-2xl shadow-lg p-8 col-span-2">
                 <div className="flex justify-between items-center mb-6">
@@ -190,7 +190,7 @@ const DashboardContent = () => {
                 )}
               </div>
               {/* Top Products */}
-              <div className="bg-white rounded-2xl shadow-lg p-8">
+              <div className="bg-white rounded-2xl shadow-lg p-8 ">
                 <h3 className="font-bold text-xl text-blue-700 mb-6">Top Products</h3>
                 {topProductsData.length > 0 ? (
                   <TopProducts topProductsData={topProductsData} />
@@ -201,7 +201,7 @@ const DashboardContent = () => {
             </div>
 
             {/* Info Panels: Recent Comments & New Users */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <RecentCommentsPanel
                 recentComments={earliestReviews}
                 currentComment={currentComment}

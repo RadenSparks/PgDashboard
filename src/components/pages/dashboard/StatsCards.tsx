@@ -1,4 +1,10 @@
-import { FaDollarSign, FaShoppingCart, FaUsers, FaBoxOpen, FaUserPlus } from "react-icons/fa";
+import {
+  FaDollarSign,
+  FaShoppingCart,
+  FaUsers,
+  FaBoxOpen,
+  FaUserPlus,
+} from "react-icons/fa";
 
 type StatsCardsProps = {
   totalRevenue: number;
@@ -15,8 +21,9 @@ const StatsCards = ({
   totalProducts,
   newUsersCount,
 }: StatsCardsProps) => (
-  <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-    <div className="bg-white rounded-xl shadow p-6 flex flex-col gap-2">
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 md:gap-6">
+    {/* Revenue */}
+    <div className="bg-white rounded-xl shadow p-5 flex flex-col gap-2">
       <div className="flex items-center gap-2 text-blue-600">
         <FaDollarSign size={24} />
         <span className="font-semibold text-lg">Revenue</span>
@@ -24,7 +31,9 @@ const StatsCards = ({
       <span className="text-2xl font-bold">${totalRevenue.toLocaleString()}</span>
       <span className="text-green-500 text-sm">+12% this month</span>
     </div>
-    <div className="bg-white rounded-xl shadow p-6 flex flex-col gap-2">
+
+    {/* Orders */}
+    <div className="bg-white rounded-xl shadow p-5 flex flex-col gap-2">
       <div className="flex items-center gap-2 text-green-600">
         <FaShoppingCart size={24} />
         <span className="font-semibold text-lg">Orders</span>
@@ -32,7 +41,9 @@ const StatsCards = ({
       <span className="text-2xl font-bold">{totalOrders}</span>
       <span className="text-green-500 text-sm">+8% this month</span>
     </div>
-    <div className="bg-white rounded-xl shadow p-6 flex flex-col gap-2">
+
+    {/* Customers */}
+    <div className="bg-white rounded-xl shadow p-5 flex flex-col gap-2">
       <div className="flex items-center gap-2 text-yellow-600">
         <FaUsers size={24} />
         <span className="font-semibold text-lg">Customers</span>
@@ -40,7 +51,9 @@ const StatsCards = ({
       <span className="text-2xl font-bold">{totalCustomers}</span>
       <span className="text-green-500 text-sm">+5% this month</span>
     </div>
-    <div className="bg-white rounded-xl shadow p-6 flex flex-col gap-2">
+
+    {/* Products */}
+    <div className="bg-white rounded-xl shadow p-5 flex flex-col gap-2">
       <div className="flex items-center gap-2 text-purple-600">
         <FaBoxOpen size={24} />
         <span className="font-semibold text-lg">Products</span>
@@ -48,7 +61,9 @@ const StatsCards = ({
       <span className="text-2xl font-bold">{totalProducts}</span>
       <span className="text-green-500 text-sm">+2% this month</span>
     </div>
-    <div className="bg-white rounded-xl shadow p-6 flex flex-col gap-2">
+
+    {/* New Users */}
+    <div className="bg-white rounded-xl shadow p-5 flex flex-col gap-2">
       <div className="flex items-center gap-2 text-pink-600">
         <FaUserPlus size={24} />
         <span className="font-semibold text-lg">New Users</span>

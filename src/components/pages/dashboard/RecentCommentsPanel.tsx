@@ -23,46 +23,53 @@ const RecentCommentsPanel = ({
   handleNavigateToComment,
 }: RecentCommentsPanelProps) => {
   if (!recentComments.length || !recentComments[currentComment]) {
-    return (
-      <div className="bg-white rounded-xl shadow p-6 flex flex-col items-center justify-center min-h-[180px]">
-        <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+return (
+      <div className="bg-white rounded-xl shadow-lg p-6 flex flex-col items-center justify-center min-h-[180px] w-full">
+        <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 text-center">
           <MdComment className="text-blue-500" size={22} />
           Recent Product Comment
         </h3>
-        <span className="text-gray-400">No recent comments available.</span>
+        <span className="text-gray-400 text-sm text-center">No recent comments available.</span>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl shadow p-6 flex flex-col items-center justify-center min-h-[180px]">
-      <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+    <div className="bg-white rounded-xl shadow-lg p-6 flex flex-col items-center justify-center min-h-[200px] w-full">
+      <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 text-center">
         <MdComment className="text-blue-500" size={22} />
         Recent Product Comment
       </h3>
       <div
-        className={`flex flex-col items-center transition-opacity duration-300 ease-in-out ${
+        className={`flex flex-col items-center transition-opacity duration-300 ease-in-out max-w-sm text-center ${
           fade ? "opacity-100" : "opacity-0"
         }`}
         key={currentComment}
       >
-        <span className="font-semibold text-gray-800">{recentComments[currentComment].user}</span>
+        <span className="font-semibold text-gray-800 truncate">{recentComments[currentComment].user}</span>
         <span className="text-gray-600 text-sm mb-1">
           on <span className="font-medium">{recentComments[currentComment].product}</span>
         </span>
-        <span className="text-gray-700 text-center px-2">{recentComments[currentComment].comment}</span>
-        <span className="text-xs text-gray-400 mt-1">{recentComments[currentComment].date}</span>
-        <Button
-          className="mt-3 px-4 py-1 bg-blue-100 text-blue-700 border border-blue-200 rounded text-sm hover:bg-blue-200 transition"
-          onClick={() => handleNavigateToComment(recentComments[currentComment].user)}
-        >
-          View All Comments by {recentComments[currentComment].user}
-        </Button>
-        <div className="flex gap-1 mt-3">
+        <p className="text-gray-700 text-sm mb-2 max-w-xs">{recentComments[currentComment].comment}</p>
+        <span className="text-xs text-gray-400">{recentComments[currentComment].date}</span>
+
+        <div className="w-full flex justify-center mt-3 px-2">
+          <Button
+            className="px-4 py-1 bg-blue-100 text-blue-700 border border-blue-200 rounded text-sm hover:bg-blue-200 transition max-w-full text-center whitespace-normal break-words"
+            onClick={() => handleNavigateToComment(recentComments[currentComment].user)}
+          >
+            View Comments by {recentComments[currentComment].user.split(" ")[0]}
+          </Button>
+        </div>
+
+
+        <div className="flex gap-1 mt-3 justify-center">
           {recentComments.map((_, idx) => (
             <span
               key={idx}
-              className={`inline-block w-2 h-2 rounded-full ${idx === currentComment ? "bg-blue-500" : "bg-gray-300"}`}
+              className={`inline-block w-2 h-2 rounded-full ${
+                idx === currentComment ? "bg-blue-500" : "bg-gray-300"
+              }`}
             />
           ))}
         </div>
@@ -89,6 +96,7 @@ const DashboardContent = () => {
   // ...other logic...
 
   return (
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
     <RecentCommentsPanel
       recentComments={earliestReviews}
       currentComment={currentComment}
@@ -96,6 +104,7 @@ const DashboardContent = () => {
       handleNavigateToComment={handleNavigateToComment}
     />
     // ...other components...
+    </div>
   );
 };
 

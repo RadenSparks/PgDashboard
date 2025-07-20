@@ -54,7 +54,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
 
   return (
     <div
-      className={`flex flex-col h-full border-r-2 border-gray-200 py-4 transition-all duration-300 bg-gradient-to-b from-white via-blue-50 to-blue-100 ${collapsed ? "w-[72px]" : "w-[260px]"}`}
+      className={`flex flex-col h-full overflow-y-auto scroll-hidden border-r-2  ${collapsed ? "w-[72px]" : "w-[260px]"}`}
     >
       {/* Logo Section */}
       <div className="flex items-center justify-center px-3 mb-4">
@@ -104,7 +104,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
       </section>
 
       {/* Tabs */}
-      <ul className={`flex flex-col gap-1 py-6 w-full px-2 ${collapsed ? "items-center" : ""}`}>
+      <ul className={`flex flex-col gap-1 py-6 w-full px-2  ${collapsed ? "items-center" : ""}`}>
         {tabs.map((tab) => (
           <li key={tab.label} className="w-full">
             <Tooltip label={collapsed ? tab.label : ""} placement="right" hasArrow>
