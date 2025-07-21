@@ -10,8 +10,9 @@ export interface Voucher {
   minOrderValue: number;
   usageLimit: number;
   discountPercent: number;
-  status: "Active" | "Inactive" | "Expired";
+  status: "active" | "inactive" | "expired";
   milestonePoints?: number | null;
+  description: string
 }
 
 export const vouchersApi = createApi({

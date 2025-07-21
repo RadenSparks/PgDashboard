@@ -10,6 +10,7 @@ import {
   type Voucher,
 } from '../../../redux/api/vounchersApi'
 import Loading from "../../../components/widgets/loading";
+import { useToast } from "@chakra-ui/react";
 
 const emptyVoucher: Omit<Voucher, "id"> = {
   code: "",
@@ -19,8 +20,9 @@ const emptyVoucher: Omit<Voucher, "id"> = {
   minOrderValue: 0,
   usageLimit: 1,
   discountPercent: 0,
-  status: "Inactive",
+  status: "active",
   milestonePoints: null,
+  description: ''
 };
 
 const VoucherPage = () => {
@@ -33,7 +35,7 @@ const VoucherPage = () => {
   const [updateVoucher] = useUpdateVoucherMutation();
   const [deleteVoucher] = useDeleteVoucherMutation();
   const [setStatusVoucher] = useSetStatusVoucherMutation();
-
+  const toast = useToast();
   // Modal outside click close
   const modalRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -81,6 +83,7 @@ const VoucherPage = () => {
     const payload: Voucher = {
       id: editVoucher.id ?? 0, // 0 for new, will be ignored by backend
       code: editVoucher.code ?? "",
+      description: editVoucher.description ?? "",
       usageLimit: Number(editVoucher.usageLimit ?? 0),
       discountPercent: Number(editVoucher.discountPercent ?? 0),
       minOrderValue: Number(editVoucher.minOrderValue ?? 0),
@@ -104,19 +107,44 @@ const VoucherPage = () => {
     setEditVoucher(null);
     refetch();
   };
-
   const handleChange = (field: keyof Voucher, value: string | number | null) => {
     if (!editVoucher) return;
+
+    if ((field === "startDate" && typeof value === "string") || (field === "endDate" && typeof value === "string")) {
+      const selectedDate = new Date(value);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      selectedDate.setHours(0, 0, 0, 0);
+
+      if (selectedDate < today) {
+        toast({
+          title: "Lỗi ngày bắt đầu",
+          description: "Ngày bắt đầu và kết thúc không được trước ngày hôm nay.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+          position: 'top'
+        });
+        return;
+      }
+    }
+
     setEditVoucher({ ...editVoucher, [field]: value });
   };
-
+  const toDatetimeLocal = (value: string | Date | null): string => {
+    if (!value) return '';
+    const date = new Date(value);
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 16); // yyyy-MM-ddTHH:mm
+  };
   const handleStatusToggle = async (id: number) => {
     const voucher = vouchers.find(v => v.id === id);
     if (!voucher) return;
     const newStatus =
-      voucher.status === "Active"
-        ? "Inactive"
-        : "Active";
+      voucher.status === "active"
+        ? "inactive"
+        : "active";
     await setStatusVoucher({ id, status: newStatus });
     refetch();
   };
@@ -299,27 +327,39 @@ const VoucherPage = () => {
                   />
                 </div>
               </div>
-              <div className="flex gap-2">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Start Date</label>
-                  <input
-                    className="w-full border rounded px-3 py-2"
-                    type="date"
-                    value={editVoucher.startDate ? String(editVoucher.startDate).slice(0, 10) : ""}
-                    onChange={e => handleChange("startDate", e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">End Date</label>
-                  <input
-                    className="w-full border rounded px-3 py-2"
-                    type="date"
-                    value={editVoucher.endDate ? String(editVoucher.endDate).slice(0, 10) : ""}
-                    onChange={e => handleChange("endDate", e.target.value)}
-                    required
-                  />
-                </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Start Date</label>
+                <input
+                  className="w-full border rounded px-3 py-2"
+                  type="datetime-local"
+                  value={toDatetimeLocal(editVoucher.startDate)}
+                  onChange={e => handleChange("startDate", new Date(e.target.value).toISOString())}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">End Date</label>
+                <input
+                  className="w-full border rounded px-3 py-2"
+                  type="datetime-local"
+                  value={toDatetimeLocal(editVoucher.endDate)}
+                  onChange={e => handleChange("endDate", new Date(e.target.value).toISOString())}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Description Points (optional)</label>
+                <input
+                  className="w-full border rounded px-3 py-2"
+                  type="string"
+                  value={editVoucher.description ?? ""}
+                  onChange={e =>
+                    handleChange(
+                      "description",
+                      e.target.value === "" ? null : String(e.target.value)
+                    )
+                  }
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Status</label>
