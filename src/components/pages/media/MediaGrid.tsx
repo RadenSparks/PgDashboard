@@ -22,11 +22,11 @@ const MediaGrid: React.FC<MediaGridProps> = ({
   previewUrl,
   setPreviewUrl,
 }) => (
-  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-8">
+  <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 ">
     {media.map((item, idx) => (
       <div
         key={item.id || idx}
-        className={`border rounded-2xl p-4 bg-white shadow hover:shadow-xl transition group relative`}
+        className={`border rounded-2xl p-4 bg-white shadow hover:shadow-lg transition group relative`}
       >
         <input
           type="checkbox"
@@ -48,7 +48,7 @@ const MediaGrid: React.FC<MediaGridProps> = ({
           onClick={() => handlePreview(item.url)}
         />
         <div className="break-all text-xs text-gray-700 mt-4 font-medium">{item.name}</div>
-        <div className="flex gap-2 mt-4">
+        <div className="flex flex-wrap gap-2 mt-4 justify-start">
           <button
             className="flex items-center gap-1 px-3 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-semibold hover:bg-blue-100 hover:text-blue-900 transition"
             onClick={() => handleCopy(item.url)}

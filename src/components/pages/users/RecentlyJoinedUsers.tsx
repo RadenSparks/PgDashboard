@@ -26,11 +26,11 @@ const RecentlyJoinedUsers: React.FC<RecentlyJoinedUsersProps> = ({
         Show Only New Users
       </Button>
     </div>
-    <ul className="flex flex-wrap gap-6">
+    <ul className="flex flex-wrap gap-8">
       {recentUsers.map((user) => (
         <li
           key={user.id}
-          className="flex flex-col items-center bg-gray-50 rounded-lg p-4 w-48 shadow hover:bg-gray-100 transition"
+          className="flex flex-col items-center bg-gray-50 rounded-lg p-4 w-60 shadow hover:bg-gray-100 transition"
         >
           <img
             src={user.avatar_url || "/assets/image/profile5.jpg"}
@@ -41,7 +41,7 @@ const RecentlyJoinedUsers: React.FC<RecentlyJoinedUsersProps> = ({
             style={{ width: 56, height: 56 }}
           />
           <span className="font-semibold text-gray-800">{user.full_name}</span>
-          <span className="text-gray-500 text-sm">{user.email}</span>
+          <span className="text-gray-500 text-sm line-clamp-2">{user.email}</span>
         </li>
       ))}
     </ul>

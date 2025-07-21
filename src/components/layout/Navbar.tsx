@@ -14,6 +14,7 @@ import {
   useDisclosure,
   useBreakpointValue,
   useColorMode,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { useGetUserByIdQuery } from "../../redux/api/usersApi";
 import { getCurrentUserId } from "../../utils/auth";
@@ -27,19 +28,24 @@ const Navbar = () => {
     { id: 2, text: "Product out of stock", read: false },
     { id: 3, text: "User signed up", read: false },
   ]);
+
   const menuRef = useRef<HTMLDivElement>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
   const { colorMode, toggleColorMode } = useColorMode();
   const userId = getCurrentUserId();
   const { data: currentUser } = useGetUserByIdQuery(userId!, { skip: !userId });
-
-  // Drawer for mobile menu
   const { isOpen, onOpen, onClose } = useDisclosure();
   const isMobile = useBreakpointValue({ base: true, md: false });
 
+  const bgColor = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const dropdownBg = useColorModeValue("white", "gray.700");
+  const hoverBg = useColorModeValue("gray.100", "gray.600");
+  const textColor = useColorModeValue("gray.800", "white");
+
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    const handleClickOutside = (event: MouseEvent) => {
       if (
         menuRef.current && !menuRef.current.contains(event.target as Node) &&
         calendarRef.current && !calendarRef.current.contains(event.target as Node) &&
@@ -49,167 +55,145 @@ const Navbar = () => {
         setCalendarOpen(false);
         setNotificationOpen(false);
       }
-      if (
-        calendarRef.current && !calendarRef.current.contains(event.target as Node)
-      ) {
-        setCalendarOpen(false);
-      }
-      if (
-        notificationRef.current && !notificationRef.current.contains(event.target as Node)
-      ) {
-        setNotificationOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
     };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  function handleSignout(): void {
+  const handleSignout = () => {
     clearAuth();
     window.location.href = "/signin";
-  }
+  };
 
   return (
-    <Box w="full">
+    <Box w="full" bg={bgColor}>
       <Flex
         h={{ base: "64px", md: "96px" }}
         px={{ base: 4, md: 8 }}
-        w="full"
-        align="center"
-        borderBottom="2px"
-        borderColor="#dbdbdb"
-        bgGradient="linear(to-r, blue.100, white, blue.200)"
-        boxShadow="sm"
+        borderBottom="1px solid"
+        borderColor={borderColor}
+        bg={bgColor}
         justify="space-between"
+        align="center"
+        className="relative z-50"
       >
-        {/* Hamburger for mobile */}
+        {/* Hamburger */}
         {isMobile && (
           <IconButton
-            aria-label="Open menu"
+            aria-label="Menu"
             icon={<FaBars />}
-            variant="ghost"
-            fontSize="2xl"
             onClick={onOpen}
-            mr={2}
+            display={{ base: "flex", md: "none" }}
+            variant="ghost"
+            fontSize="xl"
             rounded="full"
-            bg="white"
-            boxShadow="md"
-            _hover={{ bg: "blue.50" }}
+            bg={bgColor}
+            _hover={{ bg: hoverBg }}
           />
         )}
 
-        {/* Center: Search Bar */}
-        <Box flex="1" display={{ base: "none", sm: "flex" }} justifyContent="center">
+        {/* Search Bar */}
+        <Box flex="1" display={{ base: "none", sm: "block" }} px={4}>
           <Flex
             align="center"
             gap={2}
+            bg={useColorModeValue("gray.100", "gray.700")}
             px={4}
-            w={{ base: "100%", md: "415px" }}
+            py={2}
             rounded="xl"
-            bg="gray.100"
-            boxShadow="sm"
-            border="1px solid #e5e7eb"
+            border={`1px solid ${borderColor}`}
+            maxW={{ base: "100%", md: "415px" }}
+            mx="auto"
           >
-            <FaSearch className="text-primary" />
+            <FaSearch className="text-blue-500" />
             <Input
               type="text"
               placeholder="Search for anything..."
-              className="h-10 md:h-12 w-full border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
+              className="h-10 md:h-12 w-full border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-sm"
             />
           </Flex>
         </Box>
 
-        {/* Right side: Profile and Icons */}
-        <Flex align="center" gap={{ base: 2, md: 6 }} ml={{ base: 2, md: 8 }}>
-          {/* Dark/Light Mode Toggle */}
+        {/* Right side */}
+        <Flex align="center" gap={4} className="min-w-fit">
+          {/* Dark Mode */}
           <IconButton
-            aria-label="Toggle dark mode"
-            icon={colorMode === "dark" ? <FaSun color="#ECC94B" /> : <FaMoon color="#2D3748" />}
+            aria-label="Toggle dark"
+            icon={colorMode === "dark" ? <FaSun /> : <FaMoon />}
             onClick={toggleColorMode}
             variant="ghost"
             size="md"
             rounded="full"
-            bg="white"
-            boxShadow="md"
-            _hover={{ bg: "yellow.50" }}
+            bg={bgColor}
+            _hover={{ bg: hoverBg }}
           />
-          {/* Calendar Button */}
+
+          {/* Calendar */}
           <Box position="relative" ref={calendarRef} display={{ base: "none", sm: "block" }}>
             <img
               src="/assets/icons/calendar.svg"
               alt="calendar"
               width={28}
               height={28}
-              className="cursor-pointer rounded-lg hover:bg-blue-50 transition"
+              className="cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900 rounded transition"
               onClick={() => {
-                setCalendarOpen((open) => !open);
+                setCalendarOpen(!calendarOpen);
                 setNotificationOpen(false);
                 setMenuOpen(false);
               }}
             />
             {calendarOpen && (
-              <Box position="absolute" left={0} top={10} zIndex={50} minW="260px" bg="white" border="1px solid" borderColor="gray.200" rounded="xl" shadow="xl" p={4}>
+              <Box
+                position="absolute"
+                top={10}
+                left={0}
+                zIndex={40}
+                bg={dropdownBg}
+                border="1px solid"
+                borderColor={borderColor}
+                rounded="xl"
+                shadow="xl"
+                p={4}
+                minW="260px"
+                color={textColor}
+              >
                 <div className="text-center font-semibold mb-2">May 2025</div>
-                <div className="grid grid-cols-7 gap-1 text-xs text-gray-700">
+                <div className="grid grid-cols-7 gap-1 text-xs">
                   <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
-                  <span className="col-span-4"></span>
-                  <span className="rounded bg-yellow-200 px-1">1</span>
-                  <span>2</span>
-                  <span>3</span>
-                  <span>4</span>
-                  <span>5</span>
-                  <span>6</span>
-                  <span>7</span>
-                  <span>8</span>
-                  <span>9</span>
-                  <span>10</span>
-                  <span>11</span>
-                  <span>12</span>
-                  <span>13</span>
-                  <span>14</span>
-                  <span>15</span>
-                  <span>16</span>
-                  <span>17</span>
-                  <span>18</span>
-                  <span>19</span>
-                  <span>20</span>
-                  <span>21</span>
-                  <span>22</span>
-                  <span>23</span>
-                  <span>24</span>
-                  <span>25</span>
-                  <span>26</span>
-                  <span>27</span>
-                  <span>28</span>
-                  <span>29</span>
-                  <span>30</span>
-                  <span>31</span>
+                  <span className="col-span-4" />
+                  {[...Array(31)].map((_, i) => (
+                    <span
+                      key={i}
+                      className={`rounded px-1 ${i === 0 ? "bg-yellow-300 dark:bg-yellow-500" : ""}`}
+                    >
+                      {i + 1}
+                    </span>
+                  ))}
                 </div>
               </Box>
             )}
           </Box>
-          {/* Notification Button */}
-          <Box position="relative" ref={notificationRef} minW={8} display={{ base: "none", sm: "block" }}>
+
+          {/* Notification */}
+          <Box position="relative" ref={notificationRef} display={{ base: "none", sm: "block" }}>
             <img
               src="/assets/icons/notification.svg"
               alt="notification"
               width={28}
               height={28}
-              className="cursor-pointer rounded-lg hover:bg-blue-50 transition"
+              className="cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900 rounded transition"
               onClick={() => {
-                setNotificationOpen((open) => !open);
+                setNotificationOpen(!notificationOpen);
                 setCalendarOpen(false);
                 setMenuOpen(false);
-                setNotifications((prev) => prev.map(n => ({ ...n, read: true })));
+                setNotifications(prev => prev.map(n => ({ ...n, read: true })));
               }}
             />
-            {notifications.some(n => !n.read) && !notificationOpen && (
+            {!notificationOpen && notifications.some(n => !n.read) && (
               <Box
                 position="absolute"
                 top={0}
-                right="-10px"
+                right="-8px"
                 bg="red.500"
                 color="white"
                 fontSize="xs"
@@ -219,66 +203,89 @@ const Navbar = () => {
                 display="flex"
                 alignItems="center"
                 justifyContent="center"
-                boxShadow="md"
               >
                 {notifications.filter(n => !n.read).length}
               </Box>
             )}
             {notificationOpen && (
-              <Box position="absolute" right={0} top={10} zIndex={50} minW="220px" bg="white" border="1px solid" borderColor="gray.200" rounded="xl" shadow="xl" py={2}>
-                <div className="px-4 py-2 font-semibold border-b">Notifications</div>
+              <Box
+                position="absolute"
+                right={0}
+                top={10}
+                zIndex={40}
+                bg={dropdownBg}
+                border="1px solid"
+                borderColor={borderColor}
+                rounded="xl"
+                shadow="xl"
+                minW="220px"
+                color={textColor}
+              >
+                <div className="px-4 py-2 font-semibold border-b border-gray-200 dark:border-gray-600">Notifications</div>
                 {notifications.length === 0 ? (
                   <div className="px-4 py-2 text-gray-400">No notifications</div>
                 ) : (
                   notifications.map(n => (
-                    <div key={n.id} className="px-4 py-2 hover:bg-gray-100 cursor-pointer">{n.text}</div>
+                    <div key={n.id} className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer">
+                      {n.text}
+                    </div>
                   ))
                 )}
-                <div className="px-4 py-2 text-center text-xs text-gray-400 border-t">View all</div>
+                <div className="px-4 py-2 text-center text-xs text-gray-400 border-t dark:border-gray-600">View all</div>
               </Box>
             )}
           </Box>
+
           {/* User Menu */}
-          <Box position="relative" ref={menuRef} display={{ base: "none", sm: "flex" }} gap={2}>
+          <Box position="relative" ref={menuRef} display={{ base: "none", sm: "block" }}>
             <button
-              className="flex items-center gap-2 px-4 py-2 bg-yellow-100 border border-yellow-300 rounded-xl shadow font-semibold text-yellow-800 hover:bg-yellow-200 transition"
+              className="flex items-center gap-2 px-4 py-2 bg-yellow-100 dark:bg-yellow-600 border border-yellow-300 dark:border-yellow-500 rounded-xl text-yellow-800 dark:text-white font-semibold hover:bg-yellow-200 dark:hover:bg-yellow-500"
               onClick={() => {
-                setMenuOpen((open) => !open);
-                setCalendarOpen(false);
+                setMenuOpen(!menuOpen);
                 setNotificationOpen(false);
+                setCalendarOpen(false);
               }}
             >
-              <span
-                className="text-lg max-w-[100px] truncate"
-                title={currentUser?.username}
-              >
+              <span className="text-lg max-w-[100px] truncate" title={currentUser?.username}>
                 {currentUser?.username || "User"}
               </span>
-              <MdOutlineKeyboardArrowDown
-                color="#292D32"
-                className="cursor-pointer"
-                size={24}
-              />
+              <MdOutlineKeyboardArrowDown size={24} />
             </button>
             {menuOpen && (
-              <Box position="absolute" right={0} top={16} zIndex={50} minW="180px" bg="white" border="1px solid" borderColor="gray.200" rounded="xl" shadow="xl" py={2}>
-                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg">Profile</button>
-                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg">Settings</button>
-                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg" onClick={handleSignout}>Signout</button>
+              <Box
+                position="absolute"
+                top={12}
+                right={0}
+                bg={dropdownBg}
+                border="1px solid"
+                borderColor={borderColor}
+                rounded="xl"
+                shadow="xl"
+                py={2}
+                minW="180px"
+              >
+                <button className={`block w-full px-4 py-2 text-left hover:bg-${hoverBg}`}>Profile</button>
+                <button className={`block w-full px-4 py-2 text-left hover:bg-${hoverBg}`}>Settings</button>
+                <button
+                  className={`block w-full px-4 py-2 text-left hover:bg-${hoverBg}`}
+                  onClick={handleSignout}
+                >
+                  Signout
+                </button>
               </Box>
             )}
           </Box>
         </Flex>
       </Flex>
 
-      {/* Mobile Drawer for menu */}
+      {/* Drawer (Mobile) */}
       <Drawer placement="left" onClose={onClose} isOpen={isOpen}>
         <DrawerOverlay />
-        <DrawerContent>
+        <DrawerContent bg={bgColor} color={textColor}>
           <DrawerCloseButton />
           <Box p={4}>
             <button
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg"
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
               onClick={handleSignout}
             >
               Signout

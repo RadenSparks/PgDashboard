@@ -126,7 +126,7 @@ const PermissionPage = ({ users, setUsers }: PermissionPageProps) => {
             <h2 className="text-2xl font-bold mb-6">
                 Role & Permission Configuration
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 {/* Admins */}
                 <div className="bg-white rounded-xl shadow p-4">
                     <div className="flex items-center gap-2 mb-2">

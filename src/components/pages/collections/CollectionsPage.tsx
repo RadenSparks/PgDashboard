@@ -280,13 +280,13 @@ const CollectionsPage: React.FC = () => {
                 </div>
 
                 {/* Collections Grid */}
-                <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+                <SimpleGrid columns={{ base: 1, lg: 2, xl: 3 }} spacing={6}>
                     {(collections ?? []).map((collection) => (
                         <Card key={collection.id} className="shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100 rounded-2xl">
                             <CardHeader className="pb-3">
                                 <div className="flex justify-between items-start">
                                     <div className="flex-1">
-                                        <Heading size="md" className="text-gray-900 mb-2">
+                                        <Heading size="md" className="text-gray-900 mb-2 break-words">
                                             {collection.name}
                                         </Heading>
                                         <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -345,7 +345,7 @@ const CollectionsPage: React.FC = () => {
                                         <Text className="text-sm font-semibold text-gray-700 mb-2">Sản phẩm:</Text>
                                         <div className="flex flex-wrap gap-2">
                                             {collection.products.slice(0, 3).map((product) => (
-                                                <Badge key={product.id} colorScheme="blue" variant="subtle" className="rounded-lg px-2 py-1 text-xs">
+                                                <Badge key={product.id} colorScheme="blue" variant="subtle" className="rounded-lg px-2 py-1 text-xs line-clamp-2">
                                                     {product.product_name}
                                                 </Badge>
                                             ))}

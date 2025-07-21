@@ -19,10 +19,10 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
 }) => {
   if (!show) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative border border-gray-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 px-4 sm:px-6">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg sm:max-w-xl md:max-w-2xl overflow-y-auto max-h-[90vh] relative border border-gray-200 dark:border-gray-700 p-6 sm:p-8">
         <button
-          className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl focus:outline-none"
+          className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 dark:hover:text-white text-2xl"
           onClick={onClose}
           aria-label="Close"
         >
@@ -34,27 +34,30 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
             e.preventDefault();
             onSave();
           }}
-          className="space-y-4"
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
         >
-          <div>
-            <label className="block text-sm font-medium mb-1">Full Name</label>
-            <input
-              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
-              value={newUser.full_name}
-              onChange={e => onChange("full_name", e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Username</label>
-            <input
-              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
-              value={newUser.username}
-              onChange={e => onChange("username", e.target.value)}
-              required
-            />
-          </div>
-          <div>
+        {/* Left Column */}
+        <div className="col-span-1">
+          <label className="block text-sm font-medium mb-1">Full Name</label>
+          <input
+            className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
+            value={newUser.full_name}
+            onChange={(e) => onChange("full_name", e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="col-span-1">
+          <label className="block text-sm font-medium mb-1">Username</label>
+          <input
+            className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
+            value={newUser.username}
+            onChange={(e) => onChange("username", e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="col-span-1">
             <label className="block text-sm font-medium mb-1">Password</label>
             <input
               className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
@@ -64,32 +67,35 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
               required
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Phone Number</label>
-            <input
-              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
-              value={newUser.phone_number ?? ""}
-              onChange={e => onChange("phone_number", e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Address</label>
-            <input
-              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
-              value={newUser.address ?? ""}
-              onChange={e => onChange("address", e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Avatar URL</label>
-            <input
-              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
-              value={newUser.avatar_url ?? ""}
-              onChange={e => onChange("avatar_url", e.target.value)}
-              placeholder="https://..."
-            />
-          </div>
-          <div>
+
+        <div className="col-span-1">
+          <label className="block text-sm font-medium mb-1">Phone Number</label>
+          <input
+            className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
+            value={newUser.phone_number ?? ""}
+            onChange={e => onChange("phone_number", e.target.value)}
+          />
+        </div>
+
+        <div className="col-span-1 md:col-span-2">
+          <label className="block text-sm font-medium mb-1">Address</label>
+          <input
+            className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
+            value={newUser.address ?? ""}
+            onChange={e => onChange("address", e.target.value)}
+          />
+        </div>
+
+        <div className="col-span-1 md:col-span-2">
+          <label className="block text-sm font-medium mb-1">Avatar URL</label>
+          <input
+            className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
+            value={newUser.avatar_url ?? ""}
+            onChange={e => onChange("avatar_url", e.target.value)}
+            placeholder="https://..."
+          />
+        </div>
+          <div className="col-span-1">
             <label className="block text-sm font-medium mb-1">Email</label>
             <input
               className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
@@ -99,7 +105,8 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
               required
             />
           </div>
-          <div>
+
+          <div className="col-span-1">
             <label className="block text-sm font-medium mb-1">Role</label>
             <input
               className="w-full border rounded-lg px-3 py-2 bg-gray-100 text-gray-500"
@@ -108,7 +115,8 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
               readOnly
             />
           </div>
-          <div>
+          
+          <div className="col-span-1 md:col-span-2">
             <label className="block text-sm font-medium mb-1">Status</label>
             <select
               className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
@@ -119,7 +127,8 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
               <option value="Suspended">Suspended</option>
             </select>
           </div>
-          <div className="flex justify-end gap-2 pt-2">
+
+          <div className="col-span-1 md:col-span-2 flex justify-end gap-2 pt-4">
             <Button
               className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
               type="submit"

@@ -90,19 +90,21 @@ const TagsPage = () => {
   };
   if (isLoading) return <Loading></Loading>;
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       <h2 className="text-2xl font-bold mb-6">Tag Categories Management</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {/* Genre Tags */}
-        <div className="bg-white rounded-xl shadow p-6">
+        <div className="bg-white rounded-xl shadow p-4 sm:p-6">
           <h3 className="text-lg font-semibold mb-4">Genres</h3>
-          <div className="flex gap-2 mb-4">
+
+          <div className="flex flex-col sm:flex-row gap-2 mb-4">
             <input
-              className="border rounded px-2 py-1 text-xs flex-1"
+              className="border rounded px-2 py-1 text-sm flex-1"
               placeholder="Add genre"
               value={newGenre}
-              onChange={e => setNewGenre(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && handleAddGenre()}
+              onChange={(e) => setNewGenre(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddGenre()}
             />
             <Button
               size="sm"
@@ -112,52 +114,57 @@ const TagsPage = () => {
               <FaPlus />
             </Button>
           </div>
-          <table className="min-w-full text-sm">
-            <tbody>
-              {genreTags.map(tag =>
-                editingGenreId === tag.id ? (
-                  <tr key={tag.id}>
-                    <td>
-                      <input
-                        className="border rounded px-2 py-1 text-xs"
-                        value={editGenre}
-                        onChange={e => setEditGenre(e.target.value)}
-                        onKeyDown={e => e.key === "Enter" && handleSaveGenre()}
-                      />
-                    </td>
-                    <td className="flex gap-2">
-                      <Button size="sm" className="bg-green-100" onClick={handleSaveGenre}><FaSave /></Button>
-                      <Button size="sm" className="bg-gray-200" onClick={() => setEditingGenreId(0)}><FaTimes /></Button>
-                    </td>
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <tbody>
+                {genreTags.map((tag) =>
+                  editingGenreId === tag.id ? (
+                    <tr key={tag.id} className="whitespace-nowrap">
+                      <td className="pr-2 py-1">
+                        <input
+                          className="border rounded px-2 py-1 text-sm w-full"
+                          value={editGenre}
+                          onChange={(e) => setEditGenre(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && handleSaveGenre()}
+                        />
+                      </td>
+                      <td className="flex gap-2 py-1">
+                        <Button size="sm" className="bg-green-100" onClick={handleSaveGenre}><FaSave /></Button>
+                        <Button size="sm" className="bg-gray-200" onClick={() => setEditingGenreId(0)}><FaTimes /></Button>
+                      </td>
+                    </tr>
+                  ) : (
+                    <tr key={tag.id} className="whitespace-nowrap">
+                      <td className="pr-2 py-1">{tag.name}</td>
+                      <td className="flex gap-2 py-1">
+                        <Button size="sm" className="bg-yellow-100" onClick={() => handleEditGenre(tag)}><FaEdit /></Button>
+                        <Button size="sm" className="bg-red-100" onClick={() => handleDeleteGenre(tag.id)}><FaTrash /></Button>
+                      </td>
+                    </tr>
+                  )
+                )}
+                {genreTags.length === 0 && (
+                  <tr>
+                    <td colSpan={2} className="py-4 text-center text-gray-400">No genres found.</td>
                   </tr>
-                ) : (
-                  <tr key={tag.id}>
-                    <td>{tag.name}</td>
-                    <td className="flex gap-2">
-                      <Button size="sm" className="bg-yellow-100" onClick={() => handleEditGenre(tag)}><FaEdit /></Button>
-                      <Button size="sm" className="bg-red-100" onClick={() => handleDeleteGenre(tag.id)}><FaTrash /></Button>
-                    </td>
-                  </tr>
-                )
-              )}
-              {genreTags.length === 0 && (
-                <tr>
-                  <td colSpan={2} className="py-4 text-center text-gray-400">No genres found.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
+
         {/* Player Tags */}
-        <div className="bg-white rounded-xl shadow p-6">
+        <div className="bg-white rounded-xl shadow p-4 sm:p-6">
           <h3 className="text-lg font-semibold mb-4">Number of Players</h3>
-          <div className="flex gap-2 mb-4">
+
+          <div className="flex flex-col sm:flex-row gap-2 mb-4">
             <input
-              className="border rounded px-2 py-1 text-xs flex-1"
+              className="border rounded px-2 py-1 text-sm flex-1"
               placeholder="Add player count (e.g. 2-4, 1-8, Solo)"
               value={newPlayers}
-              onChange={e => setNewPlayers(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && handleAddPlayers()}
+              onChange={(e) => setNewPlayers(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddPlayers()}
             />
             <Button
               size="sm"
@@ -167,52 +174,57 @@ const TagsPage = () => {
               <FaPlus />
             </Button>
           </div>
-          <table className="min-w-full text-sm">
-            <tbody>
-              {playerTags.map(tag =>
-                editingPlayerId === tag.id ? (
-                  <tr key={tag.id}>
-                    <td>
-                      <input
-                        className="border rounded px-2 py-1 text-xs"
-                        value={editPlayers}
-                        onChange={e => setEditPlayers(e.target.value)}
-                        onKeyDown={e => e.key === "Enter" && handleSavePlayers()}
-                      />
-                    </td>
-                    <td className="flex gap-2">
-                      <Button size="sm" className="bg-green-100" onClick={handleSavePlayers}><FaSave /></Button>
-                      <Button size="sm" className="bg-gray-200" onClick={() => setEditingPlayerId(0)}><FaTimes /></Button>
-                    </td>
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <tbody>
+                {playerTags.map((tag) =>
+                  editingPlayerId === tag.id ? (
+                    <tr key={tag.id} className="whitespace-nowrap">
+                      <td className="pr-2 py-1">
+                        <input
+                          className="border rounded px-2 py-1 text-sm w-full"
+                          value={editPlayers}
+                          onChange={(e) => setEditPlayers(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && handleSavePlayers()}
+                        />
+                      </td>
+                      <td className="flex gap-2 py-1">
+                        <Button size="sm" className="bg-green-100" onClick={handleSavePlayers}><FaSave /></Button>
+                        <Button size="sm" className="bg-gray-200" onClick={() => setEditingPlayerId(0)}><FaTimes /></Button>
+                      </td>
+                    </tr>
+                  ) : (
+                    <tr key={tag.id} className="whitespace-nowrap">
+                      <td className="pr-2 py-1">{tag.name}</td>
+                      <td className="flex gap-2 py-1">
+                        <Button size="sm" className="bg-yellow-100" onClick={() => handleEditPlayers(tag)}><FaEdit /></Button>
+                        <Button size="sm" className="bg-red-100" onClick={() => handleDeletePlayers(tag.id)}><FaTrash /></Button>
+                      </td>
+                    </tr>
+                  )
+                )}
+                {playerTags.length === 0 && (
+                  <tr>
+                    <td colSpan={2} className="py-4 text-center text-gray-400">No player numbers found.</td>
                   </tr>
-                ) : (
-                  <tr key={tag.id}>
-                    <td>{tag.name}</td>
-                    <td className="flex gap-2">
-                      <Button size="sm" className="bg-yellow-100" onClick={() => handleEditPlayers(tag)}><FaEdit /></Button>
-                      <Button size="sm" className="bg-red-100" onClick={() => handleDeletePlayers(tag.id)}><FaTrash /></Button>
-                    </td>
-                  </tr>
-                )
-              )}
-              {playerTags.length === 0 && (
-                <tr>
-                  <td colSpan={2} className="py-4 text-center text-gray-400">No player numbers found.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
+
         {/* Duration Tags */}
-        <div className="bg-white rounded-xl shadow p-6">
+        <div className="bg-white rounded-xl shadow p-4 sm:p-6">
           <h3 className="text-lg font-semibold mb-4">Game Duration</h3>
-          <div className="flex gap-2 mb-4">
+
+          <div className="flex flex-col sm:flex-row gap-2 mb-4">
             <select
-              className="border rounded px-2 py-1 text-xs flex-1"
+              className="border rounded px-2 py-1 text-sm flex-1"
               value={newDuration}
-              onChange={e => setNewDuration(e.target.value as DurationTag["duration"])}
+              onChange={(e) => setNewDuration(e.target.value as DurationTag["duration"])}
             >
-              {durationOptions.map(d => (
+              {durationOptions.map((d) => (
                 <option key={d} value={d}>{d}</option>
               ))}
             </select>
@@ -224,46 +236,50 @@ const TagsPage = () => {
               <FaPlus />
             </Button>
           </div>
-          <table className="min-w-full text-sm">
-            <tbody>
-              {durationTags.map(tag =>
-                editingDurationId === tag.id ? (
-                  <tr key={tag.id}>
-                    <td>
-                      <select
-                        className="border rounded px-2 py-1 text-xs"
-                        value={editDuration}
-                        onChange={e => setEditDuration(e.target.value as DurationTag["duration"])}
-                      >
-                        {durationOptions.map(d => (
-                          <option key={d} value={d}>{d}</option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="flex gap-2">
-                      <Button size="sm" className="bg-green-100" onClick={handleSaveDuration}><FaSave /></Button>
-                      <Button size="sm" className="bg-gray-200" onClick={() => setEditingDurationId(0)}><FaTimes /></Button>
-                    </td>
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <tbody>
+                {durationTags.map((tag) =>
+                  editingDurationId === tag.id ? (
+                    <tr key={tag.id} className="whitespace-nowrap">
+                      <td className="pr-2 py-1">
+                        <select
+                          className="border rounded px-2 py-1 text-sm"
+                          value={editDuration}
+                          onChange={(e) => setEditDuration(e.target.value as DurationTag["duration"])}
+                        >
+                          {durationOptions.map((d) => (
+                            <option key={d} value={d}>{d}</option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="flex gap-2 py-1">
+                        <Button size="sm" className="bg-green-100" onClick={handleSaveDuration}><FaSave /></Button>
+                        <Button size="sm" className="bg-gray-200" onClick={() => setEditingDurationId(0)}><FaTimes /></Button>
+                      </td>
+                    </tr>
+                  ) : (
+                    <tr key={tag.id} className="whitespace-nowrap">
+                      <td className="pr-2 py-1">{tag.name}</td>
+                      <td className="flex gap-2 py-1">
+                        <Button size="sm" className="bg-yellow-100" onClick={() => handleEditDuration(tag)}><FaEdit /></Button>
+                        <Button size="sm" className="bg-red-100" onClick={() => handleDeleteDuration(tag.id)}><FaTrash /></Button>
+                      </td>
+                    </tr>
+                  )
+                )}
+                {durationTags.length === 0 && (
+                  <tr>
+                    <td colSpan={2} className="py-4 text-center text-gray-400">No durations found.</td>
                   </tr>
-                ) : (
-                  <tr key={tag.id}>
-                    <td>{tag.name}</td>
-                    <td className="flex gap-2">
-                      <Button size="sm" className="bg-yellow-100" onClick={() => handleEditDuration(tag)}><FaEdit /></Button>
-                      <Button size="sm" className="bg-red-100" onClick={() => handleDeleteDuration(tag.id)}><FaTrash /></Button>
-                    </td>
-                  </tr>
-                )
-              )}
-              {durationTags.length === 0 && (
-                <tr>
-                  <td colSpan={2} className="py-4 text-center text-gray-400">No durations found.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
+
       <div className="mt-6 text-gray-500 text-sm">
         <strong>Tip:</strong> Manage genres, player numbers, and durations separately. These tags will be available for assignment to boardgames in the Products page.
       </div>
