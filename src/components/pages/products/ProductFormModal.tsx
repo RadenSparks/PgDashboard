@@ -33,6 +33,7 @@ const ProductFormModal = ({
   const genreTags = dataTags?.filter(c => c.type === 'genre') ?? [];
   const playerTags = dataTags?.filter(c => c.type === 'players') ?? [];
   const durationTags = dataTags?.filter(c => c.type === 'duration') ?? [];
+  const ageTags = dataTags?.filter(c => c.type === 'age') ?? [];
 
   // MediaPicker state
   const [showMediaPicker, setShowMediaPicker] = useState<"main" | "gallery" | null>(null);
@@ -73,13 +74,16 @@ const ProductFormModal = ({
   const selectedDuration =
     durationTags.find((d) => tagsArray.includes(d.id))?.id ?? "";
 
+  const selectedAge =
+    ageTags.find((a) => tagsArray.includes(a.id))?.id ?? "";
+
   const handleSingleTagChange = (
-    type: "players" | "duration",
+    type: "players" | "duration" | "age",
     value: number
   ) => {
-    let tags = product.tags.filter((t: Tag) => t.type !== type);
+    const tags = product.tags.filter((t: Tag) => t.type !== type);
     if (value) {
-      const tagObj = [...playerTags, ...durationTags].find(t => t.id === value);
+      const tagObj = [...playerTags, ...durationTags, ...ageTags].find(t => t.id === value);
       if (tagObj) tags.push(tagObj);
     }
     onChange({ ...product, tags });
@@ -238,7 +242,7 @@ const ProductFormModal = ({
                   </select>
                 </label>
                 {/* Tag selectors */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   {/* Genre: Multi-select */}
                   <label>
                     <span className="block text-xs font-medium text-gray-600 mb-1">Genres</span>
@@ -294,6 +298,22 @@ const ProductFormModal = ({
                       ))}
                     </select>
                   </label>
+                  {/* Age: Single-select */}
+                  <label>
+                    <span className="block text-xs font-medium text-gray-600 mb-1">Age</span>
+                    <select
+                      className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
+                      value={selectedAge}
+                      onChange={e => handleSingleTagChange("age", Number(e.target.value))}
+                    >
+                      <option value="">Select age</option>
+                      {ageTags.map((tag: Tag) => (
+                        <option key={tag.id} value={tag.id}>
+                          {tag.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                 </div>
                 <label>
                   <span className="block text-xs font-medium text-gray-600 mb-1">Status</span>
@@ -314,11 +334,15 @@ const ProductFormModal = ({
                   <span className="block text-xs font-medium text-gray-600 mb-1">Publisher</span>
                   <select
                     className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
-                    value={product.publisher_ID?.id || ""}
+                    value={
+                      typeof product.publisher_ID === "object"
+                        ? product.publisher_ID.id
+                        : product.publisher_ID || ""
+                    }
                     onChange={e => {
-                      const selectedPub = (publishers || []).find(pub => pub.id === Number(e.target.value));
-                      if (selectedPub) {
-                        onChange({ ...product, publisher_ID: selectedPub });
+                      const selectedPublisher = (publishers || []).find(pub => pub.id === Number(e.target.value));
+                      if (selectedPublisher) {
+                        onChange({ ...product, publisher_ID: selectedPublisher });
                       }
                     }}
                   >
