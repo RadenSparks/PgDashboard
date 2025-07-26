@@ -2,7 +2,7 @@ import type { BaseQueryFn } from '@reduxjs/toolkit/query'
 import type { AxiosRequestConfig, AxiosError } from 'axios'
 import axios from "axios";
 
-const baseURL = import.meta.env.VITE_BASE_API || "http://localhost:3000";
+const baseURL = import.meta.env.VITE_BASE_API || "https://pengoo-back-end.vercel.app";
 const axiosInstance = axios.create({ baseURL });
 
 export const axiosBaseQuery =

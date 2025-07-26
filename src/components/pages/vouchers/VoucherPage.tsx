@@ -252,7 +252,7 @@ const VoucherPage = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
           <div
             ref={modalRef}
-            className="bg-white rounded-xl shadow-lg max-w-md w-full p-6 relative"
+            className="bg-white rounded-xl shadow-lg w-[95%] sm:max-w-xl lg:max-w-3xl p-4 sm:p-6 mx-auto" 
           >
             <button
               className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl"
@@ -272,8 +272,9 @@ const VoucherPage = () => {
                 e.preventDefault();
                 handleSave();
               }}
-              className="space-y-4"
+              className="space-y-6"
             >
+              {/* Code */}
               <div>
                 <label className="block text-sm font-medium mb-1">Code</label>
                 <input
@@ -283,7 +284,9 @@ const VoucherPage = () => {
                   required
                 />
               </div>
-              <div className="flex gap-2">
+
+              {/* 2 cột Discount & Usage Limit */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">Discount (%)</label>
                   <input
@@ -305,7 +308,9 @@ const VoucherPage = () => {
                   />
                 </div>
               </div>
-              <div className="flex gap-2">
+
+              {/* 2 cột Min/Max Order */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">Min Order Value</label>
                   <input
@@ -328,68 +333,76 @@ const VoucherPage = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-1">Start Date</label>
-                <input
-                  className="w-full border rounded px-3 py-2"
-                  type="datetime-local"
-                  value={toDatetimeLocal(editVoucher.startDate)}
-                  onChange={e => handleChange("startDate", new Date(e.target.value).toISOString())}
-                />
+              {/* Dates */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Start Date</label>
+                  <input
+                    className="w-full border rounded px-3 py-2"
+                    type="datetime-local"
+                    value={toDatetimeLocal(editVoucher.startDate)}
+                    onChange={e => handleChange("startDate", new Date(e.target.value).toISOString())}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">End Date</label>
+                  <input
+                    className="w-full border rounded px-3 py-2"
+                    type="datetime-local"
+                    value={toDatetimeLocal(editVoucher.endDate)}
+                    onChange={e => handleChange("endDate", new Date(e.target.value).toISOString())}
+                    required
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">End Date</label>
-                <input
-                  className="w-full border rounded px-3 py-2"
-                  type="datetime-local"
-                  value={toDatetimeLocal(editVoucher.endDate)}
-                  onChange={e => handleChange("endDate", new Date(e.target.value).toISOString())}
-                  required
-                />
-              </div>
+
+              {/* Description */}
               <div>
                 <label className="block text-sm font-medium mb-1">Description Points (optional)</label>
                 <input
                   className="w-full border rounded px-3 py-2"
-                  type="string"
+                  type="text"
                   value={editVoucher.description ?? ""}
                   onChange={e =>
-                    handleChange(
-                      "description",
-                      e.target.value === "" ? null : String(e.target.value)
-                    )
+                    handleChange("description", e.target.value === "" ? null : String(e.target.value))
                   }
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Status</label>
-                <select
-                  className="w-full border rounded px-3 py-2"
-                  value={editVoucher.status || "inactive"}
-                  onChange={e => handleChange("status", e.target.value)}
-                >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="expired">Expired</option>
-                </select>
+
+              {/* Status & Milestone Points */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Status</label>
+                  <select
+                    className="w-full border rounded px-3 py-2"
+                    value={editVoucher.status || "inactive"}
+                    onChange={e => handleChange("status", e.target.value)}
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="expired">Expired</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Milestone Points (optional)</label>
+                  <input
+                    className="w-full border rounded px-3 py-2"
+                    type="number"
+                    min={0}
+                    value={editVoucher.milestonePoints ?? ""}
+                    onChange={e =>
+                      handleChange(
+                        "milestonePoints",
+                        e.target.value === "" ? null : Number(e.target.value)
+                      )
+                    }
+                    placeholder="Leave blank if not a milestone coupon"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Milestone Points (optional)</label>
-                <input
-                  className="w-full border rounded px-3 py-2"
-                  type="number"
-                  min={0}
-                  value={editVoucher.milestonePoints ?? ""}
-                  onChange={e =>
-                    handleChange(
-                      "milestonePoints",
-                      e.target.value === "" ? null : Number(e.target.value)
-                    )
-                  }
-                  placeholder="Leave blank if not a milestone coupon"
-                />
-              </div>
-              <div className="flex justify-end gap-2">
+
+              {/* Buttons */}
+              <div className="flex flex-col sm:flex-row sm:justify-end gap-2">
                 <Button
                   className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
                   type="submit"
@@ -408,6 +421,7 @@ const VoucherPage = () => {
                 </Button>
               </div>
             </form>
+
           </div>
         </div>
       )}

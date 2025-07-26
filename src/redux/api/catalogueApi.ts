@@ -9,7 +9,7 @@ export interface Catalogue {
 
 export const cataloguesApi = createApi({
   reducerPath: 'cataloguesApi',
-  baseQuery: axiosBaseQuery({ baseUrl: 'http://localhost:3000' }),
+  baseQuery: axiosBaseQuery({ baseUrl: 'https://pengoo-back-end.vercel.app' }),
   tagTypes: ['Catalogue'],
   endpoints: (builder) => ({
     getCatalogues: builder.query<Catalogue[], void>({

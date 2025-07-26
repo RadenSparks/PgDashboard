@@ -26,7 +26,7 @@ export interface Post {
 
 export const postsApi = createApi({
   reducerPath: 'postsApi',
-  baseQuery: axiosBaseQuery({ baseUrl: 'http://localhost:3000' }),
+  baseQuery: axiosBaseQuery({ baseUrl: 'https://pengoo-back-end.vercel.app' }),
   tagTypes: ['Post'],
   endpoints: (builder) => ({
     getPosts: builder.query<Post[], void>({
