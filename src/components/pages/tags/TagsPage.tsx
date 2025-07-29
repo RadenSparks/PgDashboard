@@ -6,7 +6,6 @@ import Loading from "../../../components/widgets/loading";
 
 
 type DurationTag = { duration: "Short" | "Average" | "Long" };
-const durationOptions = ["Short", "Average", "Long"] as const;
 type Tag = { id: number; name: string; type: string; duration?: DurationTag }
 
 

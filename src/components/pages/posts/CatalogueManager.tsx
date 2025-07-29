@@ -45,7 +45,7 @@ const CatalogueManager: React.FC = () => {
     try {
       await deleteCatalogue(id);
       refetch();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: 'Cannot delete catalogue',
         description:

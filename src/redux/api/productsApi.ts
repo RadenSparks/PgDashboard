@@ -1,16 +1,10 @@
 import { createApi } from '@reduxjs/toolkit/query/react'
 import { axiosBaseQuery } from '../axiosBaseQuery'
-import type { CmsContent } from '../../components/pages/products/types'
-
-export interface Product {
-  id: number
-  name: string
-  type: string
-}
+import type { CmsContent, Product } from '../../components/pages/products/types' // <-- import Product here
 
 export const productsApi = createApi({
   reducerPath: 'productsApi',
-  baseQuery: axiosBaseQuery(),
+  baseQuery: axiosBaseQuery,
   tagTypes: ['Product', 'CmsContent'],
   endpoints: (builder) => ({
     getProducts: builder.query<Product[], void>({
@@ -42,7 +36,7 @@ export const productsApi = createApi({
     }),
     getProductCms: builder.query<CmsContent, number>({
       query: (productId) => ({ url: `/products/${productId}/cms-content`, method: 'GET' }),
-      providesTags: (result, error, id) => [{ type: 'CmsContent', id }],
+      providesTags: (_result, _error, id) => [{ type: 'CmsContent', id }],
     }),
     updateProductCms: builder.mutation<CmsContent, { productId: number; data: Partial<CmsContent> }>({
       query: ({ productId, data }) => ({
@@ -50,7 +44,7 @@ export const productsApi = createApi({
         method: 'PUT',
         data,
       }),
-      invalidatesTags: (result, error, { productId }) => [{ type: 'CmsContent', id: productId }],
+      invalidatesTags: (_result, _error, { productId }) => [{ type: 'CmsContent', id: productId }],
     }),
   }),
 })

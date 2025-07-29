@@ -2,8 +2,8 @@ import React from 'react';
 import BlogPostPreview from './BlogPostPreview';
 
 interface Props {
-  form: any;
-  catalogues: any[];
+  form: unknown;
+  catalogues: unknown[];
   fontFamily: string;
   setFontFamily: (v: string) => void;
   fontSize: string;

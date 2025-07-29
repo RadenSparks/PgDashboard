@@ -137,6 +137,74 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
           </div>
         </section>
       )}
+
+      {/* PRODUCT TABS SECTION - Fixed Titles and Special Handling */}
+      {cmsContent.tabs && cmsContent.tabs.length > 0 && (
+        <section className="mb-10">
+          <h4 className="text-xl font-semibold mb-2" style={{ color: textColor, fontFamily }}>Product Tabs</h4>
+          {["Specifications", "How To Play", "About"].map((fixedTitle) => {
+            const tab = cmsContent.tabs.find(
+              t => t.title.trim().toLowerCase() === fixedTitle.trim().toLowerCase()
+            );
+            if (!tab) return null;
+
+            return (
+              <div key={fixedTitle} className="mb-6">
+                <div className="font-bold mb-1" style={{ color: textColor }}>{fixedTitle}</div>
+                {fixedTitle === "How To Play" ? (
+                  <div>
+                    {tab.content && (
+                      <a
+                        href={tab.content}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline"
+                      >
+                        {tab.content}
+                      </a>
+                    )}
+                    {tab.content && (tab.content.includes("youtube.com") || tab.content.includes("youtu.be") || tab.content.includes("vimeo.com")) && (
+                      <div className="mt-2">
+                        <iframe
+                          width="420"
+                          height="236"
+                          src={
+                            tab.content.includes("youtube.com") || tab.content.includes("youtu.be")
+                              ? tab.content.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/")
+                              : tab.content
+                          }
+                          title="How To Play Video"
+                          frameBorder={0}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    <div className="mb-2" style={{ color: textColor }}>{tab.content}</div>
+                    {tab.images && tab.images.length > 0 && (
+                      <div className="flex gap-2 flex-wrap">
+                        {tab.images.map((img, imgIdx) =>
+                          img ? (
+                            <img
+                              key={imgIdx}
+                              src={img}
+                              alt={`Tab ${fixedTitle} Image ${imgIdx + 1}`}
+                              className="w-16 h-16 object-cover rounded border"
+                            />
+                          ) : null
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </section>
+      )}
     </div>
   );
 };

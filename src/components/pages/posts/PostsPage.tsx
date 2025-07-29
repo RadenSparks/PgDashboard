@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "../../widgets/button";
 import { IoMdAdd } from "react-icons/io";
-import { useGetPostsQuery, useDeletePostMutation } from '../../../redux/postsApi';
+import { useGetPostsQuery, useDeletePostMutation, type Post } from '../../../redux/postsApi';
 import PostForm from "./PostForm";
 import CatalogueManager from './CatalogueManager';
 import BlogPostPreview from './BlogPostPreview';
@@ -9,9 +9,9 @@ import BlogPostPreview from './BlogPostPreview';
 const PostsPage = () => {
   const { data: posts = [], refetch } = useGetPostsQuery();
   const [deletePost] = useDeletePostMutation();
-  const [previewPost, setPreviewPost] = useState<any | null>(null);
+  const [previewPost, setPreviewPost] = useState<Post | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [editPost, setEditPost] = useState<any | null>(null);
+  const [editPost, setEditPost] = useState<Post | null>(null);
   const [showCatalogueManager, setShowCatalogueManager] = useState(false);
 
   return (
@@ -126,20 +126,20 @@ const PostsPage = () => {
             </button>
             <div className="w-full h-full flex flex-col">
               <BlogPostPreview
-                content={previewPost.content || ''}
-                title={previewPost.name}
-                description={previewPost.description}
-                image={previewPost.image}
-                catalogueName={previewPost.catalogue?.name}
-                date={previewPost.created_at?.slice(0, 10)}
-                fontFamily={previewPost.fontFamily}
-                fontSize={previewPost.fontSize}
-                textColor={previewPost.textColor}
-                bgColor={previewPost.bgColor}
-                meta_title={previewPost.meta_title}
-                meta_description={previewPost.meta_description}
-                meta_keyword={previewPost.meta_keyword}
-                canonical={previewPost.canonical}
+                content={previewPost?.content || ''}
+                title={previewPost?.name}
+                description={previewPost?.description}
+                image={previewPost?.image}
+                catalogueName={previewPost?.catalogue?.name}
+                date={previewPost?.created_at?.slice(0, 10)}
+                fontFamily={previewPost?.fontFamily}
+                fontSize={previewPost?.fontSize}
+                textColor={previewPost?.textColor}
+                bgColor={previewPost?.bgColor}
+                meta_title={previewPost?.meta_title}
+                meta_description={previewPost?.meta_description}
+                meta_keyword={previewPost?.meta_keyword}
+                canonical={previewPost?.canonical}
               />
             </div>
           </div>
@@ -158,7 +158,7 @@ const PostsPage = () => {
               &times;
             </button>
             <PostForm
-              initialData={editPost || {}}
+              initialData={editPost ?? {}}
               onSuccess={() => {
                 setShowForm(false);
                 refetch();

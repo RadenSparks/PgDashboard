@@ -1,11 +1,7 @@
 import type { Product } from "./types";
 import { Button } from "../../widgets/button";
-export function formatCurrencyVND(amount: number): string {
-    return amount.toLocaleString('vi-VN', {
-        style: 'currency',
-        currency: 'VND',
-    });
-}
+import { formatCurrencyVND } from "./formatCurrencyVND";
+
 type ProductTableProps = {
     products: Product[];
     onEdit: (product: Product) => void;

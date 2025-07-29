@@ -2,10 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../widgets/button";
 import { FaEye, FaEdit, FaSave, FaTimes, FaExchangeAlt, FaArrowRight } from "react-icons/fa";
-import mockOrders from "./mockOrders";
-import { mockProducts } from "../products/mockProducts";
 import Loading from "../../../components/widgets/loading";
-import { formatCurrencyVND } from "../products/ProductTable";
+import { formatCurrencyVND } from "../products/formatCurrencyVND";
 import { useGetOrdersQuery, useUpdateStatusMutation } from "../../../redux/api/ordersApi";
 import { type Order } from "../../../redux/api/ordersApi";
 // Extend OrderProduct to include productId

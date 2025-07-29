@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { Product } from "./types";
 import GallerySlider from "./GallerySlider";
-import { formatCurrencyVND } from "./ProductTable";
+import { formatCurrencyVND } from "./formatCurrencyVND";
 
 type ProductDetailsModalProps = {
     product: Product;

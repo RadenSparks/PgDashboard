@@ -9,7 +9,7 @@ export interface Tag {
 
 export const tagsApi = createApi({
   reducerPath: 'tagsApi',
-  baseQuery: axiosBaseQuery(),
+  baseQuery: axiosBaseQuery, // FIXED: remove ()
   tagTypes: ['Tag'],
   endpoints: (builder) => ({
     getTags: builder.query<Tag[], void>({

@@ -65,9 +65,8 @@ const ProductsPage = () => {
             status: "Available",
             category_ID: { id: 0, name: "" },
             publisher_ID: { id: 0, name: "" },
-            tags: [], // <-- always an array of Tag objects
+            tags: [],
             images: [],
-            featured: [],
         });
         setShowAddModal(true);
     };
@@ -90,11 +89,6 @@ const ProductsPage = () => {
                 formData.append("category_ID", editProduct.category_ID.id.toString());
                 formData.append("publisher_ID", editProduct.publisher_ID?.id?.toString() || "");
                 formData.append("tags", editProduct.tags.map((t: Tag | number) => typeof t === "object" ? t.id : t).join(" "));
-                formData.append('featured', JSON.stringify(editProduct.featured.map((f, i) => ({
-                    title: f.title,
-                    content: f.content,
-                    ord: String(i)
-                }))));
                 // Main image
                 if (editProduct.mainImage instanceof File) {
                     formData.append("mainImage", editProduct.mainImage);
@@ -106,13 +100,11 @@ const ProductsPage = () => {
                         formData.append('detailImages', img.file);
                     });
                 await addProduct(formData);
-                toaster.dismiss(toastId);
                 toaster.show({ title: "Product saved successfully!", type: "success" });
                 setEditProduct(null);
                 setShowAddModal(false);
             }
-        } catch (err: any) {
-            toaster.dismiss();
+        } catch (err: unknown) {
             toaster.show({ title: "Failed to save product", description: err.message || "Unknown error", type: "error" });
         }
     };
@@ -122,7 +114,6 @@ const ProductsPage = () => {
         setEditProduct({
             ...prod,
             tags: prod.tags || [], // Ensure tags are full objects
-            featured: prod.featured || [],
             deleteImages: [],
         });
         setShowAddModal(true);
@@ -147,11 +138,6 @@ const ProductsPage = () => {
                 formData.append("category_ID", editProduct.category_ID.id.toString());
                 formData.append("publisher_ID", editProduct.publisher_ID?.id?.toString() || "");
                 formData.append("tags", editProduct.tags.map((t: Tag | number) => typeof t === "object" ? t.id : t).join(" "));
-                formData.append('featured', JSON.stringify(editProduct.featured.map((f, i) => ({
-                    title: f.title,
-                    content: f.content,
-                    ord: String(i)
-                }))));
                 // Images
                 editProduct.images.forEach((img) => {
                     if (img.file) formData.append('detailImages', img.file);
@@ -167,7 +153,7 @@ const ProductsPage = () => {
                 setEditProduct(null);
                 setShowAddModal(false);
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             toaster.show({ title: "Failed to update product", description: err.message || "Unknown error", type: "error" });
         }
     };
@@ -177,7 +163,6 @@ const ProductsPage = () => {
         if (window.confirm("Are you sure you want to delete this product? This action cannot be undone.")) {
             const toastId = toaster.show({ title: "Deleting product...", type: "loading" });
             await deleteProduct(id);
-            toaster.dismiss(toastId);
             toaster.show({ title: "Product deleted.", type: "success" });
         }
     };

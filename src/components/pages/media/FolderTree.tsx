@@ -1,7 +1,7 @@
 import React from "react";
 
 interface FolderTreeProps {
-  node: any;
+  node: unknown;
   path?: string[];
   expanded?: Record<string, boolean>;
   setExpanded?: (exp: Record<string, boolean>) => void;

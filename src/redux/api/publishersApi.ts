@@ -10,7 +10,7 @@ export interface Publisher {
 
 export const publishersApi = createApi({
   reducerPath: 'publishersApi',
-  baseQuery: axiosBaseQuery(),
+  baseQuery: axiosBaseQuery,
   tagTypes: ['Publisher'],
   endpoints: (builder) => ({
     getPublishers: builder.query<Publisher[], void>({

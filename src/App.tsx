@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import RootLayout from "./components/layout/RootLayout";
 import { ChakraProvider } from '@chakra-ui/react';
@@ -16,40 +16,44 @@ import SignIn from './components/pages/signin/signin';
 import SignUp from './components/pages/signup/signup';
 import CommentsPage from './components/pages/comments/CommentsPage';
 import PermissionPage from './components/pages/permission/PermisionPage';
+import { useState } from 'react';
 import TagsPage from './components/pages/tags/TagsPage';
-import { initialUsers, type User } from './components/pages/users/usersData';
 import MediaManager from './components/pages/media/MediaManager';
 import CollectionsPage from './components/pages/collections/CollectionsPage';
 import PublishersPage from './components/pages/publishers/PublishersPage';
 const App: React.FC = () => {
-  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [users, setUsers] = useState<unknown[]>([]);
 
   return (
     <ChakraProvider>
-      <main className="h-screen w-full">
-        <Router>
-          <Routes>
-            <Route element={<RootLayout />}>
-              <Route path="/" element={<ProtectedRoute><DashboardContent /></ProtectedRoute>} />
-              <Route path="/products" element={<ProtectedRoute><ProductsPage /></ProtectedRoute>} />
-              <Route path="/categories" element={<ProtectedRoute><CategoriesPage /></ProtectedRoute>} />
-              <Route path="/voucher" element={<ProtectedRoute><VoucherPage /></ProtectedRoute>} />
-              <Route path="/posts" element={<ProtectedRoute><PostsPage /></ProtectedRoute>} />
-              <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
-              <Route path="/permission" element={<ProtectedRoute><PermissionPage users={users} setUsers={setUsers} /></ProtectedRoute>} />
-              <Route path="/users" element={<ProtectedRoute><UsersPage users={users} setUsers={setUsers} /></ProtectedRoute>} />
-              <Route path="/comments" element={<ProtectedRoute><CommentsPage /></ProtectedRoute>} />
-              <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-              <Route path="/tags" element={<ProtectedRoute><TagsPage /></ProtectedRoute>} />
-              <Route path="/collections" element={<ProtectedRoute><CollectionsPage /></ProtectedRoute>} />
-              <Route path="/media" element={<ProtectedRoute><MediaManager /></ProtectedRoute>} />
-              <Route path="/publishers" element={<ProtectedRoute>{<PublishersPage />}</ProtectedRoute>} />
-            </Route>
-            <Route path="/signin" element={<PublicRoute><SignIn /></PublicRoute>} />
-            <Route path="/signup" element={<PublicRoute><SignUp /></PublicRoute>} />
-          </Routes>
-        </Router>
-      </main>
+      <Router>
+        <Routes>
+          <Route element={<RootLayout />}>
+            <Route path="/" element={<ProtectedRoute><DashboardContent /></ProtectedRoute>} />
+            <Route path="/products" element={<ProtectedRoute><ProductsPage /></ProtectedRoute>} />
+            <Route path="/categories" element={<ProtectedRoute><CategoriesPage /></ProtectedRoute>} />
+            <Route path="/voucher" element={<ProtectedRoute><VoucherPage /></ProtectedRoute>} />
+            <Route path="/posts" element={<ProtectedRoute><PostsPage /></ProtectedRoute>} />
+            <Route path="/permission" element={<ProtectedRoute><PermissionPage users={users} setUsers={setUsers} /></ProtectedRoute>} />
+            <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
+            <Route path="/products" element={<ProtectedRoute><ProductsPage /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><DashboardContent /></ProtectedRoute>} />
+            <Route path="/categories" element={<ProtectedRoute><CategoriesPage /></ProtectedRoute>} />
+            <Route path="/media" element={<ProtectedRoute><MediaManager /></ProtectedRoute>} />
+            <Route path="/tags" element={<ProtectedRoute><TagsPage /></ProtectedRoute>} />
+            <Route path="/users" element={<ProtectedRoute><UsersPage /></ProtectedRoute>} />
+            <Route path="/comments" element={<ProtectedRoute><CommentsPage /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+            <Route path="/tags" element={<ProtectedRoute><TagsPage /></ProtectedRoute>} />
+            <Route path="/collections" element={<ProtectedRoute><CollectionsPage /></ProtectedRoute>} />
+            <Route path="/media" element={<ProtectedRoute><MediaManager /></ProtectedRoute>} />
+            <Route path="/publishers" element={<ProtectedRoute><PublishersPage /></ProtectedRoute>} />
+          </Route>
+          <Route path="/signin" element={<PublicRoute><SignIn /></PublicRoute>} />
+          <Route path="/signup" element={<PublicRoute><SignUp /></PublicRoute>} />
+        </Routes>
+      </Router>
     </ChakraProvider>
   );
 };

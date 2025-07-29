@@ -16,7 +16,7 @@ export interface Post {
   created_at?: string;
   updated_at?: string;
   catalogueId?: number;
-  catalogue?: any;
+  catalogue?: unknown;
   galleryImages?: string[];
   textColor?: string;
   bgColor?: string;
@@ -26,7 +26,7 @@ export interface Post {
 
 export const postsApi = createApi({
   reducerPath: 'postsApi',
-  baseQuery: axiosBaseQuery({ baseUrl: 'https://pengoo-back-end.vercel.app' }),
+  baseQuery: axiosBaseQuery,
   tagTypes: ['Post'],
   endpoints: (builder) => ({
     getPosts: builder.query<Post[], void>({

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "../../widgets/button";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import {
@@ -90,22 +90,43 @@ const VoucherPage = () => {
       maxOrderValue: Number(editVoucher.maxOrderValue ?? 0),
       startDate: editVoucher.startDate ? String(editVoucher.startDate) : "",
       endDate: editVoucher.endDate ? String(editVoucher.endDate) : "",
-      status: (editVoucher.status as Voucher["status"]) || "Inactive",
+      status: (editVoucher.status as Voucher["status"]) || "inactive",
       milestonePoints:
-        editVoucher.milestonePoints === "" || editVoucher.milestonePoints === undefined
+        editVoucher.milestonePoints === null || editVoucher.milestonePoints === undefined
           ? null
           : Number(editVoucher.milestonePoints),
     };
-    if (editVoucher.id) {
-      await updateVoucher(payload);
-    } else {
-      // Remove id for creation
-      const { id, ...createPayload } = payload;
-      await addVoucher(createPayload as Omit<Voucher, "id">);
+    try {
+      if (editVoucher.id) {
+        await updateVoucher(payload);
+        toast({
+          title: "Voucher updated",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        // Remove id for creation
+        const { id: _id, ...createPayload } = payload;
+        await addVoucher(createPayload as Omit<Voucher, "id">);
+        toast({
+          title: "Voucher created",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+      setShowModal(false);
+      setEditVoucher(null);
+      refetch();
+    } catch {
+      toast({
+        title: "Failed to save voucher",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
     }
-    setShowModal(false);
-    setEditVoucher(null);
-    refetch();
   };
   const handleChange = (field: keyof Voucher, value: string | number | null) => {
     if (!editVoucher) return;
@@ -224,13 +245,13 @@ const VoucherPage = () => {
                     <Button
                       size="sm"
                       className={
-                        voucher.status === "Active"
+                        voucher.status === "active"
                           ? "bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200"
                           : "bg-green-100 text-green-800 border border-green-300 hover:bg-green-200"
                       }
                       onClick={() => handleStatusToggle(voucher.id)}
                     >
-                      {voucher.status === "Active" ? "Set Inactive" : "Set Active"}
+                      {voucher.status === "active" ? "Set Inactive" : "Set Active"}
                     </Button>
                   </td>
                 </tr>
@@ -358,7 +379,7 @@ const VoucherPage = () => {
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium mb-1">Description Points (optional)</label>
+                <label className="block text-sm font-medium mb-1">Description (optional)</label>
                 <input
                   className="w-full border rounded px-3 py-2"
                   type="text"

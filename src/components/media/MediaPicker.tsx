@@ -1,11 +1,17 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useGetMediaQuery } from "../../redux/api/mediaApi";
 import type { MediaItem } from "../../redux/api/mediaApi";
-import { Spinner } from "@chakra-ui/react"; // Add this if using Chakra UI
+import { Spinner } from "@chakra-ui/react";
 
-// Helper to build a folder tree from flat media list
-function buildFolderTree(media: MediaItem[]) {
-  const root: any = {};
+// Folder tree node type
+type FolderTreeNode = {
+  children?: { [key: string]: FolderTreeNode };
+  items?: MediaItem[];
+};
+
+// Build folder tree from flat media list
+function buildFolderTree(media: MediaItem[]): FolderTreeNode {
+  const root: FolderTreeNode = {};
   media.forEach((item) => {
     const parts = (item.folder || "default").split("/").filter(Boolean);
     let node = root;
@@ -20,7 +26,8 @@ function buildFolderTree(media: MediaItem[]) {
   return root;
 }
 
-function getCurrentNode(tree: any, path: string[]) {
+// Get node by path
+function getCurrentNode(tree: FolderTreeNode, path: string[]) {
   let node = tree;
   for (const part of path) {
     if (!node.children || !node.children[part]) return { items: [] };
@@ -29,22 +36,80 @@ function getCurrentNode(tree: any, path: string[]) {
   return node;
 }
 
+// Folder sidebar component
+const FolderSidebar: React.FC<{
+  tree: FolderTreeNode;
+  path: string[];
+  setPath: (p: string[]) => void;
+  selectedPath: string[];
+  parentPath?: string[];
+}> = ({ tree, path, setPath, selectedPath, parentPath = [] }) => {
+  if (!tree.children) return null;
+  return (
+    <ul className="pl-2">
+      {Object.keys(tree.children)
+        .sort()
+        .map((folder) => {
+          const thisPath = [...parentPath, folder];
+          const isSelected = thisPath.join("/") === selectedPath.join("/");
+          return (
+            <li key={folder}>
+              <button
+                className={`flex items-center w-full text-left px-2 py-1 rounded transition
+                ${isSelected ? "bg-blue-100 text-blue-700 font-bold" : "hover:bg-blue-50"}
+              `}
+                onClick={() => setPath(thisPath)}
+              >
+                <span className="mr-2">
+                  <svg
+                    className="w-4 h-4 text-yellow-500"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M2 6a2 2 0 012-2h4l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+                  </svg>
+                </span>
+                <span className="truncate">{folder}</span>
+              </button>
+              {/* Recursive render for subfolders */}
+              <FolderSidebar
+                tree={tree.children[folder]}
+                path={path}
+                setPath={setPath}
+                selectedPath={selectedPath}
+                parentPath={thisPath}
+              />
+            </li>
+          );
+        })}
+    </ul>
+  );
+};
+
 interface MediaPickerProps {
   show: boolean;
   multiple?: boolean;
   onSelect: (images: MediaItem[] | MediaItem) => void;
   onClose: () => void;
-  folder?: string; // <-- Add this prop
+  folder?: string;
 }
 
-const MediaPicker: React.FC<MediaPickerProps> = ({ show, multiple, onSelect, onClose, folder }) => {
+const MediaPicker: React.FC<MediaPickerProps> = ({
+  show,
+  multiple,
+  onSelect,
+  onClose,
+  folder,
+}) => {
   const { data: media = [], isLoading } = useGetMediaQuery();
 
   // Build folder tree from ALL media
   const folderTree = useMemo(() => buildFolderTree(media), [media]);
 
   // Set initial folder path if folder prop is provided
-  const [folderPath, setFolderPath] = useState<string[]>(folder ? folder.split("/") : []);
+  const [folderPath, setFolderPath] = useState<string[]>(
+    folder ? folder.split("/") : []
+  );
   useEffect(() => {
     if (folder) setFolderPath(folder.split("/"));
   }, [folder, show]);
@@ -53,29 +118,21 @@ const MediaPicker: React.FC<MediaPickerProps> = ({ show, multiple, onSelect, onC
   const [selected, setSelected] = useState<MediaItem[]>([]);
 
   // Get current node and media for current folder
-  const currentNode = useMemo(() => getCurrentNode(folderTree, folderPath), [folderTree, folderPath]);
+  const currentNode = useMemo(
+    () => getCurrentNode(folderTree, folderPath),
+    [folderTree, folderPath]
+  );
   const currentMedia: MediaItem[] = currentNode.items || [];
 
   if (!show) return null;
 
-  const handleSelect = (item: MediaItem) => {
-    if (multiple) {
-      setSelected(sel =>
-        sel.some(i => i.id === item.id)
-          ? sel.filter(i => i.id !== item.id)
-          : [...sel, item]
-      );
-    } else {
-      onSelect(item);
-      onClose();
-    }
-  };
-
-  // Breadcrumb navigation (always show)
+  // Breadcrumb navigation
   const Breadcrumbs = (
     <div className="flex items-center gap-1 text-sm mb-4">
       <button
-        className={`hover:underline ${folderPath.length === 0 ? "font-bold text-blue-700" : ""}`}
+        className={`hover:underline ${
+          folderPath.length === 0 ? "font-bold text-blue-700" : ""
+        }`}
         onClick={() => setFolderPath([])}
       >
         Root
@@ -84,7 +141,11 @@ const MediaPicker: React.FC<MediaPickerProps> = ({ show, multiple, onSelect, onC
         <React.Fragment key={idx}>
           <span className="mx-1 text-gray-400">/</span>
           <button
-            className={`hover:underline ${idx === folderPath.length - 1 ? "font-bold text-blue-700" : ""}`}
+            className={`hover:underline ${
+              idx === folderPath.length - 1
+                ? "font-bold text-blue-700"
+                : ""
+            }`}
             onClick={() => setFolderPath(folderPath.slice(0, idx + 1))}
           >
             {folderName}
@@ -94,65 +155,106 @@ const MediaPicker: React.FC<MediaPickerProps> = ({ show, multiple, onSelect, onC
     </div>
   );
 
-  // Folder list (always show if children exist)
-  const FolderList = currentNode.children ? (
-    <div className="mb-4 flex flex-wrap gap-2">
-      {Object.keys(currentNode.children).sort().map(folderName => (
-        <button
-          key={folderName}
-          className="px-3 py-1 rounded bg-gray-100 hover:bg-blue-100 text-blue-700 font-semibold text-xs"
-          onClick={() => setFolderPath([...folderPath, folderName])}
-        >
-          {folderName}
-        </button>
-      ))}
-    </div>
-  ) : null;
+  const handleSelect = (item: MediaItem) => {
+    if (multiple) {
+      setSelected((sel) =>
+        sel.some((i) => i.id === item.id)
+          ? sel.filter((i) => i.id !== item.id)
+          : [...sel, item]
+      );
+    } else {
+      onSelect(item);
+      onClose();
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[1500] flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-xl shadow-lg max-w-3xl w-full p-8 relative">
-        <h3 className="text-lg font-bold mb-4 text-blue-700">Select Image{multiple ? "s" : ""}</h3>
-        {isLoading && (
-          <div className="flex justify-center items-center py-8">
-            <Spinner size="lg" color="blue.500" />
-          </div>
-        )}
-        {!isLoading && (
-          <>
-            {Breadcrumbs}
-            {FolderList}
-            <div className="grid grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto">
-              {currentMedia.map(item => (
-                <div
-                  key={item.id}
-                  className={`border rounded-lg p-2 cursor-pointer transition 
-                    ${selected.some(i => i.id === item.id) ? "ring-2 ring-blue-500 border-blue-400" : "hover:shadow hover:border-blue-200"}
+      <div
+        className="
+        bg-white rounded-xl shadow-lg
+        w-full max-w-5xl
+        md:w-[90vw] md:max-w-4xl
+        sm:w-[98vw] sm:max-w-full
+        p-0 relative flex flex-col md:flex-row
+        max-h-[95vh]
+        overflow-hidden
+      "
+        style={{ minHeight: 400 }}
+      >
+        {/* Sidebar: Folder Tree */}
+        <aside className="w-full md:w-64 border-b md:border-b-0 md:border-r bg-gray-50 p-4 md:p-6 overflow-y-auto rounded-t-xl md:rounded-l-xl md:rounded-tr-none max-h-40 md:max-h-none">
+          <div className="font-bold text-blue-700 mb-4">Folders</div>
+          <FolderSidebar
+            tree={folderTree}
+            path={folderPath}
+            setPath={setFolderPath}
+            selectedPath={folderPath}
+          />
+        </aside>
+        {/* Main Content */}
+        <div className="flex-1 p-4 md:p-8 flex flex-col overflow-y-auto">
+          <h3 className="text-lg font-bold mb-2 text-blue-700">
+            Select Image{multiple ? "s" : ""}
+          </h3>
+          {isLoading && (
+            <div className="flex justify-center items-center py-8">
+              <Spinner size="lg" color="blue.500" />
+            </div>
+          )}
+          {!isLoading && (
+            <>
+              {Breadcrumbs}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[45vh] md:max-h-[60vh] overflow-y-auto">
+                {currentMedia.map((item) => (
+                  <div
+                    key={item.id}
+                    className={`border rounded-lg p-2 cursor-pointer transition 
+                    ${
+                      selected.some((i) => i.id === item.id)
+                        ? "ring-2 ring-blue-500 border-blue-400"
+                        : "hover:shadow hover:border-blue-200"
+                    }
                     group`}
-                  onClick={() => handleSelect(item)}
-                  tabIndex={0}
-                  role="button"
-                  aria-pressed={selected.some(i => i.id === item.id)}
-                >
-                  <img src={item.url} alt={item.name || "media"} className="w-full h-24 object-cover rounded" />
-                  <div className="text-xs mt-1 truncate text-gray-700 group-hover:text-blue-700">{item.name}</div>
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-end gap-2 mt-6">
-              <button className="bg-gray-200 px-6 py-2 rounded hover:bg-gray-300" onClick={onClose}>Cancel</button>
-              {multiple && (
+                    onClick={() => handleSelect(item)}
+                    tabIndex={0}
+                    role="button"
+                    aria-pressed={selected.some((i) => i.id === item.id)}
+                  >
+                    <img
+                      src={item.url}
+                      alt={item.name || "media"}
+                      className="w-full h-24 object-cover rounded"
+                    />
+                    <div className="text-xs mt-1 truncate text-gray-700 group-hover:text-blue-700">
+                      {item.name}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-end gap-2 mt-6">
                 <button
-                  className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
-                  onClick={() => { onSelect(selected); onClose(); }}
-                  disabled={selected.length === 0}
+                  className="bg-gray-200 px-6 py-2 rounded hover:bg-gray-300"
+                  onClick={onClose}
                 >
-                  Select
+                  Cancel
                 </button>
-              )}
-            </div>
-          </>
-        )}
+                {multiple && (
+                  <button
+                    className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+                    onClick={() => {
+                      onSelect(selected);
+                      onClose();
+                    }}
+                    disabled={selected.length === 0}
+                  >
+                    Select
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -38,12 +38,12 @@ const mockRoles: Role[] = [
     },
 ];
 
-type PermissionPageProps = {
+interface PermissionPageProps {
   users: User[];
   setUsers: React.Dispatch<React.SetStateAction<User[]>>;
-};
+}
 
-const PermissionPage = ({ users, setUsers }: PermissionPageProps) => {
+const PermissionPage: React.FC<PermissionPageProps> = ({ users, setUsers }) => {
     const [roles, setRoles] = useState<Role[]>(mockRoles);
     const [editRoleId, setEditRoleId] = useState<number | null>(null);
     const [editPermissions, setEditPermissions] = useState<Role["permissions"]>({

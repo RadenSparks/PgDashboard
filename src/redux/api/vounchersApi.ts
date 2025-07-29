@@ -17,7 +17,7 @@ export interface Voucher {
 
 export const vouchersApi = createApi({
   reducerPath: 'vouchersApi',
-  baseQuery: axiosBaseQuery({ baseUrl: 'http://localhost:3000' }),
+  baseQuery: axiosBaseQuery,
   tagTypes: ['Voucher'],
   endpoints: (builder) => ({
     getVouchers: builder.query<Voucher[], void>({

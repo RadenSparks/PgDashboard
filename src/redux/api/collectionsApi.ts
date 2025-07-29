@@ -3,6 +3,7 @@ import { axiosBaseQuery } from '../axiosBaseQuery'
 import type { Product } from '../../components/pages/products/types'
 
 export interface Collection {
+  description: string
   id: number
   name: string
   slug: string
@@ -13,7 +14,7 @@ export interface Collection {
 
 export const collectionsApi = createApi({
   reducerPath: 'collectionsApi',
-  baseQuery: axiosBaseQuery(),
+  baseQuery: axiosBaseQuery, // <-- no parentheses!
   tagTypes: ['Collection', 'Product'],
   endpoints: (builder) => ({
     getCollections: builder.query<Collection[], void>({

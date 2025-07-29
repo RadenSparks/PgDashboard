@@ -13,7 +13,6 @@ interface Props {
 
 const LiveProductMarkdownPreview: React.FC<Props> = ({
   cmsContent,
-  product,
   fontFamily = 'sans-serif',
   fontSize = 'text-lg',
   textColor = '#000000',

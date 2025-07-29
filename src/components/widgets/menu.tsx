@@ -1,108 +1,126 @@
 "use client"
 
-import { AbsoluteCenter, Menu as ChakraMenu, Portal } from "@chakra-ui/react"
+import {
+  Menu as ChakraMenu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  MenuGroup,
+  MenuDivider,
+  MenuOptionGroup,
+  MenuItemOption,
+  MenuIcon,
+  Portal,
+  Box,
+} from "@chakra-ui/react"
 import { forwardRef } from "react"
-import { LuCheck, LuChevronRight } from "react-icons/lu"
+import { LuChevronRight } from "react-icons/lu"
 
-interface MenuContentProps extends ChakraMenu.ContentProps {
-  portalled?: boolean
-  portalRef?: React.RefObject<HTMLElement>
-}
-
-export const MenuContent = forwardRef<HTMLDivElement, MenuContentProps>(
-  function MenuContent(props, ref) {
-    const { portalled = true, portalRef, ...rest } = props
+// Example: MenuContent using Portal (optional)
+export const MenuContent = forwardRef<HTMLDivElement, { children: React.ReactNode }>(
+  function MenuContent({ children, ...rest }, ref) {
     return (
-      <Portal disabled={!portalled} container={portalRef}>
-        <ChakraMenu.Positioner>
-          <ChakraMenu.Content ref={ref} {...rest} />
-        </ChakraMenu.Positioner>
+      <Portal>
+        <Box ref={ref} {...rest}>
+          {children}
+        </Box>
       </Portal>
     )
   },
 )
 
-export const MenuArrow = forwardRef<HTMLDivElement, ChakraMenu.ArrowProps>(
-  function MenuArrow(props, ref) {
-    return (
-      <ChakraMenu.Arrow ref={ref} {...props}>
-        <ChakraMenu.ArrowTip />
-      </ChakraMenu.Arrow>
-    )
-  },
+// Checkbox item using MenuOptionGroup and MenuItemOption
+export const MenuCheckboxGroup = ({
+  value,
+  onChange,
+  options,
+  title,
+}: {
+  value: string[]
+  onChange: (val: string[]) => void
+  options: { label: string; value: string }[]
+  title?: string
+}) => (
+  <MenuOptionGroup
+    type="checkbox"
+    value={value}
+    onChange={(val) => {
+      if (Array.isArray(val)) {
+        onChange(val)
+      }
+    }}
+    title={title}
+  >
+    {options.map((opt) => (
+      <MenuItemOption key={opt.value} value={opt.value}>
+        {opt.label}
+      </MenuItemOption>
+    ))}
+  </MenuOptionGroup>
 )
 
-export const MenuCheckboxItem = forwardRef<
-  HTMLDivElement,
-  ChakraMenu.CheckboxItemProps
->(function MenuCheckboxItem(props, ref) {
-  return (
-    <ChakraMenu.CheckboxItem ref={ref} {...props}>
-      <ChakraMenu.ItemIndicator hidden={false}>
-        <LuCheck />
-      </ChakraMenu.ItemIndicator>
-      {props.children}
-    </ChakraMenu.CheckboxItem>
-  )
-})
+// Radio item using MenuOptionGroup and MenuItemOption
+export const MenuRadioGroup = ({
+  value,
+  onChange,
+  options,
+  title,
+}: {
+  value: string
+  onChange: (val: string) => void
+  options: { label: string; value: string }[]
+  title?: string
+}) => (
+  <MenuOptionGroup
+    type="radio"
+    value={value}
+    onChange={(val) => {
+      if (typeof val === "string") {
+        onChange(val)
+      }
+    }}
+    title={title}
+  >
+    {options.map((opt) => (
+      <MenuItemOption key={opt.value} value={opt.value}>
+        {opt.label}
+      </MenuItemOption>
+    ))}
+  </MenuOptionGroup>
+)
 
-export const MenuRadioItem = forwardRef<
-  HTMLDivElement,
-  ChakraMenu.RadioItemProps
->(function MenuRadioItem(props, ref) {
-  const { children, ...rest } = props
-  return (
-    <ChakraMenu.RadioItem ps="8" ref={ref} {...rest}>
-      <AbsoluteCenter axis="horizontal" left="4" asChild>
-        <ChakraMenu.ItemIndicator>
-          <LuCheck />
-        </ChakraMenu.ItemIndicator>
-      </AbsoluteCenter>
-      <ChakraMenu.ItemText>{children}</ChakraMenu.ItemText>
-    </ChakraMenu.RadioItem>
-  )
-})
+// Menu group with label
+export const MenuItemGroup = ({
+  title,
+  children,
+}: {
+  title?: string
+  children: React.ReactNode
+}) => <MenuGroup title={title}>{children}</MenuGroup>
 
-export const MenuItemGroup = forwardRef<
-  HTMLDivElement,
-  ChakraMenu.ItemGroupProps
->(function MenuItemGroup(props, ref) {
-  const { title, children, ...rest } = props
-  return (
-    <ChakraMenu.ItemGroup ref={ref} {...rest}>
-      {title && (
-        <ChakraMenu.ItemGroupLabel userSelect="none">
-          {title}
-        </ChakraMenu.ItemGroupLabel>
-      )}
-      {children}
-    </ChakraMenu.ItemGroup>
-  )
-})
-
-export interface MenuTriggerItemProps extends ChakraMenu.ItemProps {
-  startIcon?: React.ReactNode
-}
-
-export const MenuTriggerItem = forwardRef<HTMLDivElement, MenuTriggerItemProps>(
-  function MenuTriggerItem(props, ref) {
-    const { startIcon, children, ...rest } = props
+// Menu trigger item (with icon and chevron)
+export const MenuTriggerItem = forwardRef<HTMLButtonElement, { startIcon?: React.ReactNode; children: React.ReactNode }>(
+  function MenuTriggerItem({ startIcon, children, ...rest }, ref) {
     return (
-      <ChakraMenu.TriggerItem ref={ref} {...rest}>
+      <MenuItem ref={ref} {...rest}>
         {startIcon}
-        {children}
+        <Box as="span" flex="1" textAlign="left" mx={2}>
+          {children}
+        </Box>
         <LuChevronRight />
-      </ChakraMenu.TriggerItem>
+      </MenuItem>
     )
   },
 )
 
-export const MenuRadioItemGroup = ChakraMenu.RadioItemGroup
-export const MenuContextTrigger = ChakraMenu.ContextTrigger
-export const MenuRoot = ChakraMenu.Root
-export const MenuSeparator = ChakraMenu.Separator
-
-export const MenuItem = ChakraMenu.Item
-export const MenuItemText = ChakraMenu.ItemText
-export const MenuItemCommand = ChakraMenu.ItemCommand
-export const MenuTrigger = ChakraMenu.Trigger
+// Export Chakra UI's menu primitives for convenience
+export const MenuRoot = ChakraMenu
+export const MenuButtonRoot = MenuButton
+export const MenuListRoot = MenuList
+export const MenuItemRoot = MenuItem
+export const MenuDividerRoot = MenuDivider
+export const MenuOptionGroupRoot = MenuOptionGroup
+export const MenuItemOptionRoot = MenuItemOption
+export const MenuGroupRoot = MenuGroup
+export const MenuIconRoot = MenuIcon
+export const MenuTrigger = MenuButton

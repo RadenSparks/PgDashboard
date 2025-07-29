@@ -16,7 +16,7 @@ export interface User {
 
 export const usersApi = createApi({
   reducerPath: 'usersApi',
-  baseQuery: axiosBaseQuery({ baseUrl: 'http://localhost:3000' }),
+  baseQuery: axiosBaseQuery, // <-- FIXED: no parentheses, no arguments
   tagTypes: ['user'],
   endpoints: (builder) => ({
     getUsers: builder.query<User[], void>({
@@ -25,7 +25,7 @@ export const usersApi = createApi({
     }),
     addUser: builder.mutation<User, Partial<User>>({
       query: (body) => ({
-        url: '/users/register', // <-- Fix endpoint here
+        url: '/users/register',
         method: 'POST',
         data: body,
       }),

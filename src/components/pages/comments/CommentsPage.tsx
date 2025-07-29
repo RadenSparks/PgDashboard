@@ -57,7 +57,7 @@ const CommentsPage = () => {
       });
       setDeleteId(null);
       refetch();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Delete failed",
         description: error.response?.data?.message || error.message,
@@ -74,7 +74,7 @@ const CommentsPage = () => {
   const cancelDelete = () => setDeleteId(null);
 
   const handleToggleStatus = async (id: number) => {
-    const review = reviews.find((r: any) => r.id === id);
+    const review = reviews.find((r: unknown) => r.id === id);
     if (!review) return;
     setActionLoading(true);
     try {
@@ -88,7 +88,7 @@ const CommentsPage = () => {
         position: "top",
       });
       refetch();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Status update failed",
         description: error.response?.data?.message || error.message,
@@ -105,7 +105,7 @@ const CommentsPage = () => {
   const handleViewDetail = (id: number) => setViewDetailId(id);
 
   // Filter products by search
-  const filteredProducts = products.filter((p: any) =>
+  const filteredProducts = products.filter((p: unknown) =>
     p.product_name?.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -145,7 +145,7 @@ const CommentsPage = () => {
                 No products found.
               </div>
             )}
-            {filteredProducts.map((p: any) => (
+            {filteredProducts.map((p: unknown) => (
               <div
                 key={p.id}
                 className={`flex flex-col items-center cursor-pointer border-2 rounded-lg p-2 shadow-md transition-all duration-150 bg-white
@@ -159,7 +159,7 @@ const CommentsPage = () => {
               >
                 <img
                   src={
-                    (p.images?.find?.((img: any) => img.name === "main")?.url) ||
+                    (p.images?.find?.((img: unknown) => img.name === "main")?.url) ||
                     p.image ||
                     "/default-image.jpg"
                   }
@@ -182,7 +182,7 @@ const CommentsPage = () => {
             comments={reviews.map(r => ({
               id: r.id,
               productId: selectedProductId,
-              productName: products.find((p: any) => p.id === selectedProductId)?.product_name || "",
+              productName: products.find((p: unknown) => p.id === selectedProductId)?.product_name || "",
               user: r.user.username,
               content: r.content,
               date: new Date(r.createdAt).toLocaleDateString(),
@@ -202,7 +202,7 @@ const CommentsPage = () => {
       {/* View Detail Modal */}
       {viewDetailId !== null && (
         <CommentDetailModal
-          comment={reviews.find((r: any) => r.id === viewDetailId)}
+          comment={reviews.find((r: unknown) => r.id === viewDetailId)}
           modalRef={modalRef}
           onClose={() => setViewDetailId(null)}
         />

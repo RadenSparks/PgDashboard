@@ -67,7 +67,7 @@ export interface Order {
 
 export const ordersApi = createApi({
   reducerPath: 'ordersApi',
-  baseQuery: axiosBaseQuery(),
+  baseQuery: axiosBaseQuery,
   tagTypes: ['Order'],
   endpoints: (builder) => ({
     getOrders: builder.query<Order[], void>({

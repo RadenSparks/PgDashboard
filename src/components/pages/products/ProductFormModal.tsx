@@ -37,6 +37,7 @@ const ProductFormModal = ({
 
   // MediaPicker state
   const [showMediaPicker, setShowMediaPicker] = useState<"main" | "gallery" | null>(null);
+  const [lastMediaFolder, setLastMediaFolder] = useState<string>("");
 
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -112,6 +113,7 @@ const ProductFormModal = ({
           images: [mainImage, ...galleryImages],
           mainImage: file,
         });
+        if (img.folder) setLastMediaFolder(img.folder);
       } else if (showMediaPicker === "gallery") {
         const arr = Array.isArray(imgs) ? imgs : [imgs];
         // Fetch each gallery image as a File
@@ -131,6 +133,7 @@ const ProductFormModal = ({
           ...product,
           images: mainImage ? [mainImage, ...galleryImages] : [...galleryImages],
         });
+        if (arr[0]?.folder) setLastMediaFolder(arr[0].folder);
       }
       setShowMediaPicker(null);
       toast({
@@ -139,7 +142,7 @@ const ProductFormModal = ({
         duration: 3000,
         isClosable: true,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         title: "Failed to update images.",
         status: "error",
@@ -391,17 +394,7 @@ const ProductFormModal = ({
                     onChange={e => onChange({ ...product, quantity_stock: parseInt(e.target.value) || 0 })}
                   />
                 </label>
-                <label>
-                  <span className="block text-xs font-medium text-gray-600 mb-1">Sold</span>
-                  <input
-                    className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
-                    name="sold"
-                    type="number"
-                    placeholder="Sold"
-                    value={product.quantity_sold}
-                    onChange={e => onChange({ ...product, quantity_sold: parseInt(e.target.value) || 0 })}
-                  />
-                </label>
+                {/* Removed Sold input for VCI compliance */}
               </div>
             </section>
             {/* Images */}
@@ -499,70 +492,6 @@ const ProductFormModal = ({
                 </div>
               </div>
             </section>
-            {/* Featured
-            <section className="px-8 py-6">
-              <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide">Featured</div>
-              {(product.featured || []).map((item, idx) => (
-                <div key={idx} className="grid grid-cols-1 gap-4 mb-4 border rounded-lg p-4 bg-gray-50 shadow-sm">
-                  <label>
-                    <span className="block text-xs font-medium text-gray-600 mb-1">Meta Title</span>
-                    <input
-                      className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
-                      name="meta.title"
-                      placeholder="Meta Title"
-                      value={item.title}
-                      onChange={e => onChange({
-                        ...product,
-                        featured: product.featured.map((f, i) =>
-                          i === idx ? { ...f, title: e.target.value } : f
-                        )
-                      })}
-                    />
-                  </label>
-                  <label>
-                    <span className="block text-xs font-medium text-gray-600 mb-1">Description</span>
-                    <textarea
-                      className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
-                      name="description"
-                      placeholder="Description"
-                      value={item.content}
-                      onChange={e => onChange({
-                        ...product,
-                        featured: product.featured.map((f, i) =>
-                          i === idx ? { ...f, content: e.target.value } : f
-                        )
-                      })}
-                      rows={2}
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="block text-xs font-medium text-gray-600 mb-1">Image</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      name="featuredImage[]"
-                      className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4
-               file:rounded-lg file:border-0 file:text-sm file:font-semibold
-               file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100
-               border border-gray-300 rounded-md shadow-sm"
-                      onChange={e => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          onChange({ ...product, featuredImage: file ? [file] : [] });
-                        }
-                      }}
-                    />
-                  </label>
-                </div>
-              ))}
-              <button
-                type="button"
-                className="mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-xs font-semibold w-fit"
-                onClick={() => onChange({ ...product, featured: [...(product.featured || []), { title: "", content: "", ord: 1 }] })}
-              >
-                + Add Featured
-              </button>
-            </section> */}
             {/* Meta Data */}
             <section className="px-8 py-6">
               <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide">Meta Data</div>
@@ -610,7 +539,7 @@ const ProductFormModal = ({
         <MediaPicker
           show={!!showMediaPicker}
           multiple={showMediaPicker === "gallery"}
-          folder={product.slug}
+          folder={lastMediaFolder || product.slug}
           onSelect={handleImageSelect}
           onClose={() => setShowMediaPicker(null)}
         />
