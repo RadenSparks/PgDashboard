@@ -73,7 +73,7 @@ const FolderSidebar: React.FC<{
               </button>
               {/* Recursive render for subfolders */}
               <FolderSidebar
-                tree={tree.children[folder]}
+                tree={tree.children?.[folder] || {}}
                 path={path}
                 setPath={setPath}
                 selectedPath={selectedPath}

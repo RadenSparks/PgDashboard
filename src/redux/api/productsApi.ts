@@ -1,6 +1,16 @@
 import { createApi } from '@reduxjs/toolkit/query/react'
 import { axiosBaseQuery } from '../axiosBaseQuery'
-import type { CmsContent, Product } from '../../components/pages/products/types' // <-- import Product here
+import type { CmsContent } from '../../components/pages/products/types'
+
+export type Product = { 
+  id: number;
+  product_name: string;
+  product_price: number;
+  quantity_stock: number;
+  images?: { url: string; name?: string }[];
+  category_ID?: { id: number; name: string };
+  // ...other fields as needed
+};
 
 export const productsApi = createApi({
   reducerPath: 'productsApi',
@@ -46,6 +56,10 @@ export const productsApi = createApi({
       }),
       invalidatesTags: (_result, _error, { productId }) => [{ type: 'CmsContent', id: productId }],
     }),
+    getProductById: builder.query<Product, number>({
+      query: (id) => ({ url: `/products/${id}`, method: 'GET' }),
+      providesTags: (_result, _error, id) => [{ type: 'Product', id }],
+    }),
   }),
 })
 
@@ -56,4 +70,5 @@ export const {
   useUpdateProductMutation,
   useGetProductCmsQuery,
   useUpdateProductCmsMutation,
+  useGetProductByIdQuery,
 } = productsApi

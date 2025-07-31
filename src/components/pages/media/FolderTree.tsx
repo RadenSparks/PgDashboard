@@ -1,7 +1,12 @@
 import React from "react";
 
+interface FolderTreeNode {
+  children: Record<string, FolderTreeNode>;
+  items?: unknown[];
+}
+
 interface FolderTreeProps {
-  node: unknown;
+  node: FolderTreeNode;
   path?: string[];
   expanded?: Record<string, boolean>;
   setExpanded?: (exp: Record<string, boolean>) => void;

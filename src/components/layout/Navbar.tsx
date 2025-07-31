@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { FaSearch, FaBars, FaMoon, FaSun } from "react-icons/fa";
 import { Input } from "../widgets/input";
+import { Button } from "../widgets/button";
+import { Avatar, AvatarImage, AvatarFallback } from "../widgets/avatar";
+import { Badge } from "../widgets/badge";
 import { MdOutlineKeyboardArrowDown } from "react-icons/md";
 import { clearAuth } from "../../utils/auth";
 import {
@@ -41,7 +44,7 @@ const Navbar = () => {
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const dropdownBg = useColorModeValue("white", "gray.700");
-  const hoverBg = useColorModeValue("gray.100", "gray.600");
+  const hoverBg = useColorModeValue("yellow.100", "gray.700");
   const textColor = useColorModeValue("gray.800", "white");
 
   useEffect(() => {
@@ -66,21 +69,34 @@ const Navbar = () => {
   };
 
   return (
-    <Box w="full" bg={bgColor}>
+    <Box
+      w="full"
+      bg={bgColor}
+      shadow="sm"
+      position="sticky"
+      top={0}
+      zIndex={110}
+      style={{
+        backdropFilter: "blur(8px)",
+        background: "rgba(255,255,255,0.85)",
+        borderBottom: "1.5px solid #e5e7eb",
+        boxShadow: "0 2px 12px 0 rgba(30,64,175,0.06)",
+      }}
+    >
       <Flex
-        h={{ base: "64px", md: "96px" }}
+        h={{ base: "64px", md: "80px" }}
         px={{ base: 4, md: 8 }}
         borderBottom="1px solid"
         borderColor={borderColor}
         bg={bgColor}
         justify="space-between"
         align="center"
-        className="relative z-50"
+        className="relative"
       >
         {/* Hamburger */}
         {isMobile && (
           <IconButton
-            aria-label="Menu"
+            aria-label="Open menu"
             icon={<FaBars />}
             onClick={onOpen}
             display={{ base: "flex", md: "none" }}
@@ -118,7 +134,7 @@ const Navbar = () => {
         <Flex align="center" gap={4} className="min-w-fit">
           {/* Dark Mode */}
           <IconButton
-            aria-label="Toggle dark"
+            aria-label="Toggle dark mode"
             icon={colorMode === "dark" ? <FaSun /> : <FaMoon />}
             onClick={toggleColorMode}
             variant="ghost"
@@ -130,18 +146,25 @@ const Navbar = () => {
 
           {/* Calendar */}
           <Box position="relative" ref={calendarRef} display={{ base: "none", sm: "block" }}>
-            <img
-              src="/assets/icons/calendar.svg"
-              alt="calendar"
-              width={28}
-              height={28}
-              className="cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900 rounded transition"
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
               onClick={() => {
                 setCalendarOpen(!calendarOpen);
                 setNotificationOpen(false);
                 setMenuOpen(false);
               }}
-            />
+              aria-label="Open calendar"
+            >
+              <img
+                src="/assets/icons/calendar.svg"
+                alt="calendar"
+                width={28}
+                height={28}
+                className="rounded"
+              />
+            </Button>
             {calendarOpen && (
               <Box
                 position="absolute"
@@ -176,37 +199,35 @@ const Navbar = () => {
 
           {/* Notification */}
           <Box position="relative" ref={notificationRef} display={{ base: "none", sm: "block" }}>
-            <img
-              src="/assets/icons/notification.svg"
-              alt="notification"
-              width={28}
-              height={28}
-              className="cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900 rounded transition"
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full relative"
               onClick={() => {
                 setNotificationOpen(!notificationOpen);
                 setCalendarOpen(false);
                 setMenuOpen(false);
                 setNotifications(prev => prev.map(n => ({ ...n, read: true })));
               }}
-            />
-            {!notificationOpen && notifications.some(n => !n.read) && (
-              <Box
-                position="absolute"
-                top={0}
-                right="-8px"
-                bg="red.500"
-                color="white"
-                fontSize="xs"
-                rounded="full"
-                w={4}
-                h={4}
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-              >
-                {notifications.filter(n => !n.read).length}
-              </Box>
-            )}
+              aria-label="Show notifications"
+            >
+              <img
+                src="/assets/icons/notification.svg"
+                alt="notification"
+                width={28}
+                height={28}
+                className="rounded"
+              />
+              {notifications.some(n => !n.read) && (
+                <Badge
+                  variant="destructive"
+                  className="absolute top-0 right-0 text-xs px-1 py-0.5"
+                  style={{ transform: "translate(40%,-40%)" }}
+                >
+                  {notifications.filter(n => !n.read).length}
+                </Badge>
+              )}
+            </Button>
             {notificationOpen && (
               <Box
                 position="absolute"
@@ -238,19 +259,25 @@ const Navbar = () => {
 
           {/* User Menu */}
           <Box position="relative" ref={menuRef} display={{ base: "none", sm: "block" }}>
-            <button
-              className="flex items-center gap-2 px-4 py-2 bg-yellow-100 dark:bg-yellow-600 border border-yellow-300 dark:border-yellow-500 rounded-xl text-yellow-800 dark:text-white font-semibold hover:bg-yellow-200 dark:hover:bg-yellow-500"
+            <Button
+              variant="secondary"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold"
               onClick={() => {
                 setMenuOpen(!menuOpen);
                 setNotificationOpen(false);
                 setCalendarOpen(false);
               }}
+              aria-label="Open user menu"
             >
+              <Avatar className="w-8 h-8 border-2 border-yellow-400">
+                <AvatarImage src={currentUser?.avatar_url ?? undefined} alt={currentUser?.username ?? undefined} />
+                <AvatarFallback>{currentUser?.username?.[0] || "U"}</AvatarFallback>
+              </Avatar>
               <span className="text-lg max-w-[100px] truncate" title={currentUser?.username}>
                 {currentUser?.username || "User"}
               </span>
               <MdOutlineKeyboardArrowDown size={24} />
-            </button>
+            </Button>
             {menuOpen && (
               <Box
                 position="absolute"
@@ -264,14 +291,20 @@ const Navbar = () => {
                 py={2}
                 minW="180px"
               >
-                <button className={`block w-full px-4 py-2 text-left hover:bg-${hoverBg}`}>Profile</button>
-                <button className={`block w-full px-4 py-2 text-left hover:bg-${hoverBg}`}>Settings</button>
-                <button
-                  className={`block w-full px-4 py-2 text-left hover:bg-${hoverBg}`}
+                <Button variant="ghost" className="w-full text-left px-4 py-2" asChild>
+                  <span>Profile</span>
+                </Button>
+                <Button variant="ghost" className="w-full text-left px-4 py-2" asChild>
+                  <span>Settings</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full text-left px-4 py-2 text-red-600"
                   onClick={handleSignout}
+                  asChild
                 >
-                  Signout
-                </button>
+                  <span>Signout</span>
+                </Button>
               </Box>
             )}
           </Box>
@@ -284,12 +317,13 @@ const Navbar = () => {
         <DrawerContent bg={bgColor} color={textColor}>
           <DrawerCloseButton />
           <Box p={4}>
-            <button
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+            <Button
+              variant="ghost"
+              className="block w-full text-left px-4 py-2"
               onClick={handleSignout}
             >
               Signout
-            </button>
+            </Button>
           </Box>
         </DrawerContent>
       </Drawer>

@@ -4,7 +4,6 @@ import { FaUserPlus, FaArrowRight } from "react-icons/fa";
 type NewUser = {
   name: string;
   avatar: string;
-  joined: string;
   email: string;
 };
 
@@ -35,34 +34,36 @@ const NewUsersPanel = ({
     </div>
 
     <ul className="flex flex-col gap-4">
-      {newUsers.map((user, idx) => (
-      <li
-        key={idx}
-        className="flex sm:items-center gap-3 bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition"
-      >
-        <img
-          src={user.avatar}
-          alt={user.name}
-          className="rounded-full object-cover border-2 border-pink-400 w-12 h-12"
-        />
+      {newUsers.length === 0 ? (
+        <li className="text-gray-400 text-center py-6">No new users yet.</li>
+      ) : (
+        newUsers.map((user, idx) => (
+          <li
+            key={user.email || idx}
+            className="flex sm:items-center gap-3 bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition"
+          >
+            <img
+              src={user.avatar}
+              alt={user.name}
+              className="rounded-full object-cover border-2 border-pink-400 w-12 h-12"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src =
+                  "https://ui-avatars.com/api/?name=" +
+                  encodeURIComponent(user.name || "User");
+              }}
+            />
 
-        <div className="flex flex-col flex-1 min-w-0">
-          <span className="font-semibold text-gray-800 truncate">{user.name}</span>
-          <span className="text-gray-500 text-sm break-words whitespace-normal">{user.email}</span>
-          <span className="text-xs text-gray-400 break-words whitespace-normal">
-            Joined{" "}
-            {user.joined
-              ? new Date(user.joined).toLocaleDateString(undefined, {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                })
-              : "N/A"}
-          </span>
-        </div>
-      </li>
-
-      ))}
+            <div className="flex flex-col flex-1 min-w-0">
+              <span className="font-semibold text-gray-800 truncate">
+                {user.name}
+              </span>
+              <span className="text-gray-500 text-sm break-words whitespace-normal">
+                {user.email}
+              </span>
+            </div>
+          </li>
+        ))
+      )}
     </ul>
   </div>
 );

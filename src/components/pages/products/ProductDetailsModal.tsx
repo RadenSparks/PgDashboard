@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import type { Product } from "./types";
+import type { Product, Tag, NamedImage } from "./types";
 import GallerySlider from "./GallerySlider";
 import { formatCurrencyVND } from "./formatCurrencyVND";
 
@@ -22,9 +22,13 @@ const ProductDetailsModal = ({ product, onClose }: ProductDetailsModalProps) => 
     }, [onClose]);
 
     // Group tags by type for display
-    const genres = product.tags?.filter((t) => t.type === "genre") || [];
-    const players = product.tags?.find((t) => t.type === "players") || "";
-    const duration = product.tags?.find((t) => t.type === "duration") || "";
+    const tags = (product.tags as Tag[]) || [];
+    const genres = tags.filter((t) => t.type === "genre");
+    const players = tags.find((t) => t.type === "players");
+    const duration = tags.find((t) => t.type === "duration");
+
+    // Cast images for type safety
+    const images = (product.images as NamedImage[]) || [];
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 overflow-y-auto">
@@ -53,7 +57,7 @@ const ProductDetailsModal = ({ product, onClose }: ProductDetailsModalProps) => 
                     <div className="mb-6 w-full">
                         <div className="text-xs text-gray-500 mb-1">Main Image</div>
                         {(() => {
-                            const mainImage = product.images?.find((img) => img.name === "main")?.url;
+                            const mainImage = images.find((img) => img.name === "main")?.url;
                             return (
                                 <img
                                     src={mainImage || "/default-image.jpg"}
@@ -66,7 +70,7 @@ const ProductDetailsModal = ({ product, onClose }: ProductDetailsModalProps) => 
                     <div className="mb-6 w-full">
                         <div className="text-xs text-gray-500 mb-1">Gallery</div>
                         <div className="flex gap-2 flex-wrap">
-                            {product.images
+                            {images
                                 .filter((img) => img.name === "detail")
                                 .map((imgObj, idx) => (
                                     <img
@@ -81,9 +85,7 @@ const ProductDetailsModal = ({ product, onClose }: ProductDetailsModalProps) => 
                     {/* Slider Carousel */}
                     <div className="w-full">
                         <GallerySlider
-                            images={[
-                                ...product.images.map(imgObj => imgObj.url)
-                            ].filter(Boolean)}
+                            images={images.map(imgObj => imgObj.url).filter(Boolean)}
                         />
                     </div>
                 </div>
@@ -159,14 +161,7 @@ const ProductDetailsModal = ({ product, onClose }: ProductDetailsModalProps) => 
                         <div className="mb-3">
                             <span className="font-semibold text-gray-600">Meta Description:</span> {product.meta_description}
                         </div>
-                        <div className="mb-3">
-                            <span className="font-semibold text-gray-600">Created At:</span>{" "}
-                            {product.created_at ? new Date(product.created_at).toLocaleString() : "-"}
-                        </div>
-                        <div className="mb-3">
-                            <span className="font-semibold text-gray-600">Updated At:</span>{" "}
-                            {product.updated_at ? new Date(product.updated_at).toLocaleString() : "-"}
-                        </div>
+                        {/* Remove created_at and updated_at if not in Product type */}
                         <div className="mb-3">
                             <span className="font-semibold text-gray-600">Publisher:</span>{" "}
                             {product.publisher_ID?.name || "-"}

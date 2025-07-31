@@ -1,0 +1,100 @@
+import { Button } from "../../widgets/button";
+import { useGetProductByIdQuery } from "../../../redux/api/productsApi";
+
+interface ProductDetailModalProps {
+    productId: number | null;
+    onClose: () => void;
+    navigate: (path: string) => void;
+}
+
+const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ productId, onClose, navigate }) => {
+    const { data: product, isLoading } = useGetProductByIdQuery(productId ?? 0, { skip: productId === null });
+    if (productId === null || isLoading || !product) return null;
+
+    // Use the first image as the main image, fallback to empty string
+    const mainImage =
+        product.images && product.images.length > 0
+            ? typeof product.images[0] === "string"
+                ? product.images[0]
+                : (product.images[0] as { url: string })?.url || ""
+            : "";
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+            <div className="bg-white rounded-xl shadow-lg max-w-2xl w-full p-6 relative">
+                <button
+                    className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl"
+                    onClick={onClose}
+                    aria-label="Close"
+                >
+                    &times;
+                </button>
+                <div className="flex flex-col md:flex-row gap-6">
+                    <div className="flex-shrink-0">
+                        <img
+                            src={mainImage}
+                            alt={product.product_name}
+                            className="w-32 h-32 object-cover rounded border mb-4"
+                        />
+                        <div className="flex gap-2 flex-wrap">
+                            {product.images?.map((imgObj: string | { url: string }, idx: number) => (
+                                <img
+                                    key={idx}
+                                    src={typeof imgObj === "string" ? imgObj : imgObj.url}
+                                    alt={`${product.product_name} ${idx + 1}`}
+                                    className="w-10 h-10 object-cover rounded border"
+                                />
+                            ))}
+                        </div>
+                    </div>
+                    <div className="flex-1">
+                        <h3 className="text-2xl font-bold mb-2">{product.product_name}</h3>
+                        {/* Use optional chaining and fallback for description */}
+                        <p className="mb-2 text-gray-700">{(product as { description?: string }).description ?? "No description"}</p>
+                        {/* Remove or adjust the category line if not present in your Product type */}
+                        {/* <div className="mb-2">
+                            <span className="font-semibold">Category:</span> {product.category}
+                        </div> */}
+                        <div className="mb-2">
+                            <span className="font-semibold">Price:</span> ${product.product_price.toFixed(2)}
+                            {/* Use optional chaining for discount */}
+                            {((product as { discount?: number }).discount ?? 0) > 0 && (
+                                <span className="ml-2 text-green-600 font-semibold">
+                                    {(product as { discount?: number }).discount}% OFF
+                                </span>
+                            )}
+                        </div>
+                        <div className="mb-2">
+                            <span className="font-semibold">Stock:</span> {product.quantity_stock}
+                            {/* Use optional chaining for quantity_sold */}
+                            <span className="ml-4 font-semibold">Sold:</span> {(product as { quantity_sold?: number }).quantity_sold ?? 0}
+                        </div>
+                        <div className="mb-2">
+                            <span className="font-semibold">Status:</span>{" "}
+                            <span
+                                className={
+                                    (product as { status?: string }).status === "Available"
+                                        ? "text-green-600 font-semibold"
+                                        : "text-red-500 font-semibold"
+                                }
+                            >
+                                {(product as { status?: string }).status ?? "Unknown"}
+                            </span>
+                        </div>
+                        <Button
+                            className="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+                            onClick={() => {
+                                onClose();
+                                navigate(`/products/${product.id}`);
+                            }}
+                        >
+                            Go to Product Detail Page
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default ProductDetailModal;

@@ -3,17 +3,37 @@ import { useCreatePostMutation, useUpdatePostMutation, type Post } from '../../.
 import api from '../../../api/axios-client';
 import PostFormToolbar from './PostFormToolbar';
 import PostFormSidebar from './PostFormSidebar';
-import { useToast } from '@chakra-ui/react';
 import MediaPicker from "../../media/MediaPicker";
+
+// --- Add these interfaces for type safety ---
+interface Catalogue {
+  id: number;
+  name: string;
+}
+
+interface PostFormType {
+  id?: number;
+  name?: string;
+  canonical?: string;
+  catalogueId?: number | string;
+  catalogue?: { id?: number; name?: string };
+  order?: number;
+  description?: string;
+  meta_title?: string;
+  meta_description?: string;
+  meta_keyword?: string;
+  image?: string;
+  content?: string;
+  created_at?: string;
+  publish?: boolean;
+  galleryImages?: string[];
+  [key: string]: unknown;
+}
+// --------------------------------------------
 
 interface Props {
   initialData?: Partial<Post>;
   onSuccess?: () => void;
-}
-
-interface Catalogue {
-  id: number;
-  name: string;
 }
 
 const FONT_FAMILIES = [
@@ -38,12 +58,8 @@ const BG_COLORS = [
   '#ffffff', '#f8fafc', '#f1f5f9', '#e3f2fd', '#fffde7', '#fce4ec', '#f3e5f5', '#e8f5e9',
 ];
 
-function isCloudinaryUrl(url: string) {
-  return /^https:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\//.test(url);
-}
-
 const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
-  const [form, setForm] = useState<Partial<Post>>(initialData);
+  const [form, setForm] = useState<PostFormType>(initialData as PostFormType);
   const [catalogues, setCatalogues] = useState<Catalogue[]>([]);
   const [createPost] = useCreatePostMutation();
   const [updatePost] = useUpdatePostMutation();
@@ -56,14 +72,13 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
   const [showBgColorPicker, setShowBgColorPicker] = useState(false);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [showMediaPicker, setShowMediaPicker] = useState<"cover" | "insert" | "gallery" | null>(null);
-  const toast = useToast();
 
   useEffect(() => {
     api.get('/post-catalogues').then(res => setCatalogues(res.data));
   }, []);
 
   useEffect(() => {
-    setForm(initialData);
+    setForm(initialData as PostFormType);
     if (initialData && Array.isArray(initialData.galleryImages)) {
       setGalleryImages(initialData.galleryImages);
     } else {
@@ -102,22 +117,6 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
   const handleInsertImage = () => setShowMediaPicker("insert");
   const handleInsertHr = () => insertMarkdown('\n\n---\n\n');
 
-  // Gallery image upload handler
-  const handleGalleryImageAdd = (files: FileList) => {
-    const fileArr = Array.from(files);
-    const readers = fileArr.map(file => {
-      return new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = e => resolve(e.target?.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    });
-    Promise.all(readers).then(imgs => {
-      setGalleryImages(prev => [...prev, ...imgs]);
-    });
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
       setTimeout(() => {
@@ -130,32 +129,33 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const url = e.target.value.trim();
-    if (url && !isCloudinaryUrl(url)) {
-      toast({
-        title: 'Invalid Image URL',
-        description: 'Please use a valid Cloudinary image URL.',
-        status: 'error',
-        duration: 4000,
-        isClosable: true,
-      });
-      return;
-    }
-    setForm(f => ({ ...f, image: url }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const catalogueIdValue =
+      form.catalogueId !== undefined && form.catalogueId !== ''
+        ? typeof form.catalogueId === 'string'
+          ? Number(form.catalogueId)
+          : form.catalogueId
+        : form.catalogue?.id;
+
     const payload = {
       ...form,
-      catalogueId: form.catalogueId || form.catalogue?.id,
+      catalogueId:
+        catalogueIdValue !== undefined &&
+        (typeof catalogueIdValue !== 'string' || catalogueIdValue !== '')
+          ? Number(catalogueIdValue)
+          : undefined,
       galleryImages,
       textColor: previewTextColor,
       bgColor: previewBgColor,
       fontFamily,
       fontSize,
     };
+
+    // Ensure catalogueId is a number or undefined for API compatibility
+    if (typeof payload.catalogueId !== "number" && payload.catalogueId !== undefined) {
+      payload.catalogueId = undefined;
+    }
     if (form.id) {
       await updatePost({ id: form.id, body: payload });
     } else {

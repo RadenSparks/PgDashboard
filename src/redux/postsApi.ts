@@ -35,7 +35,7 @@ export const postsApi = createApi({
     }),
     getPost: builder.query<Post, number>({
       query: (id) => ({ url: `/posts/${id}`, method: 'GET' }),
-      providesTags: (result, error, id) => [{ type: 'Post', id }],
+      providesTags: (_result, _error, id) => [{ type: 'Post', id }],
     }),
     createPost: builder.mutation<Post, Partial<Post>>({
       query: (body) => ({

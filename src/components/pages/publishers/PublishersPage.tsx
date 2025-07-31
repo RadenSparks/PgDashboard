@@ -10,10 +10,10 @@ import {
   useUpdatePublisherMutation,
   useDeletePublisherMutation,
 } from "../../../redux/api/publishersApi";
-import type { Product } from "../../components/pages/products/types";
+
 
 const PublishersPage: React.FC = () => {
-  const { data: publishers = [], isLoading, refetch } = useGetPublishersQuery();
+  const { data: publishers = [], refetch } = useGetPublishersQuery();
   const [addPublisher] = useAddPublisherMutation();
   const [updatePublisher] = useUpdatePublisherMutation();
   const [deletePublisher] = useDeletePublisherMutation();
@@ -94,7 +94,7 @@ const PublishersPage: React.FC = () => {
                         <span className="ml-2 text-gray-500">{p.category_ID?.name}</span>
                         {p.tags?.length > 0 && (
                           <span className="ml-2 text-blue-600">
-                            {p.tags.filter(t => t.type === "genre").map(t => t.name).join(", ")}
+                            {(p.tags as { type: string; name: string }[]).filter(t => t.type === "genre").map(t => t.name).join(", ")}
                           </span>
                         )}
                       </Text>

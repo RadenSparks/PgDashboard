@@ -1,7 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../widgets/button";
-import { MdOutlineKeyboardArrowDown } from "react-icons/md";
 import SalesChart from "./SalesChart";
 import OrdersTable from "./OrdersTable";
 import TopProducts from "./TopProducts";
@@ -13,6 +12,7 @@ import { useGetUsersQuery } from "../../../redux/api/usersApi";
 import { useGetAllReviewsQuery } from "../../../redux/api/reviewsApi";
 import { useGetOrdersQuery } from "../../../redux/api/ordersApi";
 import { useGetProductsQuery } from "../../../redux/api/productsApi";
+import { saveAs } from "file-saver";
 
 const RECENT_USER_COUNT = 4;
 
@@ -25,70 +25,112 @@ const DashboardContent = () => {
   const { data: orders = [], isLoading: ordersLoading } = useGetOrdersQuery();
   const { data: products = [], isLoading: productsLoading } = useGetProductsQuery();
 
-  // Stats calculation
-  const {
-    totalRevenue,
-    totalOrders,
-    totalCustomers,
-    totalProducts,
-    salesChartData,
-    topProductsData,
-    recentOrders,
-  } = useMemo(() => {
-    const safeOrders = Array.isArray(orders) ? orders : [];
-    const safeProducts = Array.isArray(products) ? products : [];
+  // Defensive arrays
+  const safeOrders = useMemo(() => Array.isArray(orders) ? orders : [], [orders]);
+  const safeProducts = useMemo(() => Array.isArray(products) ? products : [], [products]);
 
-    const totalProducts = safeProducts.length;
-    const totalOrders = safeOrders.length;
-    const totalCustomers = Array.from(new Set(safeOrders.map(o => o.customer || o.user?.username))).length;
-    const totalRevenue = safeOrders.reduce((sum, o) => sum + (o.total || Number(o.total_price) || 0), 0);
+  // Stats
+  const totalProducts = safeProducts.length;
+  const totalOrders = safeOrders.length;
+  const totalCustomers = Array.from(new Set(safeOrders.map(o => o.user?.username))).length;
+  const totalRevenue = safeOrders.reduce((sum, o) => sum + (Number(o.total_price) || 0), 0);
 
-    // Sales chart: group by date, format date for better readability
-    const salesChartData = safeOrders.map(order => ({
-      name: order.date
-        ? new Date(order.date).toLocaleDateString()
-        : order.order_date
-        ? new Date(order.order_date).toLocaleDateString()
-        : "Unknown",
-      sales: order.total || Number(order.total_price) || 0,
-    }));
+  // --- Sales Chart Data by Day, Week, Month ---
+  const getDateKey = (date: Date, mode: "day" | "week" | "month") => {
+    if (mode === "day") return date.toLocaleDateString("vi-VN");
+    if (mode === "week") {
+      const firstDayOfWeek = new Date(date);
+      firstDayOfWeek.setDate(date.getDate() - date.getDay());
+      return `Tuần ${firstDayOfWeek.toLocaleDateString("vi-VN")}`;
+    }
+    if (mode === "month") return `${date.getMonth() + 1}/${date.getFullYear()}`;
+    return "";
+  };
 
-    // Top products by sales
+  const [salesMode, setSalesMode] = useState<"day" | "week" | "month">("day");
+
+  const salesChartData = useMemo(() => {
+    if (salesMode !== "day") {
+      // Keep original logic for week/month
+      const salesByPeriod: Record<string, number> = {};
+      safeOrders.forEach(order => {
+        const rawDate = order.order_date;
+        if (!rawDate) return;
+        const dateObj = new Date(rawDate);
+        const key = getDateKey(dateObj, salesMode);
+        salesByPeriod[key] = (salesByPeriod[key] || 0) + Number(order.total_price || 0);
+      });
+      return Object.entries(salesByPeriod)
+        .map(([name, sales]) => ({ name, sales }))
+        .sort((a, b) => new Date(a.name).getTime() - new Date(b.name).getTime());
+    }
+
+    // For "day" mode, show all days in range (including missing)
+    const dates: Date[] = [];
+    const orderDates = safeOrders
+      .map(order => new Date(order.order_date))
+      .filter(d => !isNaN(d.getTime()));
+
+    if (orderDates.length === 0) return [];
+
+    // Find min/max date from orders
+    const minDate = new Date(Math.min(...orderDates.map(d => d.getTime())));
+    const maxDate = new Date(Math.max(...orderDates.map(d => d.getTime())));
+
+    // Optionally, extend maxDate to today + 3 days for upcoming
+    const today = new Date();
+    if (maxDate < today) maxDate.setTime(today.getTime());
+    maxDate.setDate(maxDate.getDate() + 3);
+
+    // Build date range
+    for (let d = new Date(minDate); d <= maxDate; d.setDate(d.getDate() + 1)) {
+      dates.push(new Date(d));
+    }
+
+    // Build sales map
+    const salesByDay: Record<string, number> = {};
+    safeOrders.forEach(order => {
+      const rawDate = order.order_date;
+      if (!rawDate) return;
+      const dateObj = new Date(rawDate);
+      const key = dateObj.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
+      salesByDay[key] = (salesByDay[key] || 0) + Number(order.total_price || 0);
+    });
+
+    // Fill chart data for all days
+    return dates.map(date => {
+      const key = date.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
+      return { name: key, sales: salesByDay[key] || 0 };
+    });
+  }, [safeOrders, salesMode]);
+
+  // --- Top Products ---
+  type OrderDetail = { product: { product_name?: string; name?: string; id?: number }; quantity: number; product_name?: string; name?: string; product_id?: number };
+  const topProductsData = useMemo(() => {
     const productSales: Record<string, number> = {};
     safeOrders.forEach(order => {
-      (order.products || order.details || []).forEach(prod => {
-        const name = prod.name || prod.product_name || "Unknown";
+      (order.details || []).forEach((prod: OrderDetail) => {
+        const name =
+          prod.product?.product_name ||
+          prod.product?.name ||
+          prod.product_name ||
+          prod.name ||
+          `#${prod.product?.id || prod.product_id || "?"}`;
         productSales[name] = (productSales[name] || 0) + (prod.quantity || 1);
       });
     });
-    const topProductsData = Object.entries(productSales)
+    return Object.entries(productSales)
       .map(([name, sales]) => ({ name, sales }))
       .sort((a, b) => b.sales - a.sales)
       .slice(0, 5);
+  }, [safeOrders]);
 
-    // Recent orders
-    const recentOrders = [...safeOrders]
-      .sort((a, b) => new Date(b.order_date || b.date).getTime() - new Date(a.order_date || a.date).getTime())
-      .slice(0, 5)
-      .map(order => ({
-        id: order.id,
-        customer: order.user?.full_name || order.user?.username || order.customer || "Unknown",
-        date: order.order_date || order.date,
-        status: order.productStatus || order.status,
-        total: Number(order.total_price || order.total),
-        items: Array.isArray(order.details || order.products) ? (order.details || order.products).length : 0,
-      }));
-
-    return {
-      totalRevenue,
-      totalOrders,
-      totalCustomers,
-      totalProducts,
-      salesChartData,
-      topProductsData,
-      recentOrders,
-    };
-  }, [orders, products]);
+  // Recent orders
+  const recentOrders = useMemo(() => {
+    return [...safeOrders]
+      .sort((a, b) => new Date(b.order_date).getTime() - new Date(a.order_date).getTime())
+      .slice(0, 5);
+  }, [safeOrders]);
 
   // Recent reviews (earliest first)
   const earliestReviews = useMemo(() => {
@@ -128,6 +170,7 @@ const DashboardContent = () => {
     navigate("/users?filter=new");
   };
 
+  // Fix: Add joined property for NewUser[]
   const recentUsers = useMemo(() => {
     return [...users]
       .sort((a, b) => b.id - a.id)
@@ -135,13 +178,24 @@ const DashboardContent = () => {
       .map(user => ({
         name: user.full_name,
         avatar: user.avatar_url || "/assets/image/profile5.jpg",
-        joined: user.joined || "",
         email: user.email,
       }));
   }, [users]);
 
   // Loading state
   const isLoading = usersLoading || reviewsLoading || ordersLoading || productsLoading;
+
+  // Export sales chart data as CSV
+  const handleExportSalesChart = () => {
+    if (!salesChartData.length) return;
+    const csvRows = [
+      "Date,Sales",
+      ...salesChartData.map(row => `"${row.name}",${row.sales}`)
+    ];
+    const csvContent = csvRows.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8" });
+    saveAs(blob, `sales_chart_${salesMode}.csv`);
+  };
 
   return (
     <main className="flex flex-1 px-4 md:px-12 py-8 bg-gradient-to-br from-blue-50 to-white min-h-screen">
@@ -178,10 +232,32 @@ const DashboardContent = () => {
               <div className="bg-white rounded-2xl shadow-lg p-8 col-span-2">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="font-bold text-xl text-blue-700">Sales Overview</h3>
-                  <Button className="flex gap-2 px-4 py-2 border bg-white border-blue-300 rounded-xl shadow hover:bg-blue-50 transition font-semibold">
-                    <span className="text-blue-700 font-medium">This Month</span>
-                    <MdOutlineKeyboardArrowDown size={20} className="text-blue-700" />
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      className={`px-3 py-1 rounded-lg font-semibold border ${salesMode === "day" ? "bg-blue-100 text-blue-700" : "bg-white text-gray-600"}`}
+                      onClick={() => setSalesMode("day")}
+                    >
+                      Day
+                    </Button>
+                    <Button
+                      className={`px-3 py-1 rounded-lg font-semibold border ${salesMode === "week" ? "bg-blue-100 text-blue-700" : "bg-white text-gray-600"}`}
+                      onClick={() => setSalesMode("week")}
+                    >
+                      Week
+                    </Button>
+                    <Button
+                      className={`px-3 py-1 rounded-lg font-semibold border ${salesMode === "month" ? "bg-blue-100 text-blue-700" : "bg-white text-gray-600"}`}
+                      onClick={() => setSalesMode("month")}
+                    >
+                      Month
+                    </Button>
+                    <Button
+                      className="flex gap-2 px-4 py-2 border bg-white border-blue-300 rounded-xl shadow hover:bg-blue-50 transition font-semibold"
+                      onClick={handleExportSalesChart}
+                    >
+                      <span className="text-blue-700 font-medium">Export Chart</span>
+                    </Button>
+                  </div>
                 </div>
                 {salesChartData.length > 0 ? (
                   <SalesChart salesChartData={salesChartData} />

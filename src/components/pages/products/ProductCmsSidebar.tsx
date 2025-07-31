@@ -44,11 +44,11 @@ const ProductCmsSidebar: React.FC<Props> = ({
         />
         {/* --- CMS Modal Section Previews --- */}
         {/* HERO SECTION */}
-        {(cmsContent.heroTitle || cmsContent.heroSubtitle || cmsContent.heroImage) && (
+        {(cmsContent.heroTitle || cmsContent.heroSubtitle || (cmsContent.heroImages && cmsContent.heroImages.length > 0)) && (
           <section className="mb-6 mt-6">
             <h5 className="text-lg font-semibold mb-2" style={{ color: previewTextColor }}>Hero Section</h5>
-            {cmsContent.heroImage && (
-              <img src={cmsContent.heroImage} alt="Hero" className="w-32 h-32 object-cover rounded-lg border shadow mb-2" />
+            {cmsContent.heroImages && cmsContent.heroImages.length > 0 && (
+              <img src={cmsContent.heroImages[0]} alt="Hero" className="w-32 h-32 object-cover rounded-lg border shadow mb-2" />
             )}
             <div className="font-bold text-xl mb-1" style={{ color: previewTextColor }}>{cmsContent.heroTitle}</div>
             <div className="text-gray-600" style={{ color: previewTextColor }}>{cmsContent.heroSubtitle}</div>
@@ -107,7 +107,7 @@ const ProductCmsSidebar: React.FC<Props> = ({
           <section className="mb-6">
             <h5 className="text-lg font-semibold mb-2" style={{ color: previewTextColor }}>Product Tabs</h5>
             {["Specifications", "How To Play", "About"].map((fixedTitle) => {
-              const tab = cmsContent.tabs.find(
+              const tab = cmsContent.tabs?.find(
                 t => t.title.trim().toLowerCase() === fixedTitle.trim().toLowerCase()
               );
               if (!tab) return null;

@@ -53,7 +53,9 @@ const PostsPage = () => {
                   <td className="py-2 px-3 text-blue-700">{post.canonical}</td>
                   <td className="py-2 px-3">
                     <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">
-                      {post.catalogue?.name || '-'}
+                      {typeof post.catalogue === 'object' && post.catalogue !== null && 'name' in post.catalogue
+                        ? (post.catalogue as { name: string }).name
+                        : '-'}
                     </span>
                   </td>
                   <td className="py-2 px-3 text-gray-500">{post.created_at?.slice(0, 10)}</td>
@@ -130,7 +132,7 @@ const PostsPage = () => {
                 title={previewPost?.name}
                 description={previewPost?.description}
                 image={previewPost?.image}
-                catalogueName={previewPost?.catalogue?.name}
+                catalogueName={typeof previewPost?.catalogue === 'object' && previewPost?.catalogue !== null && 'name' in previewPost.catalogue ? (previewPost.catalogue as { name: string }).name : undefined}
                 date={previewPost?.created_at?.slice(0, 10)}
                 fontFamily={previewPost?.fontFamily}
                 fontSize={previewPost?.fontSize}

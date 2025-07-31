@@ -8,7 +8,7 @@ import {
     FaTrash,
     FaPlus,
 } from "react-icons/fa";
-import type { User } from "../users/usersData";
+import type { User } from "@/redux/api/usersApi";
 
 type Role = {
     id: number;

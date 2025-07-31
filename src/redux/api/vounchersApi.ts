@@ -24,9 +24,9 @@ export const vouchersApi = createApi({
       query: () => ({ url: '/coupons', method: 'GET' }),
       providesTags: ['Voucher'],
     }),
-    addVoucher: builder.mutation<Voucher, Voucher>({
+    addVoucher: builder.mutation<Voucher, Omit<Voucher, "id">>({
       query: (body) => ({
-        url: '/coupons',
+        url: '/vouchers',
         method: 'POST',
         data: body,
       }),

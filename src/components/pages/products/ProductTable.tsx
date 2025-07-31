@@ -39,10 +39,15 @@ const ProductTable = ({
                 </thead>
                 <tbody>
                     {products.map((prod) => {
-                        const mainImage = prod.images?.find((img) => img.name === "main")?.url;
-                        const genres = prod.tags?.filter((t) => t.type === "genre") || [];
-                        const players = prod.tags?.find((t) => t.type === "players") || "";
-                        const duration = prod.tags?.find((t) => t.type === "duration") || "";
+                        // Cast images and tags to the correct types
+                        const images = (prod.images as { name?: string; url?: string }[]) || [];
+                        const tags = (prod.tags as { name?: string; type?: string }[]) || [];
+
+                        const mainImage = images.find((img) => img?.name === "main")?.url;
+                        const genres = tags.filter((t) => t.type === "genre");
+                        const players = tags.find((t) => t.type === "players");
+                        const duration = tags.find((t) => t.type === "duration");
+
                         return (
                             <tr key={prod.id} className="border-b hover:bg-blue-50 align-middle transition">
                                 <td className="py-4 px-3 align-middle">

@@ -1,6 +1,7 @@
 // Types for products and CMS content
 
 export interface NamedImage {
+  folder: unknown;
   id: number;
   url: string;
   name: string; // "main" for main image, others for gallery
@@ -43,27 +44,35 @@ export interface Product {
   deleteImages?: unknown[];
 }
 
-export type TabSection = {
+export interface FeaturedSection {
+  title: string;
+  description: string;
+  imageSrc: string;
+  imageAlt?: string;
+  textBgColor?: string;
+  isImageRight?: boolean;
+}
+
+export interface TabSection {
   title: string;
   content: string;
   images: string[];
-};
+}
 
-export type CmsContent = {
-  heroTitle: string;
-  heroSubtitle: string;
-  heroImages: string[];
-  aboutTitle: string;
-  aboutText: string;
-  aboutImages: string[];
-  sliderImages: string[];
-  detailsTitle: string;
-  detailsContent: string;
+export interface CmsContent {
+  heroTitle?: string;
+  heroSubtitle?: string;
+  heroImages?: string[]; // <-- array, not string
+  aboutTitle?: string;
+  aboutText?: string;
+  aboutImages?: string[];
+  sliderImages?: string[];
+  detailsTitle?: string;
+  detailsContent?: string;
   tabs?: TabSection[];
   fontFamily?: string;
   fontSize?: string;
   textColor?: string;
   bgColor?: string;
-  warranty?: string;
-  shippingInfo?: string;
-};
+  featuredSections?: FeaturedSection[]; // <-- add this
+}

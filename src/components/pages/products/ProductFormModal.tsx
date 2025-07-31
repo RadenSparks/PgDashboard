@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import type { Product, NamedImage } from "./types";
+import type { Product, NamedImage, Tag } from "./types"; // <-- Use Tag from your local types
 import { Button } from "../../widgets/button";
 import GallerySlider from "./GallerySlider";
-import type { Tag } from "../tags/availableTags";
 import { useGetCategoriesQuery } from "../../../redux/api/categoryApi";
 import Loading from "../../../components/widgets/loading";
 import { useGetTagsQuery } from "../../../redux/api/tagsApi";
@@ -26,14 +25,14 @@ const ProductFormModal = ({
   mode,
 }: ProductFormModalProps) => {
   const { data: initialCategories, isLoading: loadCat } = useGetCategoriesQuery();
-  const { data: dataTags, isLoading: loadTags } = useGetTagsQuery();
+  const { data: dataTags = [], isLoading: loadTags } = useGetTagsQuery();
   const { data: publishers } = useGetPublishersQuery();
   const toast = useToast();
 
-  const genreTags = dataTags?.filter(c => c.type === 'genre') ?? [];
-  const playerTags = dataTags?.filter(c => c.type === 'players') ?? [];
-  const durationTags = dataTags?.filter(c => c.type === 'duration') ?? [];
-  const ageTags = dataTags?.filter(c => c.type === 'age') ?? [];
+  const genreTags = (dataTags as Tag[]).filter((c: Tag) => c.type === 'genre');
+  const playerTags = (dataTags as Tag[]).filter((c: Tag) => c.type === 'players');
+  const durationTags = (dataTags as Tag[]).filter((c: Tag) => c.type === 'duration');
+  const ageTags = (dataTags as Tag[]).filter((c: Tag) => c.type === 'age');
 
   // MediaPicker state
   const [showMediaPicker, setShowMediaPicker] = useState<"main" | "gallery" | null>(null);
@@ -54,13 +53,13 @@ const ProductFormModal = ({
   // Tag assignment handlers
   // Always keep product.tags as Tag[]
   const tagsArray: number[] = Array.isArray(product.tags)
-    ? product.tags.map((t: Tag) => t.id)
+    ? (product.tags as Tag[]).map((t) => t.id)
     : [];
 
   const handleGenreChange = (selected: number[]) => {
     const tags = [
-      ...dataTags.filter(tag => selected.includes(tag.id)),
-      ...product.tags.filter((t: Tag) => !genreTags.some(g => g.id === t.id)),
+      ...(dataTags as Tag[]).filter((tag) => selected.includes(tag.id)),
+      ...(product.tags as Tag[]).filter((t) => !genreTags.some((g) => g.id === t.id)),
     ];
     onChange({ ...product, tags });
   };
@@ -82,9 +81,9 @@ const ProductFormModal = ({
     type: "players" | "duration" | "age",
     value: number
   ) => {
-    const tags = product.tags.filter((t: Tag) => t.type !== type);
+    const tags = (product.tags as Tag[]).filter((t) => t.type !== type);
     if (value) {
-      const tagObj = [...playerTags, ...durationTags, ...ageTags].find(t => t.id === value);
+      const tagObj = [...playerTags, ...durationTags, ...ageTags].find((t) => t.id === value);
       if (tagObj) tags.push(tagObj);
     }
     onChange({ ...product, tags });
@@ -93,47 +92,46 @@ const ProductFormModal = ({
   const handleDeleteImage = (id: number) => {
     onChange({
       ...product,
-      images: product.images.filter(img => img.id !== id),
+      images: (product.images as NamedImage[]).filter((img) => img.id !== id),
       deleteImages: [...(product.deleteImages || []), id],
     });
   };
 
-  const handleImageSelect = async imgs => {
+  const handleImageSelect = async (imgs: NamedImage[] | NamedImage) => {
     try {
       if (showMediaPicker === "main") {
         const img = Array.isArray(imgs) ? imgs[0] : imgs;
-        // Download image as File for upload
-        const blob = await fetch(img.url).then(res => res.blob());
+        const blob = await fetch(img.url).then((res) => res.blob());
         const file = new File([blob], img.name || "main.jpg", { type: blob.type });
-        const mainImage: NamedImage = { id: img.id, url: img.url, name: "main", file };
-        // Remove previous main image, keep gallery images
-        const galleryImages = product.images.filter(i => i.name !== "main");
+        const mainImage: NamedImage = { id: img.id, url: img.url, name: "main", file, folder: img.folder ?? "" };
+        const galleryImages = (product.images as NamedImage[]).filter((i) => i.name !== "main");
         onChange({
           ...product,
           images: [mainImage, ...galleryImages],
           mainImage: file,
         });
-        if (img.folder) setLastMediaFolder(img.folder);
+        if (typeof img.folder === "string") setLastMediaFolder(img.folder);
       } else if (showMediaPicker === "gallery") {
         const arr = Array.isArray(imgs) ? imgs : [imgs];
-        // Fetch each gallery image as a File
-        const galleryImages: NamedImage[] = await Promise.all(arr.map(async i => {
-          const blob = await fetch(i.url).then(res => res.blob());
-          const file = new File([blob], i.name || `gallery-${i.id}.jpg`, { type: blob.type });
-          return {
-            id: i.id,
-            url: i.url,
-            name: i.name || "",
-            file,
-          };
-        }));
-        // Keep main image (if exists), then gallery images
-        const mainImage = product.images.find(i => i.name === "main");
+        const galleryImages: NamedImage[] = await Promise.all(
+          arr.map(async (i) => {
+            const blob = await fetch(i.url).then((res) => res.blob());
+            const file = new File([blob], i.name || `gallery-${i.id}.jpg`, { type: blob.type });
+            return {
+              id: i.id,
+              url: i.url,
+              name: i.name || "",
+              file,
+              folder: i.folder ?? "",
+            };
+          })
+        );
+        const mainImage = (product.images as NamedImage[]).find((i) => i.name === "main");
         onChange({
           ...product,
           images: mainImage ? [mainImage, ...galleryImages] : [...galleryImages],
         });
-        if (arr[0]?.folder) setLastMediaFolder(arr[0].folder);
+        if (typeof arr[0]?.folder === "string") setLastMediaFolder(arr[0].folder);
       }
       setShowMediaPicker(null);
       toast({
@@ -142,7 +140,7 @@ const ProductFormModal = ({
         duration: 3000,
         isClosable: true,
       });
-    } catch (err: unknown) {
+    } catch {
       toast({
         title: "Failed to update images.",
         status: "error",
@@ -152,7 +150,9 @@ const ProductFormModal = ({
     }
   };
 
-  if (loadCat || loadTags) { return <Loading></Loading>; }
+  if (loadCat || loadTags) {
+    return <Loading />;
+  }
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 overflow-y-auto">
       <div
@@ -252,7 +252,7 @@ const ProductFormModal = ({
                     <select
                       className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
                       multiple
-                      value={selectedGenres}
+                      value={selectedGenres.map(String)}
                       onChange={e =>
                         handleGenreChange(
                           Array.from(e.target.selectedOptions).map(opt => Number(opt.value))
@@ -411,9 +411,9 @@ const ProductFormModal = ({
                   >
                     Select from Media Library
                   </button>
-                  {product.images[0] && product.images[0].url && (
+                  {(product.images[0] as NamedImage)?.url && (
                     <img
-                      src={product.images[0].url}
+                      src={(product.images[0] as NamedImage).url}
                       alt="Main"
                       className="w-14 h-14 object-cover rounded border mt-2"
                     />
@@ -430,8 +430,8 @@ const ProductFormModal = ({
                     Select from Media Library
                   </button>
                   <div className="flex gap-3 flex-wrap mt-2">
-                    {product.images.filter(img => img.name !== "main").map((imgObj, idx) => (
-                      imgObj.url ? (
+                    {(product.images as NamedImage[]).filter(img => img.name !== "main").map((imgObj, idx) => (
+                      imgObj && "url" in imgObj && imgObj.url ? (
                         <div key={imgObj.id || idx} className="relative group">
                           <img
                             src={imgObj.url}
@@ -454,9 +454,9 @@ const ProductFormModal = ({
                 <div className="flex flex-col gap-2 mt-2">
                   <div>
                     <div className="text-xs text-gray-500 mb-1">Main</div>
-                    {product.images.find(img => img.name === "main")?.url && (
+                    {(product.images as NamedImage[]).find((img) => (img as NamedImage).name === "main")?.url && (
                       <img
-                        src={product.images.find(img => img.name === "main")!.url}
+                        src={(product.images as NamedImage[]).find((img) => (img as NamedImage).name === "main")!.url}
                         alt="Main"
                         className="w-14 h-14 object-cover rounded border"
                       />
@@ -465,8 +465,8 @@ const ProductFormModal = ({
                   <div>
                     <div className="text-xs text-gray-500 mb-1">Gallery</div>
                     <div className="flex gap-3 flex-wrap">
-                      {product.images.filter(img => img.name !== "main").map((imgObj, idx) => (
-                        imgObj.url ? (
+                      {(product.images as NamedImage[]).filter(img => img.name !== "main").map((imgObj, idx) => (
+                        imgObj && "url" in imgObj && imgObj.url ? (
                           <div key={imgObj.id || idx} className="relative group">
                             <img
                               src={imgObj.url}
@@ -487,7 +487,7 @@ const ProductFormModal = ({
                   </div>
                   {/* Slider Carousel */}
                   <GallerySlider
-                    images={product.images.map(imgObj => imgObj.url).filter(Boolean)}
+                    images={(product.images as NamedImage[]).filter(imgObj => imgObj && "url" in imgObj && imgObj.url).map(imgObj => imgObj.url)}
                   />
                 </div>
               </div>
@@ -540,7 +540,7 @@ const ProductFormModal = ({
           show={!!showMediaPicker}
           multiple={showMediaPicker === "gallery"}
           folder={lastMediaFolder || product.slug}
-          onSelect={handleImageSelect}
+          onSelect={(images) => handleImageSelect(images as NamedImage[] | NamedImage)}
           onClose={() => setShowMediaPicker(null)}
         />
       </div>

@@ -21,8 +21,10 @@ import TagsPage from './components/pages/tags/TagsPage';
 import MediaManager from './components/pages/media/MediaManager';
 import CollectionsPage from './components/pages/collections/CollectionsPage';
 import PublishersPage from './components/pages/publishers/PublishersPage';
+import type { User } from '../src/redux/api/usersApi';
+
 const App: React.FC = () => {
-  const [users, setUsers] = useState<unknown[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
 
   return (
     <ChakraProvider>

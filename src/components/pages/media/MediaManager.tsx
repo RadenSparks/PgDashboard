@@ -9,20 +9,20 @@ import MoveModal from "./MoveModal";
 import DeleteFolderModal from "./DeleteFolderModal";
 import DeleteMediaModal from "./DeleteMediaModal"; 
 import { Box, Flex } from "@chakra-ui/react"; // Optional: for easier layout
-import type { FolderTreeNode } from "./MediaManager"; // or define it in a shared types file
+// FolderTreeNode type is now exported from this file
 
 const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "diishpkrl";
 const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "your_unsigned_preset";
 
 // Helper to build a folder tree from flat media list
 function buildFolderTree(media: MediaItem[]): FolderTreeNode {
-  const root: FolderTreeNode = {};
+  const root: FolderTreeNode = { children: {} };
   media.forEach((item) => {
     const parts = (item.folder || "default").split("/").filter(Boolean);
     let node = root;
     for (const part of parts) {
       node.children = node.children || {};
-      node.children[part] = node.children[part] || {};
+      node.children[part] = node.children[part] || { children: {} };
       node = node.children[part];
     }
     node.items = node.items || [];
@@ -31,8 +31,8 @@ function buildFolderTree(media: MediaItem[]): FolderTreeNode {
   return root;
 }
 
-type FolderTreeNode = {
-  children?: { [key: string]: FolderTreeNode };
+export type FolderTreeNode = {
+  children: Record<string, FolderTreeNode>;
   items?: MediaItem[];
 };
 
@@ -91,7 +91,7 @@ const MediaManager: React.FC = () => {
   const getCurrentNode = (tree: FolderTreeNode, path: string[]): FolderTreeNode => {
     let node = tree;
     for (const part of path) {
-      if (!node.children || !node.children[part]) return { items: [] };
+      if (!node.children[part]) return { children: {}, items: [] };
       node = node.children[part];
     }
     return node;
@@ -169,7 +169,7 @@ const MediaManager: React.FC = () => {
     } catch (err: unknown) {
       toast({
         title: "Upload failed",
-        description: err && typeof err === "object" && "message" in err ? (err as unknown).message : "Unknown error",
+        description: err && typeof err === "object" && "message" in err ? (err as { message?: string }).message : "Unknown error",
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -234,7 +234,7 @@ const MediaManager: React.FC = () => {
     } catch (err: unknown) {
       toast({
         title: "Delete failed",
-        description: err && typeof err === "object" && "message" in err ? (err as unknown).message : "Unknown error",
+        description: err && typeof err === "object" && "message" in err ? (err as { message?: string }).message : "Unknown error",
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -301,7 +301,7 @@ const MediaManager: React.FC = () => {
       setFolderPath(folderPath.slice(0, -1));
       setShowDeleteFolderModal(false);
       refetch();
-    } catch (err: unknown) {
+    } catch {
       // Even if backend fails, remove the virtual folder
       setVirtualFolders(prev =>
         prev.filter(arr => arr.join("/") !== folderPath.join("/"))
@@ -340,7 +340,7 @@ const MediaManager: React.FC = () => {
     } catch (err: unknown) {
       toast({
         title: "Move failed",
-        description: err.message,
+        description: err && typeof err === "object" && "message" in err ? (err as { message?: string }).message : "Unknown error",
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -471,7 +471,7 @@ const MediaManager: React.FC = () => {
           onMove={handleMoveImages}
           moveTargetFolder={moveTargetFolder}
           setMoveTargetFolder={setMoveTargetFolder}
-          getAllFolderPaths={getAllFolderPaths}
+          getAllFolderPaths={(tree: unknown) => getAllFolderPaths(tree as FolderTreeNode)}
           folderTree={folderTree}
         />
         <DeleteFolderModal

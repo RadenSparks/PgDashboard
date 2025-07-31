@@ -20,7 +20,7 @@ const CatalogueManager: React.FC = () => {
 
   const handleAdd = async () => {
     if (!newName.trim()) return;
-    const canonical = newName.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
+    const canonical = newName.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     await addCatalogue({ name: newName, canonical });
     setNewName('');
     refetch();
@@ -49,7 +49,7 @@ const CatalogueManager: React.FC = () => {
       toast({
         title: 'Cannot delete catalogue',
         description:
-          error?.response?.data?.message ||
+          (typeof error === 'object' && error !== null && 'data' in error && (error as { data?: { message?: string } }).data?.message) ||
           'This catalogue is still used by one or more posts.',
         status: 'error',
         duration: 5000,
