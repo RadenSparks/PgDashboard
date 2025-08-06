@@ -49,10 +49,13 @@ const BlogPostPreview: React.FC<BlogPostPreviewProps> = ({
   content,
   meta_title,
   meta_description,
+  meta_keyword,
+  canonical,
   fontFamily = 'sans-serif',
   fontSize = 'text-lg',
   textColor = '#0f172a',
   bgColor = '#fff',
+  publish = true,
   onApplySeo,
 }) => {
   const [showSeoScore, setShowSeoScore] = useState(false);
