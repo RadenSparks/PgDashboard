@@ -58,8 +58,10 @@ const PostFormSidebar: React.FC<Props> = ({
           title={form.name}
           description={form.description}
           image={form.image}
-          catalogueName={catalogues.find((c) => c.id === Number(form.catalogueId))?.name ||
-            form.catalogue?.name}
+          catalogueName={
+            catalogues.find((c) => c.id === Number(form.catalogueId))?.name ||
+            form.catalogue?.name
+          }
           date={form.created_at ? form.created_at.slice(0, 10) : undefined}
           fontFamily={fontFamily}
           fontSize={fontSize}
@@ -69,9 +71,8 @@ const PostFormSidebar: React.FC<Props> = ({
           meta_description={form.meta_description}
           meta_keyword={form.meta_keyword}
           canonical={form.canonical}
-          publish={!!form.publish} onApplySeo={function (): void {
-            throw new Error('Function not implemented.');
-          } }        />
+          publish={!!form.publish}
+        />
       </div>
     </div>
     <div className="bg-white rounded-2xl shadow p-6 m-6 mt-4">
