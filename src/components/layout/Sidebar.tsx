@@ -70,10 +70,10 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
 
   return (
     <div
-      className={`flex flex-col h-full overflow-y-auto sidebar-scrollbar-hide border-r-2 bg-gradient-to-b from-blue-50 via-white to-blue-100 shadow-xl ${collapsed ? "w-[72px]" : "w-[260px]"} transition-all duration-300`}
+      className={`flex flex-col h-full overflow-y-auto border-r-2 bg-gradient-to-b from-blue-50 via-white to-blue-100 shadow-xl ${collapsed ? "w-[72px]" : "w-[260px]"} transition-all duration-300 scrollbar-hide`}
       style={{
-        scrollbarWidth: "thin",
-        scrollbarColor: "#cbd5e1 #f1f5f9",
+        scrollbarWidth: "none", // For Firefox
+        scrollbarColor: "transparent transparent", // For Firefox
       }}
     >
       {/* Logo Section */}
