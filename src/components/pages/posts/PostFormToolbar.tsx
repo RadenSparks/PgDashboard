@@ -1,36 +1,37 @@
 import React from 'react';
-import GallerySlider from '../products/GallerySlider';
 
 interface Props {
   onHeading: (level: number) => void;
   onBold: () => void;
   onItalic: () => void;
   onUnderline: () => void;
+  onImage: () => void;
   onHr: () => void;
   previewTextColor: string;
   previewBgColor: string;
   showColorPicker: boolean;
   showBgColorPicker: boolean;
-  setShowColorPicker: (v: boolean) => void;
-  setShowBgColorPicker: (v: boolean) => void;
+  setShowColorPicker: (show: boolean) => void;
+  setShowBgColorPicker: (show: boolean) => void;
   setPreviewTextColor: (color: string) => void;
   setPreviewBgColor: (color: string) => void;
   COLORS: string[];
   BG_COLORS: string[];
   fontFamily: string;
-  setFontFamily: (v: string) => void;
+  setFontFamily: (font: string) => void;
   fontSize: string;
-  setFontSize: (v: string) => void;
+  setFontSize: (size: string) => void;
   FONT_FAMILIES: { label: string; value: string }[];
   FONT_SIZES: { label: string; value: string }[];
   publish: boolean;
   setPublish: (v: boolean) => void;
-  onGalleryImageInsert?: (url: string) => void;
-  onClearFormatting?: () => void;
-  onInsertLink?: () => void;
-  onGalleryImageRemove?: (idx: number) => void;
   onOpenGalleryPicker: () => void;
   images: string[];
+  onGalleryImageInsert: (url: string) => void;
+  onGalleryImageRemove?: (idx: number) => void;
+  onClearFormatting?: () => void;
+  onInsertLink?: () => void;
+  onParagraphBreak?: () => void;
 }
 
 const ICON_BTN =
@@ -48,11 +49,13 @@ const PostFormToolbar: React.FC<Props> = ({
   fontSize, setFontSize,
   FONT_FAMILIES, FONT_SIZES,
   publish, setPublish,
-  onClearFormatting, onInsertLink,
   onOpenGalleryPicker,
   images,
   onGalleryImageInsert,
   onGalleryImageRemove,
+  onClearFormatting,
+  onInsertLink,
+  onParagraphBreak,
 }) => {
   return (
     <div className="border-b bg-white px-3 py-2">
@@ -67,8 +70,8 @@ const PostFormToolbar: React.FC<Props> = ({
           <button type="button" aria-label="Italic" title="Italic" className={ICON_BTN + " italic"} onClick={onItalic}><i>I</i></button>
           <button type="button" aria-label="Underline" title="Underline" className={ICON_BTN + " underline"} onClick={onUnderline}><u>U</u></button>
           <span className="w-px h-5 bg-gray-300 mx-1" />
-          <button type="button" aria-label="Clear Formatting" title="Clear Formatting" className={ICON_BTN} onClick={() => onClearFormatting?.()}>Tx</button>
-          <button type="button" aria-label="Insert Link" title="Insert Link" className={ICON_BTN} onClick={() => onInsertLink?.()}>🔗</button>
+          <button type="button" aria-label="Clear Formatting" title="Clear Formatting" className={ICON_BTN} onClick={onClearFormatting}>Tx</button>
+          <button type="button" aria-label="Insert Link" title="Insert Link" className={ICON_BTN} onClick={onInsertLink}>🔗</button>
           <span className="w-px h-5 bg-gray-300 mx-1" />
           <button
             type="button"
@@ -82,6 +85,17 @@ const PostFormToolbar: React.FC<Props> = ({
           </button>
           <span className="w-px h-5 bg-gray-300 mx-1" />
           <button type="button" aria-label="Horizontal Rule" title="Horizontal Rule" className={ICON_BTN} onClick={onHr}>―</button>
+          <span className="w-px h-5 bg-gray-300 mx-1" />
+          <button
+            type="button"
+            aria-label="Paragraph Break"
+            title="Paragraph Break"
+            className={ICON_BTN}
+            onClick={onParagraphBreak}
+          >
+            ¶
+          </button>
+          <span className="w-px h-5 bg-gray-300 mx-1" />
         </div>
         {/* Right: Customization controls */}
         <div className="flex flex-wrap gap-2 items-center">
@@ -189,7 +203,7 @@ const PostFormToolbar: React.FC<Props> = ({
                   type="button"
                   className="absolute top-0 right-0 bg-white bg-opacity-80 rounded-full p-1 text-base text-red-500 hover:bg-red-100 transition"
                   style={{ transform: 'translate(30%,-30%)' }}
-                  onClick={() => onGalleryImageRemove?.(idx)}
+                  onClick={() => onGalleryImageRemove && onGalleryImageRemove(idx)}
                   title="Remove"
                   aria-label="Remove image"
                 >
@@ -198,7 +212,7 @@ const PostFormToolbar: React.FC<Props> = ({
                 <button
                   type="button"
                   className="absolute bottom-0 left-0 bg-blue-600 text-white text-xs px-2 py-0.5 rounded-tr-xl rounded-bl-xl opacity-80 hover:opacity-100 transition"
-                  onClick={() => onGalleryImageInsert?.(img)}
+                  onClick={() => onGalleryImageInsert(img)}
                   title="Insert into post"
                   aria-label="Insert image into post"
                 >

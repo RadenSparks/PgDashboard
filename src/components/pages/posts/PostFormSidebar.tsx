@@ -1,9 +1,29 @@
 import React from 'react';
 import BlogPostPreview from './BlogPostPreview';
 
+interface Catalogue {
+  id: number;
+  name: string;
+}
+
+interface PostForm {
+  content?: string;
+  name?: string;
+  description?: string;
+  image?: string;
+  catalogueId?: number | string;
+  catalogue?: { name?: string };
+  created_at?: string;
+  meta_title?: string;
+  meta_description?: string;
+  meta_keyword?: string;
+  canonical?: string;
+  publish?: boolean;
+}
+
 interface Props {
-  form: any;
-  catalogues: any[];
+  form: PostForm;
+  catalogues: Catalogue[];
   fontFamily: string;
   setFontFamily: (v: string) => void;
   fontSize: string;
@@ -39,10 +59,10 @@ const PostFormSidebar: React.FC<Props> = ({
           description={form.description}
           image={form.image}
           catalogueName={
-            catalogues.find(c => c.id === Number(form.catalogueId))?.name ||
+            catalogues.find((c) => c.id === Number(form.catalogueId))?.name ||
             form.catalogue?.name
           }
-          date={form.created_at?.slice(0, 10)}
+          date={form.created_at ? form.created_at.slice(0, 10) : undefined}
           fontFamily={fontFamily}
           fontSize={fontSize}
           textColor={previewTextColor}

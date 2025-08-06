@@ -13,7 +13,7 @@ export interface Review {
 
 export const reviewsApi = createApi({
   reducerPath: 'reviewsApi',
-  baseQuery: axiosBaseQuery(),
+  baseQuery: axiosBaseQuery,
   tagTypes: ['Review'],
   endpoints: (builder) => ({
     getAllReviews: builder.query<Review[], void>({

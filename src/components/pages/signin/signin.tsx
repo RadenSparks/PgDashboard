@@ -13,6 +13,7 @@ import {
     Box,
     useColorModeValue,
     useToast,
+    Divider,
 } from '@chakra-ui/react'
 import { useState, useRef } from 'react';
 import { BsEye, BsEyeSlash } from 'react-icons/bs';
@@ -132,79 +133,140 @@ const SignIn = () => {
     };
 
     return (
-        <Flex minH="100vh" align="center" justify="center" bg={useColorModeValue('blue.50', 'gray.900')}>
+        <Flex
+            minH="100vh"
+            align="center"
+            justify="center"
+            bgGradient="linear(to-br, blue.50, white 60%, blue.100)"
+            position="relative"
+            overflow="hidden"
+        >
+            {/* Decorative background shapes */}
+            <Box
+                position="absolute"
+                top="-80px"
+                left="-80px"
+                w="300px"
+                h="300px"
+                bgGradient="radial(ellipse at center, blue.200 60%, transparent 100%)"
+                filter="blur(40px)"
+                zIndex={0}
+            />
+            <Box
+                position="absolute"
+                bottom="-100px"
+                right="-100px"
+                w="320px"
+                h="320px"
+                bgGradient="radial(ellipse at center, yellow.100 60%, transparent 100%)"
+                filter="blur(60px)"
+                zIndex={0}
+            />
             <Box
                 ref={containerRef}
                 bg={useColorModeValue('white', 'gray.800')}
                 p={{ base: 6, md: 10 }}
                 rounded="2xl"
-                shadow="xl"
+                shadow="2xl"
                 w="full"
                 maxW="md"
-                border="1px solid"
+                border="1.5px solid"
                 borderColor={useColorModeValue('gray.200', 'gray.700')}
                 className="signin-transition"
+                zIndex={1}
+                position="relative"
             >
-                {!mfaStep ? (
-                    <form onSubmit={handleSubmit}>
-                        <Stack spacing={6} w="full">
-                            <Heading fontSize="2xl" textAlign="center" color="blue.700" mb={2}>
-                                Sign in to your account
-                            </Heading>
-                            <FormControl id="email" isRequired>
-                                <FormLabel>Email</FormLabel>
-                                <Input
-                                    type="email"
-                                    name="email"
-                                    placeholder="Enter your email"
-                                    size="lg"
-                                    value={email}
-                                    onChange={e => setEmail(e.target.value)}
-                                />
-                            </FormControl>
-                            <FormControl id="password" isRequired>
-                                <FormLabel>Password</FormLabel>
-                                <InputGroup>
+                <Stack spacing={6} w="full">
+                    <Flex direction="column" align="center" mb={2}>
+                        <Box
+                            mb={2}
+                            as="img"
+                            src="/assets/icons/logo-01.svg"
+                            alt="Pengoo Logo"
+                            width={56}
+                            height={56}
+                            draggable={false}
+                            style={{
+                                objectFit: "contain",
+                                pointerEvents: "none",
+                                userSelect: "none",
+                                borderRadius: "50%",
+                                boxShadow: "0 2px 12px 0 rgba(30,64,175,0.10)"
+                            }}
+                        />
+                        <Heading fontSize="2xl" textAlign="center" color="blue.700" fontWeight="extrabold" letterSpacing="tight">
+                            Đăng nhập Pengoo Dashboard
+                        </Heading>
+                        <Text fontSize="sm" color="gray.500" mt={1}>
+                            Quản lý hệ thống của bạn một cách dễ dàng
+                        </Text>
+                    </Flex>
+                    <Divider borderColor="blue.100" mb={2} />
+                    {!mfaStep ? (
+                        <form onSubmit={handleSubmit}>
+                            <Stack spacing={5} w="full">
+                                <FormControl id="email" isRequired>
+                                    <FormLabel fontWeight="semibold" color="blue.800">Email</FormLabel>
                                     <Input
-                                        type={revealPwd ? "text" : "password"}
-                                        name="password"
-                                        placeholder="Enter your password"
+                                        type="email"
+                                        name="email"
+                                        placeholder="Nhập email của bạn"
                                         size="lg"
-                                        value={password}
-                                        onChange={e => setPassword(e.target.value)}
+                                        value={email}
+                                        onChange={e => setEmail(e.target.value)}
+                                        bg="blue.50"
+                                        borderColor="blue.100"
+                                        _focus={{ borderColor: "blue.400", bg: "white" }}
+                                        rounded="lg"
                                     />
-                                    <InputRightElement width="3rem">
-                                        <Button
-                                            h="1.75rem"
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={toggleRevealPassword}
-                                            tabIndex={-1}
-                                            aria-label={revealPwd ? "Hide password" : "Show password"}
-                                        >
-                                            {revealPwd ? <BsEye /> : <BsEyeSlash />}
-                                        </Button>
-                                    </InputRightElement>
-                                </InputGroup>
-                            </FormControl>
-                            <Stack spacing={4}>
-                                <Flex align="center" justify="space-between">
-                                    <Checkbox colorScheme="blue">Remember me</Checkbox>
+                                </FormControl>
+                                <FormControl id="password" isRequired>
+                                    <FormLabel fontWeight="semibold" color="blue.800">Mật khẩu</FormLabel>
+                                    <InputGroup>
+                                        <Input
+                                            type={revealPwd ? "text" : "password"}
+                                            name="password"
+                                            placeholder="Nhập mật khẩu"
+                                            size="lg"
+                                            value={password}
+                                            onChange={e => setPassword(e.target.value)}
+                                            bg="blue.50"
+                                            borderColor="blue.100"
+                                            _focus={{ borderColor: "blue.400", bg: "white" }}
+                                            rounded="lg"
+                                        />
+                                        <InputRightElement width="3rem">
+                                            <Button
+                                                h="1.75rem"
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={toggleRevealPassword}
+                                                tabIndex={-1}
+                                                aria-label={revealPwd ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                                            >
+                                                {revealPwd ? <BsEye /> : <BsEyeSlash />}
+                                            </Button>
+                                        </InputRightElement>
+                                    </InputGroup>
+                                </FormControl>
+                                <Flex align="center" justify="space-between" mt={-2}>
+                                    <Checkbox colorScheme="blue" fontWeight="medium">Ghi nhớ đăng nhập</Checkbox>
                                     <Text
                                         color="blue.500"
                                         fontWeight="medium"
                                         cursor="pointer"
+                                        fontSize="sm"
                                         _hover={{ textDecoration: "underline" }}
                                         onClick={() => toast({
-                                            title: "Forgot password?",
-                                            description: "Password reset is not implemented yet.",
+                                            title: "Quên mật khẩu?",
+                                            description: "Chức năng khôi phục mật khẩu sẽ sớm có mặt.",
                                             status: "info",
                                             duration: 4000,
                                             isClosable: true,
                                             position: "top",
                                         })}
                                     >
-                                        Forgot password?
+                                        Quên mật khẩu?
                                     </Text>
                                 </Flex>
                                 <Button
@@ -216,11 +278,12 @@ const SignIn = () => {
                                     shadow="md"
                                     _hover={{ bg: "blue.600" }}
                                     isLoading={loading}
+                                    mt={2}
                                 >
-                                    Sign in
+                                    Đăng nhập
                                 </Button>
-                                <Text textAlign="center" color="gray.500">
-                                    Don't have an account?{" "}
+                                <Text textAlign="center" color="gray.500" fontSize="sm">
+                                    Chưa có tài khoản?{" "}
                                     <Text
                                         as="span"
                                         color="blue.500"
@@ -229,44 +292,48 @@ const SignIn = () => {
                                         _hover={{ textDecoration: "underline" }}
                                         onClick={handleNavigateSignup}
                                     >
-                                        Sign up
+                                        Đăng ký ngay
                                     </Text>
                                 </Text>
                             </Stack>
-                        </Stack>
-                    </form>
-                ) : (
-                    <form onSubmit={handleMfaSubmit}>
-                        <Stack spacing={6} w="full">
-                            <Heading fontSize="2xl" textAlign="center" color="blue.700" mb={2}>
-                                Enter Confirmation Code
-                            </Heading>
-                            <FormControl id="mfaCode" isRequired>
-                                <FormLabel>Code sent to your email</FormLabel>
-                                <Input
-                                    type="text"
-                                    name="mfaCode"
-                                    placeholder="Enter the code"
+                        </form>
+                    ) : (
+                        <form onSubmit={handleMfaSubmit}>
+                            <Stack spacing={5} w="full">
+                                <Heading fontSize="xl" textAlign="center" color="blue.700" mb={2}>
+                                    Nhập mã xác thực
+                                </Heading>
+                                <FormControl id="mfaCode" isRequired>
+                                    <FormLabel>Mã xác thực đã gửi tới email</FormLabel>
+                                    <Input
+                                        type="text"
+                                        name="mfaCode"
+                                        placeholder="Nhập mã xác thực"
+                                        size="lg"
+                                        value={mfaCode}
+                                        onChange={e => setMfaCode(e.target.value)}
+                                        bg="blue.50"
+                                        borderColor="blue.100"
+                                        _focus={{ borderColor: "blue.400", bg: "white" }}
+                                        rounded="lg"
+                                    />
+                                </FormControl>
+                                <Button
+                                    colorScheme="blue"
                                     size="lg"
-                                    value={mfaCode}
-                                    onChange={e => setMfaCode(e.target.value)}
-                                />
-                            </FormControl>
-                            <Button
-                                colorScheme="blue"
-                                size="lg"
-                                type="submit"
-                                rounded="lg"
-                                fontWeight="bold"
-                                shadow="md"
-                                _hover={{ bg: "blue.600" }}
-                                isLoading={loading}
-                            >
-                                Verify & Sign in
-                            </Button>
-                        </Stack>
-                    </form>
-                )}
+                                    type="submit"
+                                    rounded="lg"
+                                    fontWeight="bold"
+                                    shadow="md"
+                                    _hover={{ bg: "blue.600" }}
+                                    isLoading={loading}
+                                >
+                                    Xác nhận & Đăng nhập
+                                </Button>
+                            </Stack>
+                        </form>
+                    )}
+                </Stack>
             </Box>
         </Flex>
     )

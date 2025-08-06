@@ -41,6 +41,7 @@ export interface Product {
   quantity_stock: number;
   created_at: string;
   updated_at: string;
+  images?: string[]; // <-- Add images property for compatibility with order details
 }
 
 export interface OrderDetail {
@@ -63,11 +64,15 @@ export interface Order {
   payment_status: 'pending' | 'paid' | 'failed' | string;
   productStatus: 'pending' | 'shipped' | 'completed' | string;
   details: OrderDetail[];
+  // Add these if your UI expects them (for compatibility with UI code)
+  // trackingNumber?: string;
+  // status?: string;
+  // deliveryMethod?: string;
 }
 
 export const ordersApi = createApi({
   reducerPath: 'ordersApi',
-  baseQuery: axiosBaseQuery(),
+  baseQuery: axiosBaseQuery,
   tagTypes: ['Order'],
   endpoints: (builder) => ({
     getOrders: builder.query<Order[], void>({

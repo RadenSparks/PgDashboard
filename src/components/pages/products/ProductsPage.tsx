@@ -10,14 +10,13 @@ import { useAddProductMutation, useGetProductsQuery, useUpdateProductMutation, u
 import Loading from "../../../components/widgets/loading";
 import { toaster } from "../../widgets/toaster";
 
-
 // Main Products Page
 const ProductsPage = () => {
     //Store
     const [addProduct, { isLoading: isAdding }] = useAddProductMutation();
     const [updateProduct] = useUpdateProductMutation();
     const [deleteProduct] = useDeleteProductMutation();
-    const { data: products = [], isLoading } = useGetProductsQuery() as { data: Product[], isLoading: boolean };
+    const { data: products = [], isLoading } = useGetProductsQuery() as unknown as { data: Product[], isLoading: boolean };
     //
     const [detailProduct, setDetailProduct] = useState<Product | null>(null);
     const [editProduct, setEditProduct] = useState<Product | null>(null);
@@ -65,16 +64,15 @@ const ProductsPage = () => {
             status: "Available",
             category_ID: { id: 0, name: "" },
             publisher_ID: { id: 0, name: "" },
-            tags: [], // <-- always an array of Tag objects
+            tags: [],
             images: [],
-            featured: [],
         });
         setShowAddModal(true);
     };
 
     const handleSaveNewProduct = async () => {
         try {
-            const toastId = toaster.show({ title: "Saving product...", type: "loading" });
+            toaster.show({ title: "Saving product...", type: "loading" });
             if (editProduct) {
                 const formData = new FormData();
                 formData.append("product_name", editProduct.product_name);
@@ -89,31 +87,31 @@ const ProductsPage = () => {
                 formData.append("status", editProduct.status);
                 formData.append("category_ID", editProduct.category_ID.id.toString());
                 formData.append("publisher_ID", editProduct.publisher_ID?.id?.toString() || "");
-                formData.append("tags", editProduct.tags.map((t: Tag | number) => typeof t === "object" ? t.id : t).join(" "));
-                formData.append('featured', JSON.stringify(editProduct.featured.map((f, i) => ({
-                    title: f.title,
-                    content: f.content,
-                    ord: String(i)
-                }))));
+                formData.append(
+                    "tags",
+                    (editProduct.tags as (Tag | number)[]).map((t) => typeof t === "object" ? t.id : t).join(" ")
+                );
                 // Main image
                 if (editProduct.mainImage instanceof File) {
                     formData.append("mainImage", editProduct.mainImage);
                 }
                 // Gallery images
-                editProduct.images
+                (editProduct.images as { name?: string; file?: File }[])
                     .filter(img => img.name !== "main" && img.file instanceof File)
                     .forEach(img => {
-                        formData.append('detailImages', img.file);
+                        formData.append('detailImages', img.file as File);
                     });
                 await addProduct(formData);
-                toaster.dismiss(toastId);
                 toaster.show({ title: "Product saved successfully!", type: "success" });
                 setEditProduct(null);
                 setShowAddModal(false);
             }
-        } catch (err: any) {
-            toaster.dismiss();
-            toaster.show({ title: "Failed to save product", description: err.message || "Unknown error", type: "error" });
+        } catch (err: unknown) {
+            const errorMsg =
+                typeof err === "object" && err !== null && "message" in err
+                    ? String((err as { message: string }).message)
+                    : "Unknown error";
+            toaster.show({ title: "Failed to save product", description: errorMsg, type: "error" });
         }
     };
 
@@ -121,8 +119,7 @@ const ProductsPage = () => {
     const handleEdit = (prod: Product) => {
         setEditProduct({
             ...prod,
-            tags: prod.tags || [], // Ensure tags are full objects
-            featured: prod.featured || [],
+            tags: prod.tags || [],
             deleteImages: [],
         });
         setShowAddModal(true);
@@ -146,14 +143,12 @@ const ProductsPage = () => {
                 formData.append("status", editProduct.status);
                 formData.append("category_ID", editProduct.category_ID.id.toString());
                 formData.append("publisher_ID", editProduct.publisher_ID?.id?.toString() || "");
-                formData.append("tags", editProduct.tags.map((t: Tag | number) => typeof t === "object" ? t.id : t).join(" "));
-                formData.append('featured', JSON.stringify(editProduct.featured.map((f, i) => ({
-                    title: f.title,
-                    content: f.content,
-                    ord: String(i)
-                }))));
+                formData.append(
+                    "tags",
+                    (editProduct.tags as (Tag | number)[]).map((t) => typeof t === "object" ? t.id : t).join(" ")
+                );
                 // Images
-                editProduct.images.forEach((img) => {
+                (editProduct.images as { file?: File }[]).forEach((img) => {
                     if (img.file) formData.append('detailImages', img.file);
                 });
                 if (editProduct.mainImage instanceof File) {
@@ -167,17 +162,20 @@ const ProductsPage = () => {
                 setEditProduct(null);
                 setShowAddModal(false);
             }
-        } catch (err: any) {
-            toaster.show({ title: "Failed to update product", description: err.message || "Unknown error", type: "error" });
+        } catch (err: unknown) {
+            const errorMsg =
+                typeof err === "object" && err !== null && "message" in err
+                    ? String((err as { message: string }).message)
+                    : "Unknown error";
+            toaster.show({ title: "Failed to update product", description: errorMsg, type: "error" });
         }
     };
 
     // DELETE
     const handleDelete = async (id: number) => {
         if (window.confirm("Are you sure you want to delete this product? This action cannot be undone.")) {
-            const toastId = toaster.show({ title: "Deleting product...", type: "loading" });
+            toaster.show({ title: "Deleting product...", type: "loading" });
             await deleteProduct(id);
-            toaster.dismiss(toastId);
             toaster.show({ title: "Product deleted.", type: "success" });
         }
     };
@@ -204,8 +202,12 @@ const ProductsPage = () => {
             // Optionally refetch products or CMS content here
             alert("Saved!");
             setCmsProductId(null);
-        } catch (err) {
-            alert("Failed to save: " + (err?.message || "Unknown error"));
+        } catch (err: unknown) {
+            const errorMsg =
+                typeof err === "object" && err !== null && "message" in err
+                    ? String((err as { message: string }).message)
+                    : "Unknown error";
+            alert("Failed to save: " + errorMsg);
         }
     };
 
@@ -253,7 +255,6 @@ const ProductsPage = () => {
             {detailProduct && (
                 <ProductDetailsModal
                     product={detailProduct}
-                    cmsContent={cmsProductContent}
                     onClose={() => setDetailProduct(null)}
                 />
             )}

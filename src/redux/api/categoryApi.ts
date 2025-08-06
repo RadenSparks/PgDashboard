@@ -9,7 +9,7 @@ export interface Category {
 
 export const categoryApi = createApi({
   reducerPath: 'categoryApi',
-  baseQuery: axiosBaseQuery(),
+  baseQuery: axiosBaseQuery,
   tagTypes: ['Category'],
   endpoints: (builder) => ({
     getCategories: builder.query<Category[], void>({

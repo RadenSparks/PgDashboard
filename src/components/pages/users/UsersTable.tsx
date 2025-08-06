@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "../../widgets/button";
 import { FaTrash } from "react-icons/fa";
 import clsx from "clsx";
-import type { User } from "../users/usersData";
+import type { User } from "../../../redux/api/usersApi";
 
 interface UsersTableProps {
   users: User[];

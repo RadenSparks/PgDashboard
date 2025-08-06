@@ -2,15 +2,19 @@ import { createApi } from '@reduxjs/toolkit/query/react'
 import { axiosBaseQuery } from '../axiosBaseQuery'
 import type { CmsContent } from '../../components/pages/products/types'
 
-export interface Product {
-  id: number
-  name: string
-  type: string
-}
+export type Product = { 
+  id: number;
+  product_name: string;
+  product_price: number;
+  quantity_stock: number;
+  images?: { url: string; name?: string }[];
+  category_ID?: { id: number; name: string };
+  // ...other fields as needed
+};
 
 export const productsApi = createApi({
   reducerPath: 'productsApi',
-  baseQuery: axiosBaseQuery(),
+  baseQuery: axiosBaseQuery,
   tagTypes: ['Product', 'CmsContent'],
   endpoints: (builder) => ({
     getProducts: builder.query<Product[], void>({
@@ -42,7 +46,7 @@ export const productsApi = createApi({
     }),
     getProductCms: builder.query<CmsContent, number>({
       query: (productId) => ({ url: `/products/${productId}/cms-content`, method: 'GET' }),
-      providesTags: (result, error, id) => [{ type: 'CmsContent', id }],
+      providesTags: (_result, _error, id) => [{ type: 'CmsContent', id }],
     }),
     updateProductCms: builder.mutation<CmsContent, { productId: number; data: Partial<CmsContent> }>({
       query: ({ productId, data }) => ({
@@ -50,7 +54,11 @@ export const productsApi = createApi({
         method: 'PUT',
         data,
       }),
-      invalidatesTags: (result, error, { productId }) => [{ type: 'CmsContent', id: productId }],
+      invalidatesTags: (_result, _error, { productId }) => [{ type: 'CmsContent', id: productId }],
+    }),
+    getProductById: builder.query<Product, number>({
+      query: (id) => ({ url: `/products/${id}`, method: 'GET' }),
+      providesTags: (_result, _error, id) => [{ type: 'Product', id }],
     }),
   }),
 })
@@ -62,4 +70,5 @@ export const {
   useUpdateProductMutation,
   useGetProductCmsQuery,
   useUpdateProductCmsMutation,
+  useGetProductByIdQuery,
 } = productsApi

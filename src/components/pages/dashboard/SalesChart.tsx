@@ -1,19 +1,47 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import React from "react";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
 
-type SalesChartProps = {
-  salesChartData: { name: string; sales: number }[];
+export interface SalesChartData {
+  name: string; // Date label
+  sales: number;
+}
+
+const SalesChart: React.FC<{ salesChartData: SalesChartData[] }> = ({ salesChartData }) => {
+  return (
+    <div style={{ width: "100%", height: 320 }}>
+      <ResponsiveContainer>
+        <LineChart
+          data={salesChartData}
+          margin={{ top: 16, right: 24, left: 0, bottom: 0 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+          <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+          <YAxis tick={{ fontSize: 12 }} />
+          <Tooltip
+            contentStyle={{ background: "#fff", borderRadius: 8, border: "1px solid #e5e7eb" }}
+            labelStyle={{ fontWeight: "bold" }}
+            formatter={(value: number) => value.toLocaleString("vi-VN") + " ₫"}
+          />
+          <Line
+            type="monotone"
+            dataKey="sales"
+            stroke="#2563eb"
+            strokeWidth={3}
+            dot={{ r: 4, stroke: "#2563eb", strokeWidth: 2, fill: "#fff" }}
+            activeDot={{ r: 6 }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
 };
-
-const SalesChart = ({ salesChartData }: SalesChartProps) => (
-  <ResponsiveContainer width="100%" height={280}>
-    <LineChart data={salesChartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="name" />
-      <YAxis />
-      <Tooltip />
-      <Line type="monotone" dataKey="sales" stroke="#2563eb" strokeWidth={3} dot={{ r: 4 }} />
-    </LineChart>
-  </ResponsiveContainer>
-);
 
 export default SalesChart;

@@ -3,17 +3,38 @@ import { useCreatePostMutation, useUpdatePostMutation, type Post } from '../../.
 import api from '../../../api/axios-client';
 import PostFormToolbar from './PostFormToolbar';
 import PostFormSidebar from './PostFormSidebar';
-import { useToast } from '@chakra-ui/react';
 import MediaPicker from "../../media/MediaPicker";
+import { useToast } from '@chakra-ui/react';
+
+// --- Add these interfaces for type safety ---
+interface Catalogue {
+  id: number;
+  name: string;
+}
+
+interface PostFormType {
+  id?: number;
+  name?: string;
+  canonical?: string;
+  catalogueId?: number | string;
+  catalogue?: { id?: number; name?: string };
+  order?: number;
+  description?: string;
+  meta_title?: string;
+  meta_description?: string;
+  meta_keyword?: string;
+  image?: string;
+  content?: string;
+  created_at?: string;
+  publish?: boolean;
+  galleryImages?: string[];
+  [key: string]: unknown;
+}
+// --------------------------------------------
 
 interface Props {
   initialData?: Partial<Post>;
   onSuccess?: () => void;
-}
-
-interface Catalogue {
-  id: number;
-  name: string;
 }
 
 const FONT_FAMILIES = [
@@ -38,12 +59,9 @@ const BG_COLORS = [
   '#ffffff', '#f8fafc', '#f1f5f9', '#e3f2fd', '#fffde7', '#fce4ec', '#f3e5f5', '#e8f5e9',
 ];
 
-function isCloudinaryUrl(url: string) {
-  return /^https:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\//.test(url);
-}
-
 const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
-  const [form, setForm] = useState<Partial<Post>>(initialData);
+  const toast = useToast();
+  const [form, setForm] = useState<PostFormType>(initialData as PostFormType);
   const [catalogues, setCatalogues] = useState<Catalogue[]>([]);
   const [createPost] = useCreatePostMutation();
   const [updatePost] = useUpdatePostMutation();
@@ -56,20 +74,44 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
   const [showBgColorPicker, setShowBgColorPicker] = useState(false);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [showMediaPicker, setShowMediaPicker] = useState<"cover" | "insert" | "gallery" | null>(null);
-  const toast = useToast();
+  const [cataloguePosts, setCataloguePosts] = useState<PostFormType[]>([]);
 
   useEffect(() => {
     api.get('/post-catalogues').then(res => setCatalogues(res.data));
   }, []);
 
   useEffect(() => {
-    setForm(initialData);
+    setForm(initialData as PostFormType);
     if (initialData && Array.isArray(initialData.galleryImages)) {
       setGalleryImages(initialData.galleryImages);
     } else {
       setGalleryImages([]);
     }
   }, [initialData]);
+
+  useEffect(() => {
+    if (form.catalogueId) {
+      api.get(`/posts?catalogueId=${form.catalogueId}`).then(res => setCataloguePosts(res.data));
+    } else {
+      setCataloguePosts([]);
+    }
+  }, [form.catalogueId]);
+
+  // Compute order options
+  const usedOrders = cataloguePosts
+    .filter(p => !form.id || p.id !== form.id)
+    .map(p => Number(p.order))
+    .filter(Boolean);
+
+  const maxOrder = Math.max(2, cataloguePosts.length + (form.id ? 0 : 1)); // Always at least 2 options
+  const orderOptions = [];
+  for (let i = 1; i <= maxOrder; i++) {
+    orderOptions.push(i);
+  }
+  if (form.order && !orderOptions.includes(Number(form.order))) {
+    orderOptions.push(Number(form.order));
+  }
+  orderOptions.sort((a, b) => a - b);
 
   // Markdown helpers
   const insertMarkdown = (before: string, after: string = '', placeholder: string = '') => {
@@ -84,13 +126,16 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
     const newContent = beforeText + before + insertText + after + afterText;
     setForm({ ...form, content: newContent });
     setTimeout(() => {
-      textarea.focus();
-      if (selected) {
-        textarea.selectionStart = start + before.length;
-        textarea.selectionEnd = start + before.length + insertText.length;
-      } else {
-        textarea.selectionStart = textarea.selectionEnd = start + before.length + insertText.length + after.length;
+      // Only set selection if textarea is focused
+      if (document.activeElement === textarea) {
+        if (selected) {
+          textarea.selectionStart = start + before.length;
+          textarea.selectionEnd = start + before.length + insertText.length;
+        } else {
+          textarea.selectionStart = textarea.selectionEnd = start + before.length + insertText.length + after.length;
+        }
       }
+      // Do NOT call textarea.focus() here!
     }, 0);
   };
 
@@ -101,22 +146,7 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
   const handleInsertUnderline = () => insertMarkdown('<u>', '</u>', 'underlined text');
   const handleInsertImage = () => setShowMediaPicker("insert");
   const handleInsertHr = () => insertMarkdown('\n\n---\n\n');
-
-  // Gallery image upload handler
-  const handleGalleryImageAdd = (files: FileList) => {
-    const fileArr = Array.from(files);
-    const readers = fileArr.map(file => {
-      return new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = e => resolve(e.target?.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    });
-    Promise.all(readers).then(imgs => {
-      setGalleryImages(prev => [...prev, ...imgs]);
-    });
-  };
+  const handleParagraphBreak = () => insertMarkdown('\n\n');
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
@@ -127,41 +157,58 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const url = e.target.value.trim();
-    if (url && !isCloudinaryUrl(url)) {
-      toast({
-        title: 'Invalid Image URL',
-        description: 'Please use a valid Cloudinary image URL.',
-        status: 'error',
-        duration: 4000,
-        isClosable: true,
-      });
-      return;
+    const { name, value } = e.target;
+    if (name === "canonical") {
+      // Replace spaces with hyphens, remove non-url-safe chars, and lowercase
+      const sanitized = value
+        .replace(/\s+/g, "-")        // spaces to hyphens
+        .replace(/[^a-zA-Z0-9-]/g, "") // remove special chars except hyphen
+        .toLowerCase();
+      setForm({ ...form, [name]: sanitized });
+    } else {
+      setForm({ ...form, [name]: value });
     }
-    setForm(f => ({ ...f, image: url }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const catalogueIdValue =
+      form.catalogueId !== undefined && form.catalogueId !== ''
+        ? typeof form.catalogueId === 'string'
+          ? Number(form.catalogueId)
+          : form.catalogueId
+        : form.catalogue?.id;
+
     const payload = {
       ...form,
-      catalogueId: form.catalogueId || form.catalogue?.id,
+      catalogueId:
+        catalogueIdValue !== undefined &&
+        (typeof catalogueIdValue !== 'string' || catalogueIdValue !== '')
+          ? Number(catalogueIdValue)
+          : undefined,
       galleryImages,
       textColor: previewTextColor,
       bgColor: previewBgColor,
       fontFamily,
       fontSize,
     };
-    if (form.id) {
-      await updatePost({ id: form.id, body: payload });
-    } else {
-      await createPost(payload);
+
+    // Ensure catalogueId is a number or undefined for API compatibility
+    if (typeof payload.catalogueId !== "number" && payload.catalogueId !== undefined) {
+      payload.catalogueId = undefined;
     }
-    if (onSuccess) onSuccess();
+    try {
+      if (form.id) {
+        await updatePost({ id: form.id, body: payload });
+        toast({ title: "Post updated!", status: "success", duration: 3000, isClosable: true });
+      } else {
+        await createPost(payload);
+        toast({ title: "Post created!", status: "success", duration: 3000, isClosable: true });
+      }
+      if (onSuccess) onSuccess();
+    } catch {
+      toast({ title: "Error saving post", status: "error", duration: 4000, isClosable: true });
+    }
   };
 
   return (
@@ -229,14 +276,20 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
                   </div>
                   <div>
                     <label className="block font-semibold mb-1">Order</label>
-                    <input
+                    <select
                       name="order"
-                      type="number"
                       value={form.order || ''}
                       onChange={handleChange}
-                      placeholder="Order"
                       className="w-full border rounded p-3 text-lg"
-                    />
+                    >
+                      <option value="">Select Order</option>
+                      {orderOptions.map(i => (
+                        <option key={i} value={i}>
+                          {i === 1 ? "1 (Featured)" : i}
+                          {usedOrders.includes(i) && form.order !== i ? " (Used)" : ""}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
                 <div className="mt-6">
@@ -315,6 +368,7 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
                     onUnderline={handleInsertUnderline}
                     onImage={handleInsertImage}
                     onHr={handleInsertHr}
+                    onParagraphBreak={handleParagraphBreak} // <-- add this prop
                     previewTextColor={previewTextColor}
                     previewBgColor={previewBgColor}
                     showColorPicker={showColorPicker}
@@ -336,7 +390,7 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
                     onOpenGalleryPicker={() => setShowMediaPicker("gallery")}
                     images={galleryImages}
                     onGalleryImageInsert={url => {
-                      insertMarkdown(`\n\n![alt text](${url})\n\n`);
+                      insertMarkdown(`\n\n![](${url})\n\n`);
                     }}
                   />
                 </div>
@@ -381,7 +435,7 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
                           <button
                             type="button"
                             className="absolute bottom-0 left-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-tr rounded-bl opacity-80 hover:opacity-100 transition"
-                            onClick={() => insertMarkdown(`\n\n![alt text](${img})\n\n`)}
+                            onClick={() => insertMarkdown(`\n\n![](${img})\n\n`)}
                             title="Insert into post"
                           >
                             Insert
@@ -430,7 +484,7 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
           } else if (showMediaPicker === "insert") {
             const arr = Array.isArray(imgs) ? imgs : [imgs];
             arr.forEach(img => {
-              insertMarkdown(`\n\n![alt text](${img.url})\n\n`);
+              insertMarkdown(`\n\n![](${img.url})\n\n`);
             });
           } else if (showMediaPicker === "gallery") {
             const arr = Array.isArray(imgs) ? imgs : [imgs];

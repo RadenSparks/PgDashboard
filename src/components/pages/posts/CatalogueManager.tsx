@@ -5,7 +5,7 @@ import {
   useUpdateCatalogueMutation,
   useDeleteCatalogueMutation,
 } from '../../../redux/api/catalogueApi';
-import { useToast } from '@chakra-ui/react';
+import { toaster } from '../../widgets/toaster';
 
 const CatalogueManager: React.FC = () => {
   const { data: catalogues = [], refetch } = useGetCataloguesQuery();
@@ -16,14 +16,26 @@ const CatalogueManager: React.FC = () => {
   const [editId, setEditId] = useState<number | null>(null);
   const [editName, setEditName] = useState('');
   const [editCanonical, setEditCanonical] = useState('');
-  const toast = useToast();
 
   const handleAdd = async () => {
     if (!newName.trim()) return;
-    const canonical = newName.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
-    await addCatalogue({ name: newName, canonical });
-    setNewName('');
-    refetch();
+    const canonical = newName.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    try {
+      await addCatalogue({ name: newName, canonical });
+      setNewName('');
+      refetch();
+      toaster.show({
+        title: 'Catalogue added',
+        description: `Catalogue "${newName}" was added successfully.`,
+        type: 'success',
+      });
+    } catch {
+      toaster.show({
+        title: 'Add failed',
+        description: 'Could not add catalogue.',
+        type: 'error',
+      });
+    }
   };
 
   const handleEdit = (cat: { id: number; name: string; canonical?: string }) => {
@@ -34,26 +46,42 @@ const CatalogueManager: React.FC = () => {
 
   const handleUpdate = async () => {
     if (!editName.trim() || !editCanonical.trim() || editId === null) return;
-    await updateCatalogue({ id: editId, name: editName, canonical: editCanonical });
-    setEditId(null);
-    setEditName('');
-    setEditCanonical('');
-    refetch();
+    try {
+      await updateCatalogue({ id: editId, name: editName, canonical: editCanonical });
+      setEditId(null);
+      setEditName('');
+      setEditCanonical('');
+      refetch();
+      toaster.show({
+        title: 'Catalogue updated',
+        description: `Catalogue "${editName}" was updated successfully.`,
+        type: 'success',
+      });
+    } catch {
+      toaster.show({
+        title: 'Update failed',
+        description: 'Could not update catalogue.',
+        type: 'error',
+      });
+    }
   };
 
   const handleDelete = async (id: number) => {
     try {
       await deleteCatalogue(id);
       refetch();
-    } catch (error: any) {
-      toast({
+      toaster.show({
+        title: 'Catalogue deleted',
+        description: 'Catalogue was deleted successfully.',
+        type: 'success',
+      });
+    } catch (error: unknown) {
+      toaster.show({
         title: 'Cannot delete catalogue',
         description:
-          error?.response?.data?.message ||
+          (typeof error === 'object' && error !== null && 'data' in error && (error as { data?: { message?: string } }).data?.message) ||
           'This catalogue is still used by one or more posts.',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
+        type: 'error',
       });
     }
   };

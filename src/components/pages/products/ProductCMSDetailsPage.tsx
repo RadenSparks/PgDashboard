@@ -137,6 +137,85 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
           </div>
         </section>
       )}
+
+      {/* PRODUCT TABS SECTION - Fixed Tabs: Specifications, How To Play, Contents */}
+      <section className="mb-10">
+        <h4 className="text-xl font-semibold mb-2" style={{ color: textColor, fontFamily }}>Product Tabs</h4>
+        {["Specifications", "How To Play", "Contents"].map((fixedTitle) => {
+          const tab = cmsContent.tabs?.find(
+            t => t.title.trim().toLowerCase() === fixedTitle.trim().toLowerCase()
+          );
+          if (!tab) return (
+            <div key={fixedTitle} className="mb-6">
+              <div className="font-bold mb-1" style={{ color: textColor }}>{fixedTitle}</div>
+              <div className="text-gray-400 italic">No content provided.</div>
+            </div>
+          );
+
+          if (fixedTitle === "How To Play") {
+            return (
+              <div key={fixedTitle} className="mb-6">
+                <div className="font-bold mb-1" style={{ color: textColor }}>{fixedTitle}</div>
+                {tab.content ? (
+                  <div>
+                    <a
+                      href={tab.content}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline break-all"
+                    >
+                      {tab.content}
+                    </a>
+                    {(tab.content.includes("youtube.com") || tab.content.includes("youtu.be") || tab.content.includes("vimeo.com")) && (
+                      <div className="mt-2">
+                        <iframe
+                          width="420"
+                          height="236"
+                          src={
+                            tab.content.includes("youtube.com") || tab.content.includes("youtu.be")
+                              ? tab.content.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/")
+                              : tab.content
+                          }
+                          title="How To Play Video"
+                          frameBorder={0}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-gray-400 italic">No video link provided.</div>
+                )}
+              </div>
+            );
+          }
+
+          // For Specifications and Contents: show markdown and images
+          return (
+            <div key={fixedTitle} className="mb-6">
+              <div className="font-bold mb-1" style={{ color: textColor }}>{fixedTitle}</div>
+              <div className="prose max-w-none border rounded p-4 bg-white" style={{ color: textColor, fontFamily, fontSize }}>
+                <ReactMarkdown>{tab.content || "*No details provided.*"}</ReactMarkdown>
+              </div>
+              {tab.images && tab.images.length > 0 && (
+                <div className="flex gap-2 flex-wrap mt-2">
+                  {tab.images.map((img, imgIdx) =>
+                    img ? (
+                      <img
+                        key={imgIdx}
+                        src={img}
+                        alt={`Tab ${fixedTitle} Image ${imgIdx + 1}`}
+                        className="w-16 h-16 object-cover rounded border"
+                      />
+                    ) : null
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </section>
     </div>
   );
 };

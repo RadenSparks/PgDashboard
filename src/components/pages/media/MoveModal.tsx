@@ -6,8 +6,8 @@ interface MoveModalProps {
   onMove: () => void;
   moveTargetFolder: string | null;
   setMoveTargetFolder: (folder: string) => void;
-  getAllFolderPaths: (tree: any) => string[];
-  folderTree: any;
+  getAllFolderPaths: (tree: unknown) => string[];
+  folderTree: unknown;
   disabled?: boolean;
 }
 

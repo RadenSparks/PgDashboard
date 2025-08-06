@@ -17,16 +17,16 @@ export interface Voucher {
 
 export const vouchersApi = createApi({
   reducerPath: 'vouchersApi',
-  baseQuery: axiosBaseQuery({ baseUrl: 'http://localhost:3000' }),
+  baseQuery: axiosBaseQuery,
   tagTypes: ['Voucher'],
   endpoints: (builder) => ({
     getVouchers: builder.query<Voucher[], void>({
       query: () => ({ url: '/coupons', method: 'GET' }),
       providesTags: ['Voucher'],
     }),
-    addVoucher: builder.mutation<Voucher, Voucher>({
+    addVoucher: builder.mutation<Voucher, Omit<Voucher, "id">>({
       query: (body) => ({
-        url: '/coupons',
+        url: '/vouchers',
         method: 'POST',
         data: body,
       }),

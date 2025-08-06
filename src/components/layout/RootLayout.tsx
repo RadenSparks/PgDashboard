@@ -22,7 +22,7 @@ const RootLayout = () => {
         borderColor="gray.100"
         zIndex={20}
       >
-        <Sidebar isOpen={undefined} onClose={undefined} />
+        <Sidebar />
       </Box>
       <Flex flexDir="column" flex="1" minW={0} h="full">
         {/* Navbar: Sticky on mobile */}
@@ -41,7 +41,7 @@ const RootLayout = () => {
           overflowY="auto"
           px={{ base: 2, md: 8 }}
           py={{ base: 2, md: 6 }}
-          bg="transparent"
+          bg={["white", "transparent"]}
           borderRadius={{ base: "none", md: "2xl" }}
           transition="background 0.2s"
         >

@@ -16,7 +16,7 @@ export interface Post {
   created_at?: string;
   updated_at?: string;
   catalogueId?: number;
-  catalogue?: any;
+  catalogue?: unknown;
   galleryImages?: string[];
   textColor?: string;
   bgColor?: string;
@@ -26,7 +26,7 @@ export interface Post {
 
 export const postsApi = createApi({
   reducerPath: 'postsApi',
-  baseQuery: axiosBaseQuery({ baseUrl: 'https://pengoo-back-end.vercel.app' }),
+  baseQuery: axiosBaseQuery,
   tagTypes: ['Post'],
   endpoints: (builder) => ({
     getPosts: builder.query<Post[], void>({
@@ -35,7 +35,7 @@ export const postsApi = createApi({
     }),
     getPost: builder.query<Post, number>({
       query: (id) => ({ url: `/posts/${id}`, method: 'GET' }),
-      providesTags: (result, error, id) => [{ type: 'Post', id }],
+      providesTags: (_result, _error, id) => [{ type: 'Post', id }],
     }),
     createPost: builder.mutation<Post, Partial<Post>>({
       query: (body) => ({

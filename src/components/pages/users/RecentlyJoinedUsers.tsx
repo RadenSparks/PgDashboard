@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "../../widgets/button";
 import { FaUserPlus, FaFilter } from "react-icons/fa";
-import type { User } from "../users/usersData";
+import type { User } from "../../../redux/api/usersApi";
 
 interface RecentlyJoinedUsersProps {
   recentUsers: User[];

@@ -1,6 +1,5 @@
 import { Button } from "../../widgets/button";
 import { MdComment } from "react-icons/md";
-import { useGetProductReviewsQuery } from "../../../redux/api/reviewsApi";
 
 type Comment = {
   user: string;
@@ -74,36 +73,6 @@ return (
           ))}
         </div>
       </div>
-    </div>
-  );
-};
-
-const DashboardContent = () => {
-  // Fetch all reviews (replace 0 with a valid productId or use a getAllReviews endpoint if available)
-  const { data: allReviews = [] } = useGetProductReviewsQuery(0); // Adjust this line if you have a getAllReviews endpoint
-
-  // Sort reviews by createdAt ascending (earliest first)
-  const earliestReviews = [...allReviews]
-    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-    .slice(0, 4) // Show the first 4 earliest reviews
-    .map(r => ({
-      user: r.user?.username || "Unknown User",
-      comment: r.content,
-      product: r.productName || "Product",
-      date: r.createdAt ? new Date(r.createdAt).toLocaleDateString() : "",
-    }));
-
-  // ...other logic...
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-    <RecentCommentsPanel
-      recentComments={earliestReviews}
-      currentComment={currentComment}
-      fade={fade}
-      handleNavigateToComment={handleNavigateToComment}
-    />
-    // ...other components...
     </div>
   );
 };

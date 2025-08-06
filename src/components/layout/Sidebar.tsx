@@ -19,6 +19,22 @@ import { Drawer, DrawerOverlay, DrawerContent, DrawerCloseButton, useBreakpointV
 import { useGetUserByIdQuery } from "../../redux/api/usersApi";
 import { getCurrentUserId } from "../../utils/auth";
 
+const Logo = ({ size = 80 }: { size?: number }) => (
+  <img
+    src="/assets/icons/logo-01.svg"
+    alt="Pengoo Logo"
+    width={size}
+    height={size}
+    draggable={false}
+    style={{
+      display: "block",
+      objectFit: "contain",
+      pointerEvents: "none",
+      userSelect: "none",
+    }}
+  />
+);
+
 const tabs = [
   { label: "Dashboard", icon: <MdDashboard size={22} />, route: "/" },
   { label: "Products", icon: <MdInventory2 size={22} />, route: "/products" },
@@ -54,33 +70,33 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
 
   return (
     <div
-      className={`flex flex-col h-full overflow-y-auto scroll-hidden border-r-2  ${collapsed ? "w-[72px]" : "w-[260px]"}`}
+      className={`flex flex-col h-full overflow-y-auto border-r-2 bg-gradient-to-b from-blue-50 via-white to-blue-100 shadow-xl ${collapsed ? "w-[72px]" : "w-[260px]"} transition-all duration-300 scrollbar-hide`}
+      style={{
+        scrollbarWidth: "none", // For Firefox
+        scrollbarColor: "transparent transparent", // For Firefox
+      }}
     >
       {/* Logo Section */}
-      <div className="flex items-center justify-center px-3 mb-4">
+      <div className="flex items-center justify-center px-3 mb-4 mt-3">
         <span
-          className="inline-flex items-center justify-center shadow-lg border-2 border-red-200 bg-gradient-to-br from-red-400 to-red-600 rounded-full"
-          style={{ width: collapsed ? 44 : 56, height: collapsed ? 44 : 56 }}
+          className="inline-flex items-center justify-center shadow-lg border-2 border-blue-200 bg-gradient-to-br from-blue-100 to-blue-300 rounded-full transition-all duration-300"
+          style={{ width: collapsed ? 44 : 64, height: collapsed ? 44 : 64 }}
         >
-          <img
-            src="/assets/icons/logo.svg"
-            alt="Logo"
-            width={collapsed ? 24 : 32}
-            height={collapsed ? 24 : 32}
-          />
+          <Logo size={collapsed ? 32 : 48} />
         </span>
       </div>
-
       {/* Welcome Section */}
       <section className="w-full px-3 border-b-2 border-gray-200 py-6 flex flex-col items-center">
         {!collapsed ? (
           <div className="w-full max-w-xs mx-auto flex flex-col items-center gap-2 bg-gradient-to-br from-yellow-100 to-yellow-200 px-4 py-4 rounded-2xl shadow border border-yellow-200">
             <img
-              src={currentUser?.avatar_url}
-              alt={currentUser?.username}
+              src={currentUser?.avatar_url ?? undefined}
+              alt={currentUser?.username || 'User avatar'}
               className="rounded-full object-cover border-4 border-yellow-400"
               width={56}
               height={56}
+              tabIndex={0}
+              aria-label={currentUser?.username ? `Avatar of ${currentUser.username}` : 'User avatar'}
             />
             <span
               className="text-yellow-800 text-lg font-bold mt-2 max-w-[140px] truncate"
@@ -93,26 +109,29 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
             </span>
           </div>
         ) : (
-          <img
-            src={currentUser?.avatar_url}
-            alt={currentUser?.username}
-            className="rounded-full object-cover border-2 border-yellow-400"
-            width={32}
-            height={32}
-          />
+          <Tooltip label={currentUser?.username} placement="right" hasArrow>
+            <img
+              src={currentUser?.avatar_url ?? undefined}
+              alt={currentUser?.username || 'User avatar'}
+              className="rounded-full object-cover border-2 border-yellow-400"
+              width={32}
+              height={32}
+              tabIndex={0}
+              aria-label={currentUser?.username ? `Avatar of ${currentUser.username}` : 'User avatar'}
+            />
+          </Tooltip>
         )}
       </section>
-
       {/* Tabs */}
-      <ul className={`flex flex-col gap-1 py-6 w-full px-2  ${collapsed ? "items-center" : ""}`}>
+      <ul className={`flex flex-col gap-1 py-6 w-full px-2 ${collapsed ? "items-center" : ""}`}>
         {tabs.map((tab) => (
           <li key={tab.label} className="w-full">
             <Tooltip label={collapsed ? tab.label : ""} placement="right" hasArrow>
               <button
-                className={`flex items-center gap-3 w-full px-2 py-2 rounded-xl transition-colors
+                className={`flex items-center gap-3 w-full px-2 py-2 rounded-xl transition-all duration-300
                 ${collapsed ? "justify-center" : ""}
                 ${activeTab === tab.label
-                  ? "bg-blue-200 text-blue-900 font-semibold shadow"
+                  ? "bg-blue-300 border-l-4 border-blue-600 text-blue-900 font-semibold shadow"
                   : "hover:bg-blue-50 text-blue-700"}
               `}
                 onClick={() => {
@@ -120,6 +139,15 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                   navigate(tab.route);
                 }}
                 aria-current={activeTab === tab.label ? "page" : undefined}
+                aria-label={tab.label}
+                tabIndex={0}
+                aria-expanded={activeTab === tab.label}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    setActiveTab(tab.label);
+                    navigate(tab.route);
+                  }
+                }}
               >
                 {tab.icon}
                 {!collapsed && <span className="truncate">{tab.label}</span>}
@@ -153,13 +181,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   // Drawer for mobile
   if (isMobile) {
     return (
-      <Drawer isOpen={!!isOpen} placement="left" onClose={onClose || (() => { })}>
+      <Drawer isOpen={!!isOpen} placement="left" onClose={onClose ?? (() => {})}>
         <DrawerOverlay />
-        <DrawerContent maxW="260px">
+        <DrawerContent>
           <DrawerCloseButton />
           <SidebarContent
             collapsed={false}
-            setCollapsed={() => { }}
+            setCollapsed={() => {}}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             navigate={navigate}
@@ -169,21 +197,38 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     );
   }
 
-  // Static sidebar for desktop
+  // --- Place the button absolutely, below the navbar, so it's never obscured ---
   return (
-    <div className="relative h-screen">
-      {/* Arrow Button between Navbar and Sidebar */}
+    <div
+      className={`relative h-screen transition-all duration-300 z-[200] ${collapsed ? 'w-[72px]' : 'w-[260px]'}`}
+      style={{ minWidth: collapsed ? 72 : 260 }}
+    >
+      {/* Collapse/Expand Button */}
       <Tooltip label={collapsed ? "Expand sidebar" : "Collapse sidebar"} placement="right" hasArrow>
         <Button
           onClick={() => setCollapsed((prev) => !prev)}
-          className="absolute top-6 -right-4 z-20 bg-white border border-gray-200 shadow p-1 w-8 h-8 flex items-center justify-center transition-colors hover:bg-yellow-100 focus:outline-none rounded-full"
+          className="fixed z-[210] left-[60px] md:left-[244px] transition-all duration-300 bg-white border border-gray-200 shadow-lg p-1 w-10 h-10 flex items-center justify-center hover:bg-blue-100 focus:outline-none rounded-full"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-pressed={collapsed}
+          tabIndex={0}
           type="button"
+          style={{
+            top: 88, // Place below the navbar (adjust if your navbar height changes)
+            left: collapsed ? 60 : 244, // 72px sidebar - 12px overlap, or 260px - 16px overlap
+            boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
+            border: "1.5px solid #e5e7eb",
+            outline: 'none',
+          }}
+          onKeyDown={e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              setCollapsed(prev => !prev);
+            }
+          }}
         >
           <img
             src="/assets/icons/lefticon.svg"
-            height={20}
-            width={20}
+            height={24}
+            width={24}
             alt="toggle sidebar"
             className={`transition-transform duration-300 ${collapsed ? "rotate-180" : ""}`}
           />

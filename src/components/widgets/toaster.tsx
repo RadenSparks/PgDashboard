@@ -1,16 +1,12 @@
 "use client"
 
 import {
-  Toast as ChakraToaster,
-  Portal,
-  Spinner,
-  Stack,
-  Toast,
   useToast,
+  type ToastId,
 } from "@chakra-ui/react"
-import React, { useEffect } from "react"
+import React, { useEffect, useRef } from "react"
 
-// Export a singleton toast function for use in your app
+// Export a singleton toaster object for use in your app
 export const toaster = {
   show: ({
     title,
@@ -31,23 +27,26 @@ export const toaster = {
       | "bottom-right"
       | "bottom-left"
   }) => {
-    // Use Chakra's useToast hook inside a component
-    // For global usage, you must wrap your app with <ToasterProvider />
     window.dispatchEvent(
       new CustomEvent("chakra-toast", {
         detail: { title, description, type, duration, position },
       })
     )
   },
+  dismiss: () => {
+    window.dispatchEvent(new CustomEvent("chakra-toast-dismiss"))
+  },
 }
 
 // ToasterProvider component to listen for global toast events
-export const ToasterProvider: React.FC = ({ children }) => {
+export const ToasterProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const toast = useToast()
+  const toastIds = useRef<ToastId[]>([])
+
   useEffect(() => {
-    const handler = (e: any) => {
+    const handler = (e: CustomEvent) => {
       const { title, description, type, duration, position } = e.detail
-      toast({
+      const id = toast({
         title,
         description,
         status: type === "loading" ? "info" : type,
@@ -55,37 +54,21 @@ export const ToasterProvider: React.FC = ({ children }) => {
         position,
         isClosable: true,
       })
+      toastIds.current.push(id)
     }
-    window.addEventListener("chakra-toast", handler)
-    return () => window.removeEventListener("chakra-toast", handler)
+    const dismissHandler = () => {
+      toastIds.current.forEach(id => toast.close(id))
+      toastIds.current = []
+    }
+    window.addEventListener("chakra-toast", handler as EventListener)
+    window.addEventListener("chakra-toast-dismiss", dismissHandler)
+    return () => {
+      window.removeEventListener("chakra-toast", handler as EventListener)
+      window.removeEventListener("chakra-toast-dismiss", dismissHandler)
+    }
   }, [toast])
   return <>{children}</>
 }
 
-export const Toaster = () => {
-  return (
-    <Portal>
-      <ChakraToaster toaster={toaster} insetInline={{ mdDown: "4" }}>
-        {(toast) => (
-          <Toast.Root width={{ md: "sm" }}>
-            {toast.type === "loading" ? (
-              <Spinner size="sm" color="blue.solid" />
-            ) : (
-              <Toast.Indicator />
-            )}
-            <Stack gap="1" flex="1" maxWidth="100%">
-              {toast.title && <Toast.Title>{toast.title}</Toast.Title>}
-              {toast.description && (
-                <Toast.Description>{toast.description}</Toast.Description>
-              )}
-            </Stack>
-            {toast.action && (
-              <Toast.ActionTrigger>{toast.action.label}</Toast.ActionTrigger>
-            )}
-            {toast.closable && <Toast.CloseTrigger />}
-          </Toast.Root>
-        )}
-      </ChakraToaster>
-    </Portal>
-  )
-}
+// (Optional) If you use the Toaster component for custom rendering, keep it as is or remove if unused.
+export const Toaster = () => null

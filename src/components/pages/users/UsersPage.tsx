@@ -1,22 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "../../widgets/button";
-import { FaPlus, FaArrowLeft, FaUserPlus, FaFilter } from "react-icons/fa";
-import type { User } from "../users/usersData";
+import { FaPlus, FaArrowLeft } from "react-icons/fa";
+import type { User } from "../../../redux/api/usersApi";
 import {
   useGetUsersQuery,
   useAddUserMutation,
   useDeleteUserMutation,
   useSetUserStatusMutation,
 } from "../../../redux/api/usersApi";
+import { useToast } from "@chakra-ui/react";
+import RecentlyJoinedUsers from "./RecentlyJoinedUsers";
 import UsersTable from "./UsersTable";
 import AddUserModal from "./AddUserModal";
-import RecentlyJoinedUsers from "./RecentlyJoinedUsers";
 import UndoDeleteModal from "./UndoDeleteModal";
-import { useToast } from "@chakra-ui/react";
 
 const UNDO_TIMEOUT = 8000;
 const RECENT_USER_COUNT = 5;
+const PAGE_SIZE = 10;
 const emptyUser: User = {
   id: 0,
   full_name: "",
@@ -30,7 +31,7 @@ const emptyUser: User = {
   status: true,
 };
 
-const UsersPage = () => {
+const UsersPage: React.FC = () => {
   const { data: users = [], refetch } = useGetUsersQuery();
   const [addUser] = useAddUserMutation();
   const [deleteUser] = useDeleteUserMutation();
@@ -42,6 +43,7 @@ const UsersPage = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newUser, setNewUser] = useState<User>({ ...emptyUser });
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "suspended">("all");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -58,6 +60,13 @@ const UsersPage = () => {
     if (statusFilter === "suspended") return user.status === false;
     return true;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(visibleUsers.length / PAGE_SIZE);
+  const paginatedUsers = visibleUsers.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
 
   // Delete timer/fade logic
   useEffect(() => {
@@ -96,7 +105,7 @@ const UsersPage = () => {
       if (interval) clearInterval(interval);
       if (timeout) clearTimeout(timeout);
     };
-  }, [pendingDelete?.user.id, pendingDelete]);
+  }, [pendingDelete, deleteUser, refetch, toast]);
 
   // Add user modal logic
   const handleAddUser = () => {
@@ -106,7 +115,7 @@ const UsersPage = () => {
 
   const handleSaveNewUser = async () => {
     try {
-      const result = await addUser({
+      await addUser({
         ...newUser,
         role: "user",
         status: newUser.status ?? true,
@@ -121,7 +130,7 @@ const UsersPage = () => {
         duration: 3000,
         isClosable: true,
       });
-    } catch (err) {
+    } catch {
       toast({
         title: "Failed to add user",
         description: "Please check your input or try again.",
@@ -211,12 +220,45 @@ const UsersPage = () => {
       </div>
 
       <UsersTable
-        users={visibleUsers}
+        users={paginatedUsers}
         fadingUserId={fadingUserId}
         pendingDelete={pendingDelete}
         onToggleStatus={handleToggleStatus}
         onDelete={handleDelete}
       />
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-6">
+          <button
+            className="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold disabled:opacity-50"
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+          >
+            Prev
+          </button>
+          {[...Array(totalPages)].map((_, i) => (
+            <button
+              key={i}
+              className={`px-3 py-1 rounded font-semibold ${
+                currentPage === i + 1
+                  ? "bg-blue-600 text-white"
+                  : "bg-blue-50 text-blue-700 hover:bg-blue-200"
+              }`}
+              onClick={() => setCurrentPage(i + 1)}
+            >
+              {i + 1}
+            </button>
+          ))}
+          <button
+            className="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold disabled:opacity-50"
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       <AddUserModal
         show={showAddModal}
@@ -230,7 +272,11 @@ const UsersPage = () => {
         pendingDelete={pendingDelete}
         UNDO_TIMEOUT={UNDO_TIMEOUT}
         onUndo={handleUndoDelete}
-        onToast={({ title, description, status }) =>
+        onToast={({
+          title,
+          description,
+          status,
+        }: { title: string; description?: string; status: "success" | "error" | "info" | "warning" }) =>
           toast({
             title,
             description,

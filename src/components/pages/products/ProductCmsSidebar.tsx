@@ -44,11 +44,11 @@ const ProductCmsSidebar: React.FC<Props> = ({
         />
         {/* --- CMS Modal Section Previews --- */}
         {/* HERO SECTION */}
-        {(cmsContent.heroTitle || cmsContent.heroSubtitle || cmsContent.heroImage) && (
+        {(cmsContent.heroTitle || cmsContent.heroSubtitle || (cmsContent.heroImages && cmsContent.heroImages.length > 0)) && (
           <section className="mb-6 mt-6">
             <h5 className="text-lg font-semibold mb-2" style={{ color: previewTextColor }}>Hero Section</h5>
-            {cmsContent.heroImage && (
-              <img src={cmsContent.heroImage} alt="Hero" className="w-32 h-32 object-cover rounded-lg border shadow mb-2" />
+            {cmsContent.heroImages && cmsContent.heroImages.length > 0 && (
+              <img src={cmsContent.heroImages[0]} alt="Hero" className="w-32 h-32 object-cover rounded-lg border shadow mb-2" />
             )}
             <div className="font-bold text-xl mb-1" style={{ color: previewTextColor }}>{cmsContent.heroTitle}</div>
             <div className="text-gray-600" style={{ color: previewTextColor }}>{cmsContent.heroSubtitle}</div>
@@ -102,28 +102,72 @@ const ProductCmsSidebar: React.FC<Props> = ({
             </div>
           </section>
         )}
-        {/* TABS SECTION */}
+        {/* TABS SECTION - Fixed Titles and Special Handling */}
         {cmsContent.tabs && cmsContent.tabs.length > 0 && (
           <section className="mb-6">
             <h5 className="text-lg font-semibold mb-2" style={{ color: previewTextColor }}>Product Tabs</h5>
-            {cmsContent.tabs.map((tab, idx) => (
-              <div key={idx} className="mb-3">
-                <div className="font-bold" style={{ color: previewTextColor }}>{tab.title}</div>
-                <div className="mb-1" style={{ color: previewTextColor }}>{tab.content}</div>
-                <div className="flex gap-2 flex-wrap">
-                  {tab.images?.map((img, imgIdx) =>
-                    img ? (
-                      <img
-                        key={imgIdx}
-                        src={img}
-                        alt={`Tab ${idx + 1} Image ${imgIdx + 1}`}
-                        className="w-12 h-12 object-cover rounded border"
-                      />
-                    ) : null
+            {["Specifications", "How To Play", "About"].map((fixedTitle) => {
+              const tab = cmsContent.tabs?.find(
+                t => t.title.trim().toLowerCase() === fixedTitle.trim().toLowerCase()
+              );
+              if (!tab) return null;
+
+              return (
+                <div key={fixedTitle} className="mb-3">
+                  <div className="font-bold" style={{ color: previewTextColor }}>{fixedTitle}</div>
+                  {/* Special handling for "How To Play" */}
+                  {fixedTitle === "How To Play" ? (
+                    <div className="mb-1" style={{ color: previewTextColor }}>
+                      {tab.content && (
+                        <a
+                          href={tab.content}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 underline"
+                        >
+                          {tab.content}
+                        </a>
+                      )}
+                      {/* Embed video if YouTube/Vimeo */}
+                      {tab.content && (tab.content.includes("youtube.com") || tab.content.includes("youtu.be") || tab.content.includes("vimeo.com")) && (
+                        <div className="mt-2">
+                          <iframe
+                            width="320"
+                            height="180"
+                            src={
+                              tab.content.includes("youtube.com") || tab.content.includes("youtu.be")
+                                ? tab.content.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/")
+                                : tab.content
+                            }
+                            title="How To Play Video"
+                            frameBorder={0}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="mb-1" style={{ color: previewTextColor }}>{tab.content}</div>
+                  )}
+                  {/* Images only for non-"How To Play" tabs */}
+                  {fixedTitle !== "How To Play" && (
+                    <div className="flex gap-2 flex-wrap">
+                      {tab.images?.map((img, imgIdx) =>
+                        img ? (
+                          <img
+                            key={imgIdx}
+                            src={img}
+                            alt={`Tab ${fixedTitle} Image ${imgIdx + 1}`}
+                            className="w-12 h-12 object-cover rounded border"
+                          />
+                        ) : null
+                      )}
+                    </div>
                   )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </section>
         )}
         {/* FEATURED SECTION */}

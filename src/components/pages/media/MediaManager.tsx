@@ -8,19 +8,23 @@ import MediaGrid from "./MediaGrid";
 import MoveModal from "./MoveModal";
 import DeleteFolderModal from "./DeleteFolderModal";
 import DeleteMediaModal from "./DeleteMediaModal"; 
+import { Box, Flex } from "@chakra-ui/react"; // Optional: for easier layout
+import Loading from "../../widgets/loading"; // Add this import at the top with others
+
+// FolderTreeNode type is now exported from this file
 
 const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "diishpkrl";
 const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "your_unsigned_preset";
 
 // Helper to build a folder tree from flat media list
-function buildFolderTree(media: MediaItem[]) {
-  const root: any = {};
+function buildFolderTree(media: MediaItem[]): FolderTreeNode {
+  const root: FolderTreeNode = { children: {} };
   media.forEach((item) => {
     const parts = (item.folder || "default").split("/").filter(Boolean);
     let node = root;
     for (const part of parts) {
       node.children = node.children || {};
-      node.children[part] = node.children[part] || {};
+      node.children[part] = node.children[part] || { children: {} };
       node = node.children[part];
     }
     node.items = node.items || [];
@@ -29,13 +33,18 @@ function buildFolderTree(media: MediaItem[]) {
   return root;
 }
 
-// Helper: get all folder paths as array of strings (e.g. ["folder1", "folder1/subfolder", ...])
-function getAllFolderPaths(tree: any, prefix: string[] = []): string[] {
+export type FolderTreeNode = {
+  children: Record<string, FolderTreeNode>;
+  items?: MediaItem[];
+};
+
+// Helper: get all folder paths as array of strings
+function getAllFolderPaths(tree: FolderTreeNode, prefix: string[] = []): string[] {
   let paths: string[] = [];
   if (prefix.length) paths.push(prefix.join("/"));
   if (tree.children) {
     Object.keys(tree.children).forEach((folder) => {
-      paths = paths.concat(getAllFolderPaths(tree.children[folder], [...prefix, folder]));
+      paths = paths.concat(getAllFolderPaths(tree.children![folder], [...prefix, folder]));
     });
   }
   return paths;
@@ -47,7 +56,6 @@ const MediaManager: React.FC = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<MediaItem | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [] = useState(0);
   const [selectedImages, setSelectedImages] = useState<number[]>([]);
   const [moveTargetFolder, setMoveTargetFolder] = useState<string | null>(null);
   const [showMoveModal, setShowMoveModal] = useState(false);
@@ -82,10 +90,10 @@ const MediaManager: React.FC = () => {
   }, [media, virtualFolders]);
 
   // --- Current node ---
-  const getCurrentNode = (tree: any, path: string[]) => {
+  const getCurrentNode = (tree: FolderTreeNode, path: string[]): FolderTreeNode => {
     let node = tree;
     for (const part of path) {
-      if (!node.children || !node.children[part]) return { items: [] };
+      if (!node.children[part]) return { children: {}, items: [] };
       node = node.children[part];
     }
     return node;
@@ -160,10 +168,10 @@ const MediaManager: React.FC = () => {
         isClosable: true,
       });
       refetch();
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         title: "Upload failed",
-        description: err.message,
+        description: err && typeof err === "object" && "message" in err ? (err as { message?: string }).message : "Unknown error",
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -225,10 +233,10 @@ const MediaManager: React.FC = () => {
       });
       setDeleteTarget(null);
       if (refetchAfter) refetch();
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         title: "Delete failed",
-        description: err.message,
+        description: err && typeof err === "object" && "message" in err ? (err as { message?: string }).message : "Unknown error",
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -239,7 +247,7 @@ const MediaManager: React.FC = () => {
   };
 
   // Helper: get all images in a folder (recursively)
-  const getAllImagesInFolder = (node: any): MediaItem[] => {
+  const getAllImagesInFolder = (node: FolderTreeNode): MediaItem[] => {
     let images: MediaItem[] = [];
     if (node.items) {
       images = images.concat(node.items);
@@ -295,7 +303,7 @@ const MediaManager: React.FC = () => {
       setFolderPath(folderPath.slice(0, -1));
       setShowDeleteFolderModal(false);
       refetch();
-    } catch (err: any) {
+    } catch {
       // Even if backend fails, remove the virtual folder
       setVirtualFolders(prev =>
         prev.filter(arr => arr.join("/") !== folderPath.join("/"))
@@ -331,10 +339,10 @@ const MediaManager: React.FC = () => {
       setSelectedImages([]);
       setShowMoveModal(false);
       refetch();
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         title: "Move failed",
-        description: err.message,
+        description: err && typeof err === "object" && "message" in err ? (err as { message?: string }).message : "Unknown error",
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -356,21 +364,30 @@ const MediaManager: React.FC = () => {
     }
   };
 
-  // Add this function:
-  const addProductFolder = (slug: string) => {
-    setVirtualFolders(prev => {
-      if (prev.some(arr => arr.join("/") === slug)) return prev;
-      return [...prev, [slug]];
-    });
-  };
+  // --- LOADING TRANSITION ---
+  if (isLoading) return <Loading />;
 
   // --- UI ---
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-blue-50 to-white">
-      {/* Sidebar */}
-      <aside className="w-72 border-r bg-white p-6 flex flex-col shadow-lg">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-xl text-blue-700">Thư mục</h3>
+    <Flex minH="100vh" bgGradient="linear(to-br, blue.50, white)">
+      {/* Sidebar: Folder Tree */}
+      <Box
+        as="aside"
+        w={{ base: "full", md: "320px" }}
+        minW="240px"
+        maxW="360px"
+        borderRight="1px solid #e2e8f0"
+        bg="white"
+        p={6}
+        display="flex"
+        flexDirection="column"
+        boxShadow="lg"
+        zIndex={2}
+      >
+        <Flex align="center" justify="space-between" mb={4}>
+          <Box fontWeight="bold" fontSize="xl" color="blue.700">
+            Thư mục
+          </Box>
           <button
             className="ml-2 flex items-center gap-1 text-xs bg-blue-600 text-white px-3 py-1 rounded-lg shadow hover:bg-blue-700 focus:ring-2 focus:ring-blue-400 transition"
             onClick={() => {
@@ -389,7 +406,7 @@ const MediaManager: React.FC = () => {
             <span className="material-symbols-outlined text-base"></span>
             Thêm
           </button>
-        </div>
+        </Flex>
         <FolderTree
           node={folderTree}
           expanded={expandedFolders}
@@ -417,7 +434,7 @@ const MediaManager: React.FC = () => {
             )}
           </div>
         )}
-      </aside>
+      </Box>
       {/* Main Content */}
       <main className="flex-1 p-10">
         <Breadcrumbs folderPath={folderPath} setFolderPath={setFolderPath} />
@@ -458,7 +475,7 @@ const MediaManager: React.FC = () => {
           onMove={handleMoveImages}
           moveTargetFolder={moveTargetFolder}
           setMoveTargetFolder={setMoveTargetFolder}
-          getAllFolderPaths={getAllFolderPaths}
+          getAllFolderPaths={(tree: unknown) => getAllFolderPaths(tree as FolderTreeNode)}
           folderTree={folderTree}
         />
         <DeleteFolderModal
@@ -475,7 +492,7 @@ const MediaManager: React.FC = () => {
           onDelete={handleConfirmDeleteMedia}
         />
       </main>
-    </div>
+    </Flex>
   );
 };
 

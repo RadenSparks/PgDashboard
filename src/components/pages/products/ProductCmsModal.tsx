@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useRef, useState } from "react";
-import type { Product, CmsContent, TabSection } from "./types";
+import { useState } from "react";
+import type { Product, CmsContent, TabSection, FeaturedSection } from "./types";
 import { Button } from "../../widgets/button";
 import MediaPicker from "../../media/MediaPicker";
 import ProductCmsSidebar from "./ProductCmsSidebar";
-
-const defaultTab: TabSection = { title: "", content: "", images: [] };
 
 const FONT_FAMILIES = [
   { label: "Sans-serif", value: "sans-serif" },
@@ -37,8 +35,7 @@ const ProductCmsModal = ({
   onSave,
   onClose,
 }: ProductCmsModalProps) => {
-  const modalRef = useRef<HTMLDivElement>(null);
-  const [showMediaPicker, setShowMediaPicker] = useState<null | { field: keyof CmsContent | "tabImages" | "heroImage" | "featuredSections"; tabIdx?: number; imgIdx?: number; idx?: number }>(null);
+  const [showMediaPicker, setShowMediaPicker] = useState<null | { field: keyof CmsContent | "tabImages" | "heroImages" | "featuredSections"; tabIdx?: number; imgIdx?: number; idx?: number }>(null);
 
   // Preview customization state
   const [fontFamily, setFontFamily] = useState(cmsContent.fontFamily || "sans-serif");
@@ -47,12 +44,6 @@ const ProductCmsModal = ({
   const [previewBgColor, setPreviewBgColor] = useState(cmsContent.bgColor || "#fff");
 
   // Helper for updating array fields
-  const updateArray = (field: keyof CmsContent, idx: number, value: string) => {
-    const arr = [...(cmsContent[field] as string[] || [])];
-    arr[idx] = value;
-    onChange({ ...cmsContent, [field]: arr });
-  };
-
   const removeArrayItem = (field: keyof CmsContent, idx: number) => {
     const arr = [...(cmsContent[field] as string[] || [])];
     arr.splice(idx, 1);
@@ -71,32 +62,12 @@ const ProductCmsModal = ({
     newTabs[idx] = tab;
     onChange({ ...cmsContent, tabs: newTabs });
   };
-  const addTab = () => onChange({ ...cmsContent, tabs: [...tabs, { ...defaultTab }] });
-  const removeTab = (idx: number) => {
-    const newTabs = [...tabs];
-    newTabs.splice(idx, 1);
-    onChange({ ...cmsContent, tabs: newTabs });
-  };
-  const moveTab = (from: number, to: number) => {
-    if (to < 0 || to >= tabs.length) return;
-    const newTabs = [...tabs];
-    const [moved] = newTabs.splice(from, 1);
-    newTabs.splice(to, 0, moved);
-    onChange({ ...cmsContent, tabs: newTabs });
-  };
 
   // Tab image helpers
-  const updateTabImage = (tabIdx: number, imgIdx: number, url: string) => {
-    const tab = { ...tabs[tabIdx] };
-    const images = [...(tab.images || [])];
-    images[imgIdx] = url;
-    tab.images = images;
-    updateTab(tabIdx, tab);
-  };
   const addTabImage = (tabIdx: number) => {
-    const tab = { ...tabs[tabIdx] };
-    tab.images = [...(tab.images || []), ""];
+    const tab = { ...tabs[tabIdx], images: [...(tabs[tabIdx].images || []), ""] };
     updateTab(tabIdx, tab);
+    setShowMediaPicker({ field: "tabImages", tabIdx, imgIdx: tab.images.length });
   };
   const removeTabImage = (tabIdx: number, imgIdx: number) => {
     const tab = { ...tabs[tabIdx] };
@@ -115,6 +86,17 @@ const ProductCmsModal = ({
       textColor: previewTextColor,
       bgColor: previewBgColor,
     });
+  };
+
+  // Update tab names
+  const TAB_TITLES = ["Specifications", "How To Play", "Reference"];
+
+  // Reference tab helpers
+  const updateReferenceTab = (references: { title: string; link: string }[]) => {
+    const tabIdx = tabs.findIndex(t => t.title.trim().toLowerCase() === "reference");
+    const newTab: TabSection = { title: "Reference", content: "", images: [], references };
+    if (tabIdx >= 0) updateTab(tabIdx, newTab);
+    else onChange({ ...cmsContent, tabs: [...tabs, newTab] });
   };
 
   return (
@@ -169,21 +151,25 @@ const ProductCmsModal = ({
               placeholder="Hero Subtitle"
             />
             <div className="flex items-center gap-3 mt-2">
-              {cmsContent.heroImage && (
-                <img src={cmsContent.heroImage} alt="Hero" className="w-24 h-24 object-cover rounded-lg border shadow" />
+              {cmsContent.heroImages && cmsContent.heroImages[0] && (
+                <img src={cmsContent.heroImages[0]} alt="Hero" className="w-24 h-24 object-cover rounded-lg border shadow" />
               )}
               <button
                 type="button"
                 className="bg-blue-100 text-blue-700 rounded px-4 py-2 hover:bg-blue-200 font-semibold transition"
-                onClick={() => setShowMediaPicker({ field: "heroImage", idx: 0 })}
+                onClick={() => setShowMediaPicker({ field: "heroImages", idx: 0 })}
               >
-                {cmsContent.heroImage ? "Change" : "Select"} Image
+                {cmsContent.heroImages && cmsContent.heroImages[0] ? "Change" : "Select"} Image
               </button>
-              {cmsContent.heroImage && (
+              {cmsContent.heroImages && cmsContent.heroImages[0] && (
                 <button
                   type="button"
                   className="text-red-500 hover:text-red-700 text-xl"
-                  onClick={() => onChange({ ...cmsContent, heroImage: "" })}
+                  onClick={() => {
+                    const arr = [...cmsContent.heroImages!];
+                    arr[0] = "";
+                    onChange({ ...cmsContent, heroImages: arr });
+                  }}
                   aria-label="Remove image"
                   title="Remove hero image"
                 >
@@ -303,95 +289,141 @@ const ProductCmsModal = ({
           </section>
           {/* TABS SECTION */}
           <section className="mb-8">
-            <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide flex items-center justify-between gap-2">
-              <span className="flex items-center gap-2">
-                <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" /> Product Tabs
-              </span>
-              <button
-                type="button"
-                className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-xs font-semibold"
-                onClick={addTab}
-              >
-                + Add Tab
-              </button>
+            <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide flex items-center gap-2">
+              <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" /> Product Tabs
             </div>
-            {tabs.length === 0 && <div className="text-gray-400 mb-2">No tabs yet.</div>}
-            {tabs.map((tab, tabIdx) => (
-              <div key={tabIdx} className="border rounded-lg p-4 mb-6 bg-white shadow-sm relative group transition hover:shadow-md">
-                <div className="flex items-center gap-2 mb-2">
-                  <input
-                    className="flex-1 border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
-                    value={tab.title}
-                    onChange={e => updateTab(tabIdx, { ...tab, title: e.target.value })}
-                    placeholder={`Tab Title #${tabIdx + 1}`}
-                  />
-                  <button
-                    type="button"
-                    className="text-red-500 hover:text-red-700 text-lg"
-                    onClick={() => removeTab(tabIdx)}
-                    aria-label="Remove tab"
-                  >
-                    &times;
-                  </button>
-                  <button
-                    type="button"
-                    className="text-gray-400 hover:text-gray-700 text-lg"
-                    disabled={tabIdx === 0}
-                    onClick={() => moveTab(tabIdx, tabIdx - 1)}
-                    aria-label="Move tab up"
-                  >
-                    ↑
-                  </button>
-                  <button
-                    type="button"
-                    className="text-gray-400 hover:text-gray-700 text-lg"
-                    disabled={tabIdx === tabs.length - 1}
-                    onClick={() => moveTab(tabIdx, tabIdx + 1)}
-                    aria-label="Move tab down"
-                  >
-                    ↓
-                  </button>
+            {TAB_TITLES.map((fixedTitle, _fixedIdx) => {
+              const tabIdx = tabs.findIndex(t => t.title.trim().toLowerCase() === fixedTitle.toLowerCase());
+              const tab: TabSection = tabIdx >= 0
+                ? tabs[tabIdx]
+                : fixedTitle === "Reference"
+                  ? { title: "Reference", content: "", images: [], references: [] }
+                  : { title: fixedTitle, content: "", images: [] };
+
+              return (
+                <div key={fixedTitle} className="border rounded-lg p-6 mb-8 bg-white shadow-sm relative group transition hover:shadow-lg">
+                  <div className="flex items-center gap-2 mb-4 sticky top-0 bg-white z-10 py-2 rounded-t-lg">
+                    <input
+                      className="flex-1 border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300 font-bold bg-gray-50"
+                      value={tab.title}
+                      disabled
+                      readOnly
+                    />
+                  </div>
+                  {/* How To Play: only video link input */}
+                  {fixedTitle === "How To Play" ? (
+                    <input
+                      className="w-full border rounded px-3 py-2 mb-2 focus:ring-2 focus:ring-blue-300"
+                      value={tab.content}
+                      onChange={e => {
+                        const newTab: TabSection = { ...tab, content: e.target.value, images: tab.images || [] };
+                        if (tabIdx >= 0) updateTab(tabIdx, newTab);
+                        else onChange({ ...cmsContent, tabs: [...tabs, newTab] });
+                      }}
+                      placeholder="Paste video link (YouTube, Vimeo, etc.)"
+                      type="url"
+                      pattern="https?://.+"
+                    />
+                  ) : fixedTitle === "Reference" ? (
+                    <>
+                      <div className="flex flex-col gap-2">
+                        {(tab.references || []).map((ref: { title: string; link: string }, refIdx: number) => (
+                          <div key={refIdx} className="flex gap-2 items-center">
+                            <input
+                              className="border rounded px-2 py-1 flex-1"
+                              value={ref.title}
+                              onChange={e => {
+                                const refs = [...(tab.references || [])];
+                                refs[refIdx] = { ...refs[refIdx], title: e.target.value };
+                                updateReferenceTab(refs);
+                              }}
+                              placeholder="Reference Title"
+                            />
+                            <input
+                              className="border rounded px-2 py-1 flex-1"
+                              value={ref.link}
+                              onChange={e => {
+                                const refs = [...(tab.references || [])];
+                                refs[refIdx] = { ...refs[refIdx], link: e.target.value };
+                                updateReferenceTab(refs);
+                              }}
+                              placeholder="Reference Link (https://...)"
+                              type="url"
+                              pattern="https?://.+"
+                            />
+                            <button
+                              type="button"
+                              className="text-red-500 hover:text-red-700 px-2 py-1 rounded"
+                              onClick={() => {
+                                const refs = [...(tab.references || [])];
+                                refs.splice(refIdx, 1);
+                                updateReferenceTab(refs);
+                              }}
+                              aria-label="Remove reference"
+                            >
+                              &times;
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          className="mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-xs font-semibold w-fit"
+                          onClick={() => updateReferenceTab([...(tab.references || []), { title: "", link: "" }])}
+                        >
+                          + Add Reference
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    // Specifications tab (markdown + images)
+                    <>
+                      <textarea
+                        className="w-full border rounded px-3 py-2 mb-2 focus:ring-2 focus:ring-blue-300"
+                        value={tab.content}
+                        onChange={e => {
+                          const newTab = { ...tab, content: e.target.value, images: tab.images || [] };
+                          if (tabIdx >= 0) updateTab(tabIdx, newTab);
+                          else onChange({ ...cmsContent, tabs: [...tabs, newTab] });
+                        }}
+                        placeholder={`${fixedTitle} Content (Markdown supported)`}
+                        rows={4}
+                      />
+                      <div className="flex flex-col gap-2">
+                        {(tab.images || []).map((img, imgIdx) => (
+                          <div key={imgIdx} className="flex items-center gap-2">
+                            {img && (
+                              <img src={img} alt={`Tab ${fixedTitle} Image ${imgIdx + 1}`} className="w-16 h-16 object-cover rounded border shadow" />
+                            )}
+                            <button
+                              type="button"
+                              className="bg-blue-100 text-blue-700 rounded px-3 py-2 hover:bg-blue-200 font-semibold"
+                              onClick={() => setShowMediaPicker({ field: "tabImages", tabIdx, imgIdx })}
+                            >
+                              {img ? "Change" : "Select"} Image
+                            </button>
+                            <button
+                              type="button"
+                              className="text-red-500 hover:text-red-700 text-lg"
+                              onClick={() => removeTabImage(tabIdx, imgIdx)}
+                              aria-label="Remove image"
+                            >
+                              &times;
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          className="mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-xs font-semibold w-fit"
+                          onClick={() => addTabImage(tabIdx)}
+                        >
+                          + Add Tab Image
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
-                <textarea
-                  className="w-full border rounded px-3 py-2 mb-2 focus:ring-2 focus:ring-blue-300"
-                  value={tab.content}
-                  onChange={e => updateTab(tabIdx, { ...tab, content: e.target.value })}
-                  placeholder="Tab Content (Markdown supported)"
-                  rows={4}
-                />
-                <div className="flex flex-col gap-2">
-                  {(tab.images || []).map((img, imgIdx) => (
-                    <div key={imgIdx} className="flex items-center gap-2">
-                      {img && (
-                        <img src={img} alt={`Tab ${tabIdx + 1} Image ${imgIdx + 1}`} className="w-16 h-16 object-cover rounded border shadow" />
-                      )}
-                      <button
-                        type="button"
-                        className="bg-blue-100 text-blue-700 rounded px-3 py-2 hover:bg-blue-200 font-semibold"
-                        onClick={() => setShowMediaPicker({ field: "tabImages", tabIdx, imgIdx })}
-                      >
-                        {img ? "Change" : "Select"} Image
-                      </button>
-                      <button
-                        type="button"
-                        className="text-red-500 hover:text-red-700 text-lg"
-                        onClick={() => removeTabImage(tabIdx, imgIdx)}
-                        aria-label="Remove image"
-                      >
-                        &times;
-                      </button>
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    className="mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-xs font-semibold w-fit"
-                    onClick={() => addTabImage(tabIdx)}
-                  >
-                    + Add Tab Image
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </section>
           {/* FEATURED SECTION (Two Columns Content Blocks) */}
           <section className="mb-8">
@@ -420,7 +452,7 @@ const ProductCmsModal = ({
             {(cmsContent.featuredSections || []).length === 0 && (
               <div className="text-gray-400 mb-2">No featured blocks yet.</div>
             )}
-            {(cmsContent.featuredSections || []).map((block, idx) => (
+            {(cmsContent.featuredSections || []).map((block: FeaturedSection, idx: number) => (
               <div key={idx} className="border rounded-lg p-4 mb-6 bg-white shadow-sm relative group transition hover:shadow-md">
                 <div className="flex items-center gap-2 mb-2">
                   <input
@@ -641,14 +673,24 @@ const ProductCmsModal = ({
           multiple={false}
           onSelect={img => {
             if (showMediaPicker) {
-              if (showMediaPicker.field === "heroImage") {
-                onChange({ ...cmsContent, heroImage: Array.isArray(img) ? img[0]?.url ?? "" : img.url });
-              } else if (showMediaPicker.field === "tabImages" && showMediaPicker.tabIdx !== undefined && showMediaPicker.imgIdx !== undefined) {
-                updateTabImage(
-                  showMediaPicker.tabIdx,
-                  showMediaPicker.imgIdx,
-                  Array.isArray(img) ? img[0]?.url ?? "" : img.url
-                );
+              if (showMediaPicker.field === "heroImages" && typeof showMediaPicker.idx === "number") {
+                const arr = [...(cmsContent.heroImages || [])];
+                arr[showMediaPicker.idx] = Array.isArray(img) ? img[0]?.url ?? "" : img.url;
+                onChange({ ...cmsContent, heroImages: arr });
+              } else if (
+                showMediaPicker.field === "tabImages" &&
+                showMediaPicker.tabIdx !== undefined &&
+                showMediaPicker.imgIdx !== undefined
+              ) {
+                // Save the selected image to the correct tab image slot
+                const tabIdx = showMediaPicker.tabIdx;
+                const imgIdx = showMediaPicker.imgIdx;
+                const url = Array.isArray(img) ? img[0]?.url ?? "" : img.url;
+                const tab = { ...tabs[tabIdx] };
+                const images = [...(tab.images || [])];
+                images[imgIdx] = url;
+                tab.images = images;
+                updateTab(tabIdx, tab);
               } else if (showMediaPicker.field === "featuredSections" && typeof showMediaPicker.idx === "number") {
                 const arr = [...(cmsContent.featuredSections || [])];
                 arr[showMediaPicker.idx] = { ...arr[showMediaPicker.idx], imageSrc: Array.isArray(img) ? img[0]?.url ?? "" : img.url };
@@ -659,9 +701,7 @@ const ProductCmsModal = ({
                 ["aboutImages", "sliderImages"].includes(showMediaPicker.field)
               ) {
                 const arr = [...(cmsContent[showMediaPicker.field as keyof CmsContent] as string[] || [])];
-                if (!Array.isArray(img)) {
-                  arr[showMediaPicker.idx] = img.url;
-                }
+                arr[showMediaPicker.idx] = Array.isArray(img) ? img[0]?.url ?? "" : img.url;
                 onChange({ ...cmsContent, [showMediaPicker.field]: arr });
               }
               setShowMediaPicker(null);

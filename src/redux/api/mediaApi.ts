@@ -1,8 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { axiosBaseQuery } from '../axiosBaseQuery';
 
-const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-
 export interface MediaItem {
   id?: number; // <-- use id (number) to match backend
   url: string;
@@ -14,7 +12,7 @@ export interface MediaItem {
 
 export const mediaApi = createApi({
   reducerPath: 'mediaApi',
-  baseQuery: axiosBaseQuery({ baseUrl }),
+  baseQuery: axiosBaseQuery,
   tagTypes: ['Media'],
   endpoints: (builder) => ({
     getMedia: builder.query<MediaItem[], void>({

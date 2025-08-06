@@ -1,13 +1,19 @@
 import { Button } from "../../widgets/button";
-import react from "react";
+import type { RefObject } from "react";
 
-type DeleteCommentModalProps = {
-  modalRef: react.RefObject<HTMLDivElement>;
+export interface DeleteCommentModalProps {
+  modalRef: RefObject<HTMLDivElement>;
   onCancel: () => void;
-  onConfirm: () => void;
-};
+  onConfirm: () => Promise<void>;
+  loading: boolean;
+}
 
-const DeleteCommentModal = ({ modalRef, onCancel, onConfirm }: DeleteCommentModalProps) => (
+const DeleteCommentModal = ({
+  modalRef,
+  onCancel,
+  onConfirm,
+  loading,
+}: DeleteCommentModalProps) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
     <div
       ref={modalRef}
@@ -31,8 +37,9 @@ const DeleteCommentModal = ({ modalRef, onCancel, onConfirm }: DeleteCommentModa
           className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700"
           type="button"
           onClick={onConfirm}
+          disabled={loading}
         >
-          Delete
+          {loading ? "Deleting..." : "Delete"}
         </Button>
       </div>
     </div>

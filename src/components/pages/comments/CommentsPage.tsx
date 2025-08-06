@@ -6,6 +6,21 @@ import { useGetProductsQuery } from "../../../redux/api/productsApi";
 import { useGetProductReviewsQuery } from "../../../redux/api/reviewsApi";
 import api from "../../../api/axios-client";
 import { useToast } from "@chakra-ui/react";
+import type { Product } from "../../../redux/api/productsApi";
+import type { Review } from "../../../redux/api/reviewsApi";
+import type { AxiosError } from "axios";
+
+// If you have a Comment type, import it. Otherwise, define it here:
+type Comment = {
+  id: number;
+  productId: number;
+  productName: string;
+  user: string;
+  content: string;
+  date: string;
+  status: "Visible" | "Hidden";
+  rating: number;
+};
 
 const MAX_COMMENT_LENGTH = 50;
 
@@ -42,6 +57,7 @@ const CommentsPage = () => {
 
   const handleDelete = (id: number) => setDeleteId(id);
 
+  // --- Fix error handling for .message property and type 'unknown' ---
   const confirmDelete = async () => {
     if (!deleteId) return;
     setActionLoading(true);
@@ -57,10 +73,16 @@ const CommentsPage = () => {
       });
       setDeleteId(null);
       refetch();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      let message = "Unknown error";
+      if (isAxiosError(error)) {
+        message = error.response?.data?.message ?? message;
+      } else if (isErrorWithMessage(error)) {
+        message = String(error.message);
+      }
       toast({
         title: "Delete failed",
-        description: error.response?.data?.message || error.message,
+        description: message,
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -74,7 +96,7 @@ const CommentsPage = () => {
   const cancelDelete = () => setDeleteId(null);
 
   const handleToggleStatus = async (id: number) => {
-    const review = reviews.find((r: any) => r.id === id);
+    const review = reviews.find((r: Review) => r.id === id);
     if (!review) return;
     setActionLoading(true);
     try {
@@ -88,10 +110,16 @@ const CommentsPage = () => {
         position: "top",
       });
       refetch();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      let message = "Unknown error";
+      if (isAxiosError(error)) {
+        message = error.response?.data?.message ?? message;
+      } else if (isErrorWithMessage(error)) {
+        message = String(error.message);
+      }
       toast({
         title: "Status update failed",
-        description: error.response?.data?.message || error.message,
+        description: message,
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -105,9 +133,45 @@ const CommentsPage = () => {
   const handleViewDetail = (id: number) => setViewDetailId(id);
 
   // Filter products by search
-  const filteredProducts = products.filter((p: any) =>
+  const filteredProducts = (products as Product[]).filter((p) =>
     p.product_name?.toLowerCase().includes(search.toLowerCase())
   );
+
+  // Find selected product for detail modal
+  const selectedProduct = (products as Product[]).find(
+    (p) => p.id === selectedProductId
+  );
+
+  // Map reviews to Comment shape for table
+  const comments: Comment[] = reviews.map((r: Review) => ({
+    id: r.id,
+    productId: selectedProductId ?? 0,
+    productName: selectedProduct?.product_name || "",
+    user: r.user.username,
+    content: r.content,
+    date: new Date(r.createdAt).toLocaleDateString(),
+    status: r.status === "Visible" ? "Visible" : "Hidden", // enforce correct type
+    rating: r.rating,
+  }));
+
+  // For detail modal, map review to Comment shape
+  const detailComment =
+    viewDetailId !== null
+      ? (() => {
+          const r = reviews.find((r: Review) => r.id === viewDetailId);
+          if (!r) return undefined;
+          return {
+            id: r.id,
+            productId: selectedProductId ?? 0,
+            productName: selectedProduct?.product_name || "",
+            user: r.user.username,
+            content: r.content,
+            date: new Date(r.createdAt).toLocaleDateString(),
+            status: r.status,
+            rating: r.rating,
+          } as Comment;
+        })()
+      : undefined;
 
   return (
     <div className="p-8 bg-gradient-to-br from-blue-50 to-white min-h-screen">
@@ -145,7 +209,7 @@ const CommentsPage = () => {
                 No products found.
               </div>
             )}
-            {filteredProducts.map((p: any) => (
+            {filteredProducts.map((p: Product) => (
               <div
                 key={p.id}
                 className={`flex flex-col items-center cursor-pointer border-2 rounded-lg p-2 shadow-md transition-all duration-150 bg-white
@@ -159,8 +223,10 @@ const CommentsPage = () => {
               >
                 <img
                   src={
-                    (p.images?.find?.((img: any) => img.name === "main")?.url) ||
-                    p.image ||
+                    (Array.isArray(p.images)
+                      ? ((p.images as { name?: string; url?: string }[]).find(img => img.name === "main")?.url)
+                      : undefined) ||
+                    (p as { image?: string }).image ||
                     "/default-image.jpg"
                   }
                   alt={p.product_name}
@@ -179,16 +245,7 @@ const CommentsPage = () => {
         {isFetching && <div className="text-blue-600 font-semibold">Loading reviews...</div>}
         {!isFetching && selectedProductId && (
           <CommentTable
-            comments={reviews.map(r => ({
-              id: r.id,
-              productId: selectedProductId,
-              productName: products.find((p: any) => p.id === selectedProductId)?.product_name || "",
-              user: r.user.username,
-              content: r.content,
-              date: new Date(r.createdAt).toLocaleDateString(),
-              status: r.status,
-              rating: r.rating,
-            }))}
+            comments={comments}
             maxCommentLength={MAX_COMMENT_LENGTH}
             onViewDetail={handleViewDetail}
             onToggleStatus={handleToggleStatus}
@@ -202,7 +259,7 @@ const CommentsPage = () => {
       {/* View Detail Modal */}
       {viewDetailId !== null && (
         <CommentDetailModal
-          comment={reviews.find((r: any) => r.id === viewDetailId)}
+          comment={detailComment}
           modalRef={modalRef}
           onClose={() => setViewDetailId(null)}
         />
@@ -214,7 +271,7 @@ const CommentsPage = () => {
           modalRef={modalRef}
           onCancel={cancelDelete}
           onConfirm={confirmDelete}
-          loading={actionLoading}
+          loading={actionLoading} // <-- Make sure DeleteCommentModalProps includes 'loading'
         />
       )}
     </div>
@@ -222,3 +279,11 @@ const CommentsPage = () => {
 };
 
 export default CommentsPage;
+
+// Type guards to avoid 'any'
+function isAxiosError(error: unknown): error is AxiosError<{ message?: string }> {
+  return typeof error === "object" && error !== null && "isAxiosError" in error;
+}
+function isErrorWithMessage(error: unknown): error is { message: string } {
+  return typeof error === "object" && error !== null && "message" in error && typeof (error as { message: unknown }).message === "string";
+}
