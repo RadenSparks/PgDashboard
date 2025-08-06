@@ -53,11 +53,12 @@ export interface FeaturedSection {
   isImageRight?: boolean;
 }
 
-export interface TabSection {
+export type TabSection = {
   title: string;
   content: string;
   images: string[];
-}
+  references?: { title: string; link: string }[];
+};
 
 export interface CmsContent {
   heroTitle?: string;

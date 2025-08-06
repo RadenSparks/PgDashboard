@@ -173,6 +173,7 @@ const VoucherPage = () => {
     refetch();
   };
 
+  // --- LOADING TRANSITION ---
   if (isLoadingVoucher) return <Loading />;
 
   return (

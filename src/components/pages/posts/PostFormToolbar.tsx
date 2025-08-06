@@ -31,6 +31,7 @@ interface Props {
   onGalleryImageRemove?: (idx: number) => void;
   onClearFormatting?: () => void;
   onInsertLink?: () => void;
+  onParagraphBreak?: () => void;
 }
 
 const ICON_BTN =
@@ -54,6 +55,7 @@ const PostFormToolbar: React.FC<Props> = ({
   onGalleryImageRemove,
   onClearFormatting,
   onInsertLink,
+  onParagraphBreak,
 }) => {
   return (
     <div className="border-b bg-white px-3 py-2">
@@ -83,6 +85,17 @@ const PostFormToolbar: React.FC<Props> = ({
           </button>
           <span className="w-px h-5 bg-gray-300 mx-1" />
           <button type="button" aria-label="Horizontal Rule" title="Horizontal Rule" className={ICON_BTN} onClick={onHr}>―</button>
+          <span className="w-px h-5 bg-gray-300 mx-1" />
+          <button
+            type="button"
+            aria-label="Paragraph Break"
+            title="Paragraph Break"
+            className={ICON_BTN}
+            onClick={onParagraphBreak}
+          >
+            ¶
+          </button>
+          <span className="w-px h-5 bg-gray-300 mx-1" />
         </div>
         {/* Right: Customization controls */}
         <div className="flex flex-wrap gap-2 items-center">

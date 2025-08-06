@@ -3,17 +3,20 @@ import {
   Button, Input, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton,
   ModalBody, ModalFooter, useDisclosure, useToast, Table, Thead, Tbody, Tr, Th, Td, IconButton, Box, Text
 } from "@chakra-ui/react";
-import { Edit, Trash2, Plus } from "lucide-react";
+import { Edit, Trash2, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   useGetPublishersQuery,
   useAddPublisherMutation,
   useUpdatePublisherMutation,
   useDeletePublisherMutation,
 } from "../../../redux/api/publishersApi";
+import Loading from "../../widgets/loading"; // <-- Add this import
 
+
+const PAGE_SIZE = 10;
 
 const PublishersPage: React.FC = () => {
-  const { data: publishers = [], refetch } = useGetPublishersQuery();
+  const { data: publishers = [], refetch, isLoading } = useGetPublishersQuery(); // <-- get isLoading
   const [addPublisher] = useAddPublisherMutation();
   const [updatePublisher] = useUpdatePublisherMutation();
   const [deletePublisher] = useDeletePublisherMutation();
@@ -21,6 +24,14 @@ const PublishersPage: React.FC = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [formName, setFormName] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Pagination logic
+  const totalPages = Math.ceil(publishers.length / PAGE_SIZE);
+  const paginatedPublishers = publishers.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
 
   const handleOpenModal = (publisher?: { id: number; name: string }) => {
     if (publisher) {
@@ -63,6 +74,9 @@ const PublishersPage: React.FC = () => {
     }
   };
 
+  // --- LOADING TRANSITION ---
+  if (isLoading) return <Loading />;
+
   return (
     <Box p={6} bg="gray.50" minH="100vh">
       <Box maxW="5xl" mx="auto">
@@ -82,7 +96,7 @@ const PublishersPage: React.FC = () => {
             </Tr>
           </Thead>
           <Tbody>
-            {publishers.map((pub) => (
+            {paginatedPublishers.map((pub) => (
               <Tr key={pub.id}>
                 <Td fontWeight="semibold">{pub.name}</Td>
                 <Td>{pub.products?.length || 0}</Td>
@@ -127,6 +141,40 @@ const PublishersPage: React.FC = () => {
             ))}
           </Tbody>
         </Table>
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <Box display="flex" justifyContent="center" alignItems="center" mt={6} gap={2}>
+            <Button
+              leftIcon={<ChevronLeft size={16} />}
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              isDisabled={currentPage === 1}
+              variant="outline"
+            >
+              Prev
+            </Button>
+            {[...Array(totalPages)].map((_, i) => (
+              <Button
+                key={i}
+                size="sm"
+                onClick={() => setCurrentPage(i + 1)}
+                colorScheme={currentPage === i + 1 ? "blue" : "gray"}
+                variant={currentPage === i + 1 ? "solid" : "outline"}
+              >
+                {i + 1}
+              </Button>
+            ))}
+            <Button
+              rightIcon={<ChevronRight size={16} />}
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              isDisabled={currentPage === totalPages}
+              variant="outline"
+            >
+              Next
+            </Button>
+          </Box>
+        )}
       </Box>
       {/* Modal */}
       <Modal isOpen={isOpen} onClose={onClose}>

@@ -17,6 +17,7 @@ import UndoDeleteModal from "./UndoDeleteModal";
 
 const UNDO_TIMEOUT = 8000;
 const RECENT_USER_COUNT = 5;
+const PAGE_SIZE = 10;
 const emptyUser: User = {
   id: 0,
   full_name: "",
@@ -42,6 +43,7 @@ const UsersPage: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newUser, setNewUser] = useState<User>({ ...emptyUser });
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "suspended">("all");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -58,6 +60,13 @@ const UsersPage: React.FC = () => {
     if (statusFilter === "suspended") return user.status === false;
     return true;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(visibleUsers.length / PAGE_SIZE);
+  const paginatedUsers = visibleUsers.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
 
   // Delete timer/fade logic
   useEffect(() => {
@@ -211,12 +220,45 @@ const UsersPage: React.FC = () => {
       </div>
 
       <UsersTable
-        users={visibleUsers}
+        users={paginatedUsers}
         fadingUserId={fadingUserId}
         pendingDelete={pendingDelete}
         onToggleStatus={handleToggleStatus}
         onDelete={handleDelete}
       />
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-6">
+          <button
+            className="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold disabled:opacity-50"
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+          >
+            Prev
+          </button>
+          {[...Array(totalPages)].map((_, i) => (
+            <button
+              key={i}
+              className={`px-3 py-1 rounded font-semibold ${
+                currentPage === i + 1
+                  ? "bg-blue-600 text-white"
+                  : "bg-blue-50 text-blue-700 hover:bg-blue-200"
+              }`}
+              onClick={() => setCurrentPage(i + 1)}
+            >
+              {i + 1}
+            </button>
+          ))}
+          <button
+            className="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold disabled:opacity-50"
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       <AddUserModal
         show={showAddModal}

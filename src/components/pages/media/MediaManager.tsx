@@ -9,6 +9,8 @@ import MoveModal from "./MoveModal";
 import DeleteFolderModal from "./DeleteFolderModal";
 import DeleteMediaModal from "./DeleteMediaModal"; 
 import { Box, Flex } from "@chakra-ui/react"; // Optional: for easier layout
+import Loading from "../../widgets/loading"; // Add this import at the top with others
+
 // FolderTreeNode type is now exported from this file
 
 const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "diishpkrl";
@@ -362,6 +364,8 @@ const MediaManager: React.FC = () => {
     }
   };
 
+  // --- LOADING TRANSITION ---
+  if (isLoading) return <Loading />;
 
   // --- UI ---
   return (

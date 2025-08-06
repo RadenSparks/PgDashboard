@@ -65,8 +65,7 @@ const ProductCmsModal = ({
 
   // Tab image helpers
   const addTabImage = (tabIdx: number) => {
-    const tab = { ...tabs[tabIdx] };
-    tab.images = [...(tab.images || []), ""];
+    const tab = { ...tabs[tabIdx], images: [...(tabs[tabIdx].images || []), ""] };
     updateTab(tabIdx, tab);
     setShowMediaPicker({ field: "tabImages", tabIdx, imgIdx: tab.images.length });
   };
@@ -87,6 +86,17 @@ const ProductCmsModal = ({
       textColor: previewTextColor,
       bgColor: previewBgColor,
     });
+  };
+
+  // Update tab names
+  const TAB_TITLES = ["Specifications", "How To Play", "Reference"];
+
+  // Reference tab helpers
+  const updateReferenceTab = (references: { title: string; link: string }[]) => {
+    const tabIdx = tabs.findIndex(t => t.title.trim().toLowerCase() === "reference");
+    const newTab: TabSection = { title: "Reference", content: "", images: [], references };
+    if (tabIdx >= 0) updateTab(tabIdx, newTab);
+    else onChange({ ...cmsContent, tabs: [...tabs, newTab] });
   };
 
   return (
@@ -282,31 +292,31 @@ const ProductCmsModal = ({
             <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide flex items-center gap-2">
               <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" /> Product Tabs
             </div>
-            {["Specifications", "How To Play", "Contents"].map((fixedTitle, _fixedIdx) => {
-              // Find the tab for this fixed title
+            {TAB_TITLES.map((fixedTitle, _fixedIdx) => {
               const tabIdx = tabs.findIndex(t => t.title.trim().toLowerCase() === fixedTitle.toLowerCase());
-              // If not found, create a local fallback (DO NOT push to tabs!)
-              const tab = tabIdx >= 0
+              const tab: TabSection = tabIdx >= 0
                 ? tabs[tabIdx]
-                : { title: fixedTitle, content: "", images: [] };
+                : fixedTitle === "Reference"
+                  ? { title: "Reference", content: "", images: [], references: [] }
+                  : { title: fixedTitle, content: "", images: [] };
 
               return (
-                <div key={fixedTitle} className="border rounded-lg p-4 mb-6 bg-white shadow-sm relative group transition hover:shadow-md">
-                  <div className="flex items-center gap-2 mb-2">
+                <div key={fixedTitle} className="border rounded-lg p-6 mb-8 bg-white shadow-sm relative group transition hover:shadow-lg">
+                  <div className="flex items-center gap-2 mb-4 sticky top-0 bg-white z-10 py-2 rounded-t-lg">
                     <input
-                      className="flex-1 border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300 font-bold"
+                      className="flex-1 border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300 font-bold bg-gray-50"
                       value={tab.title}
                       disabled
                       readOnly
                     />
                   </div>
-                  {/* How To Play: only link input */}
+                  {/* How To Play: only video link input */}
                   {fixedTitle === "How To Play" ? (
                     <input
                       className="w-full border rounded px-3 py-2 mb-2 focus:ring-2 focus:ring-blue-300"
                       value={tab.content}
                       onChange={e => {
-                        const newTab = { ...tab, content: e.target.value };
+                        const newTab: TabSection = { ...tab, content: e.target.value, images: tab.images || [] };
                         if (tabIdx >= 0) updateTab(tabIdx, newTab);
                         else onChange({ ...cmsContent, tabs: [...tabs, newTab] });
                       }}
@@ -314,13 +324,64 @@ const ProductCmsModal = ({
                       type="url"
                       pattern="https?://.+"
                     />
+                  ) : fixedTitle === "Reference" ? (
+                    <>
+                      <div className="flex flex-col gap-2">
+                        {(tab.references || []).map((ref: { title: string; link: string }, refIdx: number) => (
+                          <div key={refIdx} className="flex gap-2 items-center">
+                            <input
+                              className="border rounded px-2 py-1 flex-1"
+                              value={ref.title}
+                              onChange={e => {
+                                const refs = [...(tab.references || [])];
+                                refs[refIdx] = { ...refs[refIdx], title: e.target.value };
+                                updateReferenceTab(refs);
+                              }}
+                              placeholder="Reference Title"
+                            />
+                            <input
+                              className="border rounded px-2 py-1 flex-1"
+                              value={ref.link}
+                              onChange={e => {
+                                const refs = [...(tab.references || [])];
+                                refs[refIdx] = { ...refs[refIdx], link: e.target.value };
+                                updateReferenceTab(refs);
+                              }}
+                              placeholder="Reference Link (https://...)"
+                              type="url"
+                              pattern="https?://.+"
+                            />
+                            <button
+                              type="button"
+                              className="text-red-500 hover:text-red-700 px-2 py-1 rounded"
+                              onClick={() => {
+                                const refs = [...(tab.references || [])];
+                                refs.splice(refIdx, 1);
+                                updateReferenceTab(refs);
+                              }}
+                              aria-label="Remove reference"
+                            >
+                              &times;
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          className="mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-xs font-semibold w-fit"
+                          onClick={() => updateReferenceTab([...(tab.references || []), { title: "", link: "" }])}
+                        >
+                          + Add Reference
+                        </button>
+                      </div>
+                    </>
                   ) : (
+                    // Specifications tab (markdown + images)
                     <>
                       <textarea
                         className="w-full border rounded px-3 py-2 mb-2 focus:ring-2 focus:ring-blue-300"
                         value={tab.content}
                         onChange={e => {
-                          const newTab = { ...tab, content: e.target.value };
+                          const newTab = { ...tab, content: e.target.value, images: tab.images || [] };
                           if (tabIdx >= 0) updateTab(tabIdx, newTab);
                           else onChange({ ...cmsContent, tabs: [...tabs, newTab] });
                         }}

@@ -1,18 +1,92 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "../../widgets/button";
 import { IoMdAdd } from "react-icons/io";
 import { useGetPostsQuery, useDeletePostMutation, type Post } from '../../../redux/postsApi';
 import PostForm from "./PostForm";
 import CatalogueManager from './CatalogueManager';
 import BlogPostPreview from './BlogPostPreview';
+import Loading from "../../widgets/loading";
+import { toaster } from "../../widgets/toaster";
+import UndoDeleteModal from "../users/UndoDeleteModal"; // Reuse the UndoDeleteModal
+
+const UNDO_TIMEOUT = 3500; // ms
 
 const PostsPage = () => {
-  const { data: posts = [], refetch } = useGetPostsQuery();
+  const { data: posts = [], refetch, isLoading } = useGetPostsQuery();
   const [deletePost] = useDeletePostMutation();
   const [previewPost, setPreviewPost] = useState<Post | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editPost, setEditPost] = useState<Post | null>(null);
   const [showCatalogueManager, setShowCatalogueManager] = useState(false);
+
+  // Undo delete state
+  const [pendingDelete, setPendingDelete] = useState<{ post: Post; timeLeft: number } | null>(null);
+  const undoTimer = useRef<NodeJS.Timeout | null>(null);
+
+  // --- LOADING TRANSITION ---
+  if (isLoading) return <Loading />;
+
+  // --- Handle Delete with Undo ---
+  const handleDelete = (postId: number) => {
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+    setPendingDelete({ post, timeLeft: UNDO_TIMEOUT });
+
+    // Start countdown
+    let timeLeft = UNDO_TIMEOUT;
+    undoTimer.current = setInterval(() => {
+      timeLeft -= 100;
+      setPendingDelete(prev =>
+        prev ? { ...prev, timeLeft: Math.max(0, timeLeft) } : null
+      );
+      if (timeLeft <= 0) {
+        clearInterval(undoTimer.current!);
+        confirmDelete(postId);
+      }
+    }, 100);
+  };
+
+  const confirmDelete = async (postId: number) => {
+    setPendingDelete(null);
+    try {
+      await deletePost(postId).unwrap();
+      toaster.show({
+        title: "Deleted",
+        description: "Post deleted successfully.",
+        type: "success",
+      });
+      refetch();
+    } catch {
+      toaster.show({
+        title: "Delete failed",
+        description: "Could not delete the post.",
+        type: "error",
+      });
+    }
+  };
+
+  const handleUndo = () => {
+    if (undoTimer.current) clearInterval(undoTimer.current);
+    setPendingDelete(null);
+    toaster.show({
+      title: "Undo Delete",
+      description: "Post was not deleted.",
+      type: "info",
+    });
+  };
+
+  // --- Handle Add/Update with Toast ---
+  const handleFormSuccess = (action: "add" | "update") => {
+    setShowForm(false);
+    refetch();
+    toaster.show({
+      title: action === "add" ? "Post created" : "Post updated",
+      description: action === "add"
+        ? "The post was added successfully."
+        : "The post was updated successfully.",
+      type: "success",
+    });
+  };
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
@@ -77,10 +151,7 @@ const PostsPage = () => {
                     <Button
                       size="sm"
                       className="bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 px-3 py-1 rounded-lg font-semibold"
-                      onClick={async () => {
-                        await deletePost(post.id);
-                        refetch();
-                      }}
+                      onClick={() => handleDelete(post.id)}
                     >
                       Delete
                     </Button>
@@ -98,6 +169,36 @@ const PostsPage = () => {
           </table>
         </div>
       </div>
+
+      {/* Undo Delete Modal */}
+      <UndoDeleteModal
+        pendingDelete={
+          pendingDelete
+            ? {
+                user: {
+                  id: pendingDelete.post.id,
+                  full_name: pendingDelete.post.name,
+                  // Fill other User fields with dummy values if needed
+                  email: "",
+                  username: "",
+                  avatar_url: "",
+                  status: true,
+                  role: "user",
+                },
+                timeLeft: pendingDelete.timeLeft,
+              }
+            : null
+        }
+        UNDO_TIMEOUT={UNDO_TIMEOUT}
+        onUndo={handleUndo}
+        onToast={({ title, description, status }) =>
+          toaster.show({
+            title,
+            description,
+            type: status,
+          })
+        }
+      />
 
       {/* Catalogue Manager Modal */}
       {showCatalogueManager && (
@@ -161,10 +262,7 @@ const PostsPage = () => {
             </button>
             <PostForm
               initialData={editPost ?? {}}
-              onSuccess={() => {
-                setShowForm(false);
-                refetch();
-              }}
+              onSuccess={() => handleFormSuccess(editPost ? "update" : "add")}
             />
           </div>
         </div>

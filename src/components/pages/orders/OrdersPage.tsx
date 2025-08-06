@@ -25,12 +25,17 @@ const STATUS_LABELS: { [key: string]: string } = {
     cancelled: "Đã hủy",
 };
 
+const PAGE_SIZE = 10;
+
 const OrdersPage = () => {
     const [updateStatus] = useUpdateStatusMutation();
     const { data: orders = [], isLoading } = useGetOrdersQuery();
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [editOrder, setEditOrder] = useState<Order | null>(null);
     const [productDetail, setProductDetail] = useState<number | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [statusFilter, setStatusFilter] = useState("");
     const navigate = useNavigate();
 
     const handleToggleStatus = (orderId: number) => {
@@ -41,6 +46,21 @@ const OrdersPage = () => {
         updateStatus({ ...result, productStatus: nextStatus }); // <-- fix here
     };
 
+    // Search and filter logic
+    const filteredOrders = orders.filter(order =>
+        (searchTerm === "" ||
+            order.id.toString().includes(searchTerm) ||
+            order.user.username.toLowerCase().includes(searchTerm.toLowerCase())) &&
+        (statusFilter === "" || order.productStatus === statusFilter)
+    );
+
+    // Pagination logic
+    const totalPages = Math.ceil(filteredOrders.length / PAGE_SIZE);
+    const paginatedOrders = filteredOrders.slice(
+        (currentPage - 1) * PAGE_SIZE,
+        currentPage * PAGE_SIZE
+    );
+
     if (isLoading) {
         return <Loading />;
     }
@@ -49,9 +69,43 @@ const OrdersPage = () => {
         <div className="p-8">
             <h2 className="text-2xl font-bold mb-6">Orders</h2>
             <div className="bg-white rounded-xl shadow p-6">
-                <div className="overflow-x-auto">
+                {/* Search and Filter Controls */}
+                <div className="mb-4 flex flex-col sm:flex-row gap-2 items-center">
+                    <input
+                        type="text"
+                        className="border rounded px-3 py-2 w-full sm:w-64"
+                        placeholder="Search by Order ID or Customer"
+                        value={searchTerm}
+                        onChange={e => {
+                            setSearchTerm(e.target.value);
+                            setCurrentPage(1);
+                        }}
+                    />
+                    <select
+                        className="border rounded px-3 py-2 w-full sm:w-48"
+                        value={statusFilter}
+                        onChange={e => {
+                            setStatusFilter(e.target.value);
+                            setCurrentPage(1);
+                        }}
+                    >
+                        <option value="">All Statuses</option>
+                        {statusCycle.map(status => (
+                            <option key={status} value={status}>
+                                {STATUS_LABELS[status]}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                <div className="mb-2 text-gray-500 text-sm">
+                    Showing {(currentPage - 1) * PAGE_SIZE + 1}–
+                    {Math.min(currentPage * PAGE_SIZE, filteredOrders.length)} of {filteredOrders.length} orders
+                </div>
+
+                <div className="overflow-x-auto w-full">
                     <table className="min-w-full text-sm">
-                        <thead>
+                        <thead className="bg-gray-50 sticky top-0 z-10">
                             <tr className="text-left border-b">
                                 <th className="py-2 px-2">Order ID</th>
                                 <th className="py-2 px-2">Customer</th>
@@ -64,8 +118,8 @@ const OrdersPage = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {orders.map((order) => (
-                                <tr key={order.id} className="border-b hover:bg-gray-50">
+                            {paginatedOrders.map((order) => (
+                                <tr key={order.id} className="border-b hover:bg-gray-50 group">
                                     <td className="py-2 px-2">
                                         <Button
                                             size="sm"
@@ -95,25 +149,27 @@ const OrdersPage = () => {
                                         >
                                             {STATUS_LABELS[order.productStatus] || order.productStatus}
                                         </span>
-                                        <Button
-                                            size="sm"
-                                            title="Toggle Status"
-                                            className="bg-gray-100 border border-gray-300 hover:bg-gray-200 px-2 py-1 rounded"
-                                            onClick={() => handleToggleStatus(order.id)}
-                                        >
-                                            <FaExchangeAlt />
-                                        </Button>
-                                        <Button
-                                            size="sm"
-                                            className="bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200 px-3 py-1 rounded"
-                                            onClick={() => setEditOrder(order)}
-                                        >
-                                            <FaEdit className="mr-1" /> Edit
-                                        </Button>
+                                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Button
+                                                size="sm"
+                                                title="Toggle Status"
+                                                className="bg-gray-100 border border-gray-300 hover:bg-gray-200 px-2 py-1 rounded"
+                                                onClick={() => handleToggleStatus(order.id)}
+                                            >
+                                                <FaExchangeAlt />
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                className="bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200 px-3 py-1 rounded"
+                                                onClick={() => setEditOrder(order)}
+                                            >
+                                                <FaEdit className="mr-1" /> Edit
+                                            </Button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
-                            {orders.length === 0 && (
+                            {paginatedOrders.length === 0 && (
                                 <tr>
                                     <td colSpan={8} className="py-6 text-center text-gray-400">
                                         No orders found.
@@ -123,6 +179,38 @@ const OrdersPage = () => {
                         </tbody>
                     </table>
                 </div>
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div className="flex justify-center items-center gap-2 mt-6">
+                        <button
+                            className="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold disabled:opacity-50"
+                            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                            disabled={currentPage === 1}
+                        >
+                            Prev
+                        </button>
+                        {[...Array(totalPages)].map((_, i) => (
+                            <button
+                                key={i}
+                                className={`px-3 py-1 rounded font-semibold ${
+                                    currentPage === i + 1
+                                        ? "bg-blue-600 text-white"
+                                        : "bg-blue-50 text-blue-700 hover:bg-blue-200"
+                                }`}
+                                onClick={() => setCurrentPage(i + 1)}
+                            >
+                                {i + 1}
+                            </button>
+                        ))}
+                        <button
+                            className="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold disabled:opacity-50"
+                            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                            disabled={currentPage === totalPages}
+                        >
+                            Next
+                        </button>
+                    </div>
+                )}
             </div>
 
             <OrderDetailsModal

@@ -1,3 +1,4 @@
+import React, { useEffect, useRef } from "react";
 import { Button } from "../../widgets/button";
 import { useGetProductByIdQuery } from "../../../redux/api/productsApi";
 
@@ -9,9 +10,20 @@ interface ProductDetailModalProps {
 
 const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ productId, onClose, navigate }) => {
     const { data: product, isLoading } = useGetProductByIdQuery(productId ?? 0, { skip: productId === null });
+    const modalRef = useRef<HTMLDivElement>(null);
+
+    // Trap focus and close on ESC
+    useEffect(() => {
+        if (modalRef.current) modalRef.current.focus();
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") onClose();
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [onClose]);
+
     if (productId === null || isLoading || !product) return null;
 
-    // Use the first image as the main image, fallback to empty string
     const mainImage =
         product.images && product.images.length > 0
             ? typeof product.images[0] === "string"
@@ -20,8 +32,16 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ productId, onCl
             : "";
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white rounded-xl shadow-lg max-w-2xl w-full p-6 relative">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 transition-opacity"
+            onClick={onClose}
+        >
+            <div
+                className="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-6 relative animate-fade-in"
+                tabIndex={-1}
+                ref={modalRef}
+                onClick={e => e.stopPropagation()}
+            >
                 <button
                     className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl"
                     onClick={onClose}
@@ -34,7 +54,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ productId, onCl
                         <img
                             src={mainImage}
                             alt={product.product_name}
-                            className="w-32 h-32 object-cover rounded border mb-4"
+                            className="w-32 h-32 object-cover rounded border mb-4 cursor-pointer hover:scale-105 transition"
                         />
                         <div className="flex gap-2 flex-wrap">
                             {product.images?.map((imgObj: string | { url: string }, idx: number) => (
@@ -42,22 +62,16 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ productId, onCl
                                     key={idx}
                                     src={typeof imgObj === "string" ? imgObj : imgObj.url}
                                     alt={`${product.product_name} ${idx + 1}`}
-                                    className="w-10 h-10 object-cover rounded border"
+                                    className="w-10 h-10 object-cover rounded border cursor-pointer hover:ring-2 hover:ring-blue-400"
                                 />
                             ))}
                         </div>
                     </div>
                     <div className="flex-1">
                         <h3 className="text-2xl font-bold mb-2">{product.product_name}</h3>
-                        {/* Use optional chaining and fallback for description */}
                         <p className="mb-2 text-gray-700">{(product as { description?: string }).description ?? "No description"}</p>
-                        {/* Remove or adjust the category line if not present in your Product type */}
-                        {/* <div className="mb-2">
-                            <span className="font-semibold">Category:</span> {product.category}
-                        </div> */}
                         <div className="mb-2">
                             <span className="font-semibold">Price:</span> ${product.product_price.toFixed(2)}
-                            {/* Use optional chaining for discount */}
                             {((product as { discount?: number }).discount ?? 0) > 0 && (
                                 <span className="ml-2 text-green-600 font-semibold">
                                     {(product as { discount?: number }).discount}% OFF
@@ -66,7 +80,6 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ productId, onCl
                         </div>
                         <div className="mb-2">
                             <span className="font-semibold">Stock:</span> {product.quantity_stock}
-                            {/* Use optional chaining for quantity_sold */}
                             <span className="ml-4 font-semibold">Sold:</span> {(product as { quantity_sold?: number }).quantity_sold ?? 0}
                         </div>
                         <div className="mb-2">

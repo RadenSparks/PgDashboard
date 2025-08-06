@@ -4,6 +4,7 @@ import api from '../../../api/axios-client';
 import PostFormToolbar from './PostFormToolbar';
 import PostFormSidebar from './PostFormSidebar';
 import MediaPicker from "../../media/MediaPicker";
+import { useToast } from '@chakra-ui/react';
 
 // --- Add these interfaces for type safety ---
 interface Catalogue {
@@ -59,6 +60,7 @@ const BG_COLORS = [
 ];
 
 const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
+  const toast = useToast();
   const [form, setForm] = useState<PostFormType>(initialData as PostFormType);
   const [catalogues, setCatalogues] = useState<Catalogue[]>([]);
   const [createPost] = useCreatePostMutation();
@@ -72,6 +74,7 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
   const [showBgColorPicker, setShowBgColorPicker] = useState(false);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [showMediaPicker, setShowMediaPicker] = useState<"cover" | "insert" | "gallery" | null>(null);
+  const [cataloguePosts, setCataloguePosts] = useState<PostFormType[]>([]);
 
   useEffect(() => {
     api.get('/post-catalogues').then(res => setCatalogues(res.data));
@@ -86,6 +89,30 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
     }
   }, [initialData]);
 
+  useEffect(() => {
+    if (form.catalogueId) {
+      api.get(`/posts?catalogueId=${form.catalogueId}`).then(res => setCataloguePosts(res.data));
+    } else {
+      setCataloguePosts([]);
+    }
+  }, [form.catalogueId]);
+
+  // Compute order options
+  const usedOrders = cataloguePosts
+    .filter(p => !form.id || p.id !== form.id)
+    .map(p => Number(p.order))
+    .filter(Boolean);
+
+  const maxOrder = Math.max(2, cataloguePosts.length + (form.id ? 0 : 1)); // Always at least 2 options
+  const orderOptions = [];
+  for (let i = 1; i <= maxOrder; i++) {
+    orderOptions.push(i);
+  }
+  if (form.order && !orderOptions.includes(Number(form.order))) {
+    orderOptions.push(Number(form.order));
+  }
+  orderOptions.sort((a, b) => a - b);
+
   // Markdown helpers
   const insertMarkdown = (before: string, after: string = '', placeholder: string = '') => {
     const textarea = textareaRef.current;
@@ -99,13 +126,16 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
     const newContent = beforeText + before + insertText + after + afterText;
     setForm({ ...form, content: newContent });
     setTimeout(() => {
-      textarea.focus();
-      if (selected) {
-        textarea.selectionStart = start + before.length;
-        textarea.selectionEnd = start + before.length + insertText.length;
-      } else {
-        textarea.selectionStart = textarea.selectionEnd = start + before.length + insertText.length + after.length;
+      // Only set selection if textarea is focused
+      if (document.activeElement === textarea) {
+        if (selected) {
+          textarea.selectionStart = start + before.length;
+          textarea.selectionEnd = start + before.length + insertText.length;
+        } else {
+          textarea.selectionStart = textarea.selectionEnd = start + before.length + insertText.length + after.length;
+        }
       }
+      // Do NOT call textarea.focus() here!
     }, 0);
   };
 
@@ -116,6 +146,7 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
   const handleInsertUnderline = () => insertMarkdown('<u>', '</u>', 'underlined text');
   const handleInsertImage = () => setShowMediaPicker("insert");
   const handleInsertHr = () => insertMarkdown('\n\n---\n\n');
+  const handleParagraphBreak = () => insertMarkdown('\n\n');
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
@@ -126,7 +157,17 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === "canonical") {
+      // Replace spaces with hyphens, remove non-url-safe chars, and lowercase
+      const sanitized = value
+        .replace(/\s+/g, "-")        // spaces to hyphens
+        .replace(/[^a-zA-Z0-9-]/g, "") // remove special chars except hyphen
+        .toLowerCase();
+      setForm({ ...form, [name]: sanitized });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -156,12 +197,18 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
     if (typeof payload.catalogueId !== "number" && payload.catalogueId !== undefined) {
       payload.catalogueId = undefined;
     }
-    if (form.id) {
-      await updatePost({ id: form.id, body: payload });
-    } else {
-      await createPost(payload);
+    try {
+      if (form.id) {
+        await updatePost({ id: form.id, body: payload });
+        toast({ title: "Post updated!", status: "success", duration: 3000, isClosable: true });
+      } else {
+        await createPost(payload);
+        toast({ title: "Post created!", status: "success", duration: 3000, isClosable: true });
+      }
+      if (onSuccess) onSuccess();
+    } catch {
+      toast({ title: "Error saving post", status: "error", duration: 4000, isClosable: true });
     }
-    if (onSuccess) onSuccess();
   };
 
   return (
@@ -229,14 +276,20 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
                   </div>
                   <div>
                     <label className="block font-semibold mb-1">Order</label>
-                    <input
+                    <select
                       name="order"
-                      type="number"
                       value={form.order || ''}
                       onChange={handleChange}
-                      placeholder="Order"
                       className="w-full border rounded p-3 text-lg"
-                    />
+                    >
+                      <option value="">Select Order</option>
+                      {orderOptions.map(i => (
+                        <option key={i} value={i}>
+                          {i === 1 ? "1 (Featured)" : i}
+                          {usedOrders.includes(i) && form.order !== i ? " (Used)" : ""}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
                 <div className="mt-6">
@@ -315,6 +368,7 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
                     onUnderline={handleInsertUnderline}
                     onImage={handleInsertImage}
                     onHr={handleInsertHr}
+                    onParagraphBreak={handleParagraphBreak} // <-- add this prop
                     previewTextColor={previewTextColor}
                     previewBgColor={previewBgColor}
                     showColorPicker={showColorPicker}
@@ -336,7 +390,7 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
                     onOpenGalleryPicker={() => setShowMediaPicker("gallery")}
                     images={galleryImages}
                     onGalleryImageInsert={url => {
-                      insertMarkdown(`\n\n![alt text](${url})\n\n`);
+                      insertMarkdown(`\n\n![](${url})\n\n`);
                     }}
                   />
                 </div>
@@ -381,7 +435,7 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
                           <button
                             type="button"
                             className="absolute bottom-0 left-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-tr rounded-bl opacity-80 hover:opacity-100 transition"
-                            onClick={() => insertMarkdown(`\n\n![alt text](${img})\n\n`)}
+                            onClick={() => insertMarkdown(`\n\n![](${img})\n\n`)}
                             title="Insert into post"
                           >
                             Insert
@@ -430,7 +484,7 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
           } else if (showMediaPicker === "insert") {
             const arr = Array.isArray(imgs) ? imgs : [imgs];
             arr.forEach(img => {
-              insertMarkdown(`\n\n![alt text](${img.url})\n\n`);
+              insertMarkdown(`\n\n![](${img.url})\n\n`);
             });
           } else if (showMediaPicker === "gallery") {
             const arr = Array.isArray(imgs) ? imgs : [imgs];

@@ -197,51 +197,51 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     );
   }
 
-  // --- Place the button OUTSIDE the scrollable sidebar ---
+  // --- Place the button absolutely, below the navbar, so it's never obscured ---
   return (
-    <>
-      <div
-        className={`relative h-screen transition-all duration-300 z-[200] ${collapsed ? 'w-[72px]' : 'w-[260px]'}`}
-        style={{ minWidth: collapsed ? 72 : 260 }}
-      >
-        {/* Collapse/Expand Button */}
-        <Tooltip label={collapsed ? "Expand sidebar" : "Collapse sidebar"} placement="right" hasArrow>
-          <Button
-            onClick={() => setCollapsed((prev) => !prev)}
-            className="absolute z-[210] top-2 -right-4 bg-white border border-gray-200 shadow-lg p-1 w-8 h-8 flex items-center justify-center transition-colors hover:bg-blue-100 focus:outline-none rounded-full"
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            aria-pressed={collapsed}
-            tabIndex={0}
-            type="button"
-            style={{
-              boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
-              border: "1.5px solid #e5e7eb",
-              outline: 'none',
-            }}
-            onKeyDown={e => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                setCollapsed(prev => !prev);
-              }
-            }}
-          >
-            <img
-              src="/assets/icons/lefticon.svg"
-              height={20}
-              width={20}
-              alt="toggle sidebar"
-              className={`transition-transform duration-300 ${collapsed ? "rotate-180" : ""}`}
-            />
-          </Button>
-        </Tooltip>
-        <SidebarContent
-          collapsed={collapsed}
-          setCollapsed={setCollapsed}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          navigate={navigate}
-        />
-      </div>
-    </>
+    <div
+      className={`relative h-screen transition-all duration-300 z-[200] ${collapsed ? 'w-[72px]' : 'w-[260px]'}`}
+      style={{ minWidth: collapsed ? 72 : 260 }}
+    >
+      {/* Collapse/Expand Button */}
+      <Tooltip label={collapsed ? "Expand sidebar" : "Collapse sidebar"} placement="right" hasArrow>
+        <Button
+          onClick={() => setCollapsed((prev) => !prev)}
+          className="fixed z-[210] left-[60px] md:left-[244px] transition-all duration-300 bg-white border border-gray-200 shadow-lg p-1 w-10 h-10 flex items-center justify-center hover:bg-blue-100 focus:outline-none rounded-full"
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-pressed={collapsed}
+          tabIndex={0}
+          type="button"
+          style={{
+            top: 88, // Place below the navbar (adjust if your navbar height changes)
+            left: collapsed ? 60 : 244, // 72px sidebar - 12px overlap, or 260px - 16px overlap
+            boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
+            border: "1.5px solid #e5e7eb",
+            outline: 'none',
+          }}
+          onKeyDown={e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              setCollapsed(prev => !prev);
+            }
+          }}
+        >
+          <img
+            src="/assets/icons/lefticon.svg"
+            height={24}
+            width={24}
+            alt="toggle sidebar"
+            className={`transition-transform duration-300 ${collapsed ? "rotate-180" : ""}`}
+          />
+        </Button>
+      </Tooltip>
+      <SidebarContent
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        navigate={navigate}
+      />
+    </div>
   );
 };
 
