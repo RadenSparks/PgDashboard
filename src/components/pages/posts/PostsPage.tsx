@@ -233,7 +233,7 @@ const PostsPage = () => {
                 title={previewPost?.name}
                 description={previewPost?.description}
                 image={previewPost?.image}
-                catalogueName={typeof previewPost?.catalogue === 'object' && previewPost?.catalogue !== null && 'name' in previewPost.catalogue ? (previewPost.catalogue as { name: string }).name : undefined}
+                catalogueName={typeof previewPost?.catalogue === 'object' && previewPost?.catalogue !== null && 'name' in previewPost.catalogue ? (previewPost.catalogue as { name: string; }).name : undefined}
                 date={previewPost?.created_at?.slice(0, 10)}
                 fontFamily={previewPost?.fontFamily}
                 fontSize={previewPost?.fontSize}
@@ -242,8 +242,9 @@ const PostsPage = () => {
                 meta_title={previewPost?.meta_title}
                 meta_description={previewPost?.meta_description}
                 meta_keyword={previewPost?.meta_keyword}
-                canonical={previewPost?.canonical}
-              />
+                canonical={previewPost?.canonical} onApplySeo={function (): void {
+                  throw new Error("Function not implemented.");
+                } }              />
             </div>
           </div>
         </div>
