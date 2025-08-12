@@ -178,6 +178,24 @@ const ProductFormModal = ({
             className="divide-y"
             onSubmit={e => {
               e.preventDefault();
+              // Transform product to ensure publisherID is sent as a number
+              const payload = {
+                ...product,
+                publisherID:
+                  typeof product.publisher_ID === "object"
+                    ? product.publisher_ID.id
+                    : product.publisher_ID,
+              };
+              if ("publisher_ID" in payload) {
+                delete (payload as { publisher_ID?: unknown }).publisher_ID;
+              }
+
+              // If your onSave expects the payload, pass it here:
+              // onSave(payload);
+
+              // If onSave does not accept arguments, you may need to lift this logic up to the parent.
+              // For now, you can set publisherID in the product and remove publisher_ID before calling onSave:
+              onChange(payload);
               onSave();
             }}
           >
