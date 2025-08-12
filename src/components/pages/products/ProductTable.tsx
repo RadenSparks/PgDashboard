@@ -32,7 +32,7 @@ const ProductTable = ({
     return (
         <div className="bg-white rounded-2xl shadow-lg p-8">
             <div className="overflow-x-auto">
-                <table className="min-w-full text-sm align-middle">
+                <table className="min-w-[1400px] text-sm align-middle">
                     <thead>
                         <tr className="text-left border-b bg-blue-50">
                             <th className="py-4 px-3 font-semibold text-gray-700">Image</th>
@@ -42,6 +42,7 @@ const ProductTable = ({
                             <th className="py-4 px-3 font-semibold text-gray-700">Genres</th>
                             <th className="py-4 px-3 font-semibold text-gray-700">Players</th>
                             <th className="py-4 px-3 font-semibold text-gray-700">Duration</th>
+                            <th className="py-4 px-3 font-semibold text-gray-700">Age</th>
                             <th className="py-4 px-3 font-semibold text-gray-700">Price</th>
                             <th className="py-4 px-3 font-semibold text-gray-700">Discount</th>
                             <th className="py-4 px-3 font-semibold text-gray-700">Stock</th>
@@ -60,6 +61,7 @@ const ProductTable = ({
                             const genres = tags.filter((t) => t.type === "genre");
                             const players = tags.find((t) => t.type === "players");
                             const duration = tags.find((t) => t.type === "duration");
+                            const age = tags.find((t) => t.type === "age");
 
                             return (
                                 <tr key={prod.id} className="border-b hover:bg-blue-50 align-middle transition">
@@ -106,6 +108,15 @@ const ProductTable = ({
                                         {duration ? (
                                             <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full text-xs whitespace-nowrap">
                                                 {duration.name}
+                                            </span>
+                                        ) : (
+                                            <span className="text-gray-400">-</span>
+                                        )}
+                                    </td>
+                                    <td className="py-4 px-3 align-middle">
+                                        {age ? (
+                                            <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full text-xs whitespace-nowrap">
+                                                {age.name}
                                             </span>
                                         ) : (
                                             <span className="text-gray-400">-</span>
@@ -171,7 +182,7 @@ const ProductTable = ({
                         })}
                         {paginatedProducts.length === 0 && (
                             <tr>
-                                <td colSpan={13} className="py-8 text-center text-gray-400">
+                                <td colSpan={14} className="py-8 text-center text-gray-400">
                                     No products found.
                                 </td>
                             </tr>
