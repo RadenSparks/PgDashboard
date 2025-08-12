@@ -211,13 +211,14 @@ const MediaManager: React.FC = () => {
     try {
       const publicId = getCloudinaryPublicId(item.url);
       if (publicId) {
+        const baseApi = (import.meta.env.VITE_BASE_API || "https://pengoo-back-end.vercel.app").replace(/\/+$/, "");
         await fetch(
-          `${import.meta.env.VITE_BASE_API || "https://pengoo-back-end.vercel.app"}/images/delete-cloudinary`,
+          `${baseApi}/images/delete-cloudinary`,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "Authorization": `Bearer ${localStorage.getItem('token') || ''}`, // <-- Add this line
+              "Authorization": `Bearer ${localStorage.getItem('token') || ''}`,
             },
             body: JSON.stringify({ publicId }),
           }
