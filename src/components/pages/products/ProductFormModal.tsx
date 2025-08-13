@@ -104,35 +104,36 @@ const ProductFormModal = ({
       if (showMediaPicker === "main") {
         const img = Array.isArray(imgs) ? imgs[0] : imgs;
         const blob = await fetch(img.url).then((res) => res.blob());
-        const file = new File([blob], "main.jpg", { type: blob.type });
+        const fileName = `main_${product.slug}.jpg`;
         const mainImage: NamedImage = {
           id: img.id,
           url: img.url,
-          name: "main",
-          file,
+          name: `main_${product.slug}`, // <-- new naming
+          file: new File([blob], fileName, { type: blob.type }),
           folder: product.slug,
         };
-        const galleryImages = (product.images as NamedImage[]).filter((i) => i.name !== "main");
+        const galleryImages = (product.images as NamedImage[]).filter((i) => !i.name?.startsWith("main_"));
         onChange({
           ...product,
           images: [mainImage, ...galleryImages],
-          mainImage: file,
+          mainImage: mainImage.file,
         });
       } else if (showMediaPicker === "gallery") {
         const arr = Array.isArray(imgs) ? imgs : [imgs];
         const galleryImages: NamedImage[] = await Promise.all(
           arr.map(async (i, idx) => {
             const blob = await fetch(i.url).then((res) => res.blob());
+            const fileName = `detail_${product.slug}-${idx + 1}.jpg`;
             return {
               id: i.id,
               url: i.url,
-              name: "detail",
-              file: new File([blob], `detail-${idx + 1}.jpg`, { type: blob.type }),
+              name: `detail_${product.slug}-${idx + 1}`, // <-- new naming
+              file: new File([blob], fileName, { type: blob.type }),
               folder: product.slug,
             };
           })
         );
-        const mainImage = getMainImageObj();
+        const mainImage = (product.images as NamedImage[]).find(img => img.name?.startsWith("main_"));
         onChange({
           ...product,
           images: mainImage ? [mainImage, ...galleryImages] : [...galleryImages],
