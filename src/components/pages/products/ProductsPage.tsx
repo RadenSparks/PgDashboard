@@ -75,6 +75,12 @@ const ProductsPage = () => {
             toaster.show({ title: "Saving product...", type: "loading" });
             if (editProduct) {
                 const formData = new FormData();
+
+                // Ensure publisher_ID is an object with id and name
+                const publisherId = typeof editProduct.publisher_ID === "object"
+                    ? editProduct.publisher_ID.id
+                    : editProduct.publisher_ID;
+
                 formData.append("product_name", editProduct.product_name);
                 formData.append("product_price", editProduct.product_price.toString());
                 formData.append("description", editProduct.description);
@@ -86,21 +92,24 @@ const ProductsPage = () => {
                 formData.append("quantity_stock", editProduct.quantity_stock.toString());
                 formData.append("status", editProduct.status);
                 formData.append("category_ID", editProduct.category_ID.id.toString());
-                formData.append("publisher_ID", editProduct.publisher_ID?.id?.toString() || "");
+                formData.append("publisher_ID", publisherId?.toString() || "");
                 formData.append(
                     "tags",
                     (editProduct.tags as (Tag | number)[]).map((t) => typeof t === "object" ? t.id : t).join(" ")
                 );
+
                 // Main image
                 if (editProduct.mainImage instanceof File) {
                     formData.append("mainImage", editProduct.mainImage);
                 }
-                // Gallery images
+
+                // Gallery images (exclude main image)
                 (editProduct.images as { name?: string; file?: File }[])
                     .filter(img => img.name !== "main" && img.file instanceof File)
                     .forEach(img => {
                         formData.append('detailImages', img.file as File);
                     });
+
                 await addProduct(formData);
                 toaster.show({ title: "Product saved successfully!", type: "success" });
                 setEditProduct(null);
@@ -130,6 +139,12 @@ const ProductsPage = () => {
             toaster.show({ title: "Updating product...", type: "loading" });
             if (editProduct) {
                 const formData = new FormData();
+
+                // Ensure publisher_ID is an object with id and name
+                const publisherId = typeof editProduct.publisher_ID === "object"
+                    ? editProduct.publisher_ID.id
+                    : editProduct.publisher_ID;
+
                 formData.append("id", editProduct.id.toString());
                 formData.append("product_name", editProduct.product_name);
                 formData.append("product_price", editProduct.product_price.toString());
@@ -142,21 +157,28 @@ const ProductsPage = () => {
                 formData.append("quantity_stock", editProduct.quantity_stock.toString());
                 formData.append("status", editProduct.status);
                 formData.append("category_ID", editProduct.category_ID.id.toString());
-                formData.append("publisher_ID", editProduct.publisher_ID?.id?.toString() || "");
+                formData.append("publisher_ID", publisherId?.toString() || "");
                 formData.append(
                     "tags",
                     (editProduct.tags as (Tag | number)[]).map((t) => typeof t === "object" ? t.id : t).join(" ")
                 );
-                // Images
-                (editProduct.images as { file?: File }[]).forEach((img) => {
-                    if (img.file) formData.append('detailImages', img.file);
-                });
+
+                // Gallery images (exclude main image)
+                (editProduct.images as { name?: string; file?: File }[])
+                    .filter(img => img.name !== "main" && img.file instanceof File)
+                    .forEach(img => {
+                        formData.append('detailImages', img.file as File);
+                    });
+
+                // Main image
                 if (editProduct.mainImage instanceof File) {
                     formData.append("mainImage", editProduct.mainImage);
                 }
+
                 if (editProduct.deleteImages) {
                     formData.append('deleteImages', JSON.stringify(editProduct.deleteImages));
                 }
+
                 await updateProduct(formData);
                 toaster.show({ title: "Product updated successfully!", type: "success" });
                 setEditProduct(null);

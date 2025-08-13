@@ -36,7 +36,7 @@ const ProductFormModal = ({
 
   // MediaPicker state
   const [showMediaPicker, setShowMediaPicker] = useState<"main" | "gallery" | null>(null);
-  const [lastMediaFolder, setLastMediaFolder] = useState<string>("");
+  // Removed unused useState hook
 
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -102,27 +102,31 @@ const ProductFormModal = ({
       if (showMediaPicker === "main") {
         const img = Array.isArray(imgs) ? imgs[0] : imgs;
         const blob = await fetch(img.url).then((res) => res.blob());
-        const file = new File([blob], img.name || "main.jpg", { type: blob.type });
-        const mainImage: NamedImage = { id: img.id, url: img.url, name: "main", file, folder: img.folder ?? "" };
+        const file = new File([blob], "main.jpg", { type: blob.type });
+        const mainImage: NamedImage = {
+          id: img.id,
+          url: img.url,
+          name: "main",
+          file,
+          folder: product.slug, // <-- assign folder as slug
+        };
         const galleryImages = (product.images as NamedImage[]).filter((i) => i.name !== "main");
         onChange({
           ...product,
           images: [mainImage, ...galleryImages],
           mainImage: file,
         });
-        if (typeof img.folder === "string") setLastMediaFolder(img.folder);
       } else if (showMediaPicker === "gallery") {
         const arr = Array.isArray(imgs) ? imgs : [imgs];
         const galleryImages: NamedImage[] = await Promise.all(
-          arr.map(async (i) => {
+          arr.map(async (i, idx) => {
             const blob = await fetch(i.url).then((res) => res.blob());
-            const file = new File([blob], i.name || `gallery-${i.id}.jpg`, { type: blob.type });
             return {
               id: i.id,
               url: i.url,
-              name: i.name || "",
-              file,
-              folder: i.folder ?? "",
+              name: "detail", // <-- assign name as detail
+              file: new File([blob], `detail-${idx + 1}.jpg`, { type: blob.type }),
+              folder: product.slug, // <-- assign folder as slug
             };
           })
         );
@@ -131,7 +135,6 @@ const ProductFormModal = ({
           ...product,
           images: mainImage ? [mainImage, ...galleryImages] : [...galleryImages],
         });
-        if (typeof arr[0]?.folder === "string") setLastMediaFolder(arr[0].folder);
       }
       setShowMediaPicker(null);
       toast({
@@ -195,8 +198,8 @@ const ProductFormModal = ({
 
               // If onSave does not accept arguments, you may need to lift this logic up to the parent.
               // For now, you can set publisherID in the product and remove publisher_ID before calling onSave:
-              onChange(payload);
-              onSave();
+              onChange(payload); // This updates the product state
+              onSave(); // This should use the updated product
             }}
           >
             {/* Basic Info */}
@@ -557,7 +560,7 @@ const ProductFormModal = ({
         <MediaPicker
           show={!!showMediaPicker}
           multiple={showMediaPicker === "gallery"}
-          folder={lastMediaFolder || product.slug}
+          folder={product.slug} // <-- always use product.slug as folder
           onSelect={(images) => handleImageSelect(images as NamedImage[] | NamedImage)}
           onClose={() => setShowMediaPicker(null)}
         />
