@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { Product, NamedImage, Tag } from "./types"; // <-- Use Tag from your local types
+import type { Product, NamedImage, Tag } from "./types";
 import { Button } from "../../widgets/button";
 import GallerySlider from "./GallerySlider";
 import { useGetCategoriesQuery } from "../../../redux/api/categoryApi";
@@ -36,7 +36,6 @@ const ProductFormModal = ({
 
   // MediaPicker state
   const [showMediaPicker, setShowMediaPicker] = useState<"main" | "gallery" | null>(null);
-  // Removed unused useState hook
 
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -51,7 +50,6 @@ const ProductFormModal = ({
   }, [onClose]);
 
   // Tag assignment handlers
-  // Always keep product.tags as Tag[]
   const tagsArray: number[] = Array.isArray(product.tags)
     ? (product.tags as Tag[]).map((t) => t.id)
     : [];
@@ -97,6 +95,10 @@ const ProductFormModal = ({
     });
   };
 
+  // --- FIX: Always find main image by name, not index ---
+  const getMainImageObj = () =>
+    (product.images as NamedImage[]).find(img => img.name === "main");
+
   const handleImageSelect = async (imgs: NamedImage[] | NamedImage) => {
     try {
       if (showMediaPicker === "main") {
@@ -108,7 +110,7 @@ const ProductFormModal = ({
           url: img.url,
           name: "main",
           file,
-          folder: product.slug, // <-- assign folder as slug
+          folder: product.slug,
         };
         const galleryImages = (product.images as NamedImage[]).filter((i) => i.name !== "main");
         onChange({
@@ -124,13 +126,13 @@ const ProductFormModal = ({
             return {
               id: i.id,
               url: i.url,
-              name: "detail", // <-- assign name as detail
+              name: "detail",
               file: new File([blob], `detail-${idx + 1}.jpg`, { type: blob.type }),
-              folder: product.slug, // <-- assign folder as slug
+              folder: product.slug,
             };
           })
         );
-        const mainImage = (product.images as NamedImage[]).find((i) => i.name === "main");
+        const mainImage = getMainImageObj();
         onChange({
           ...product,
           images: mainImage ? [mainImage, ...galleryImages] : [...galleryImages],
@@ -181,7 +183,6 @@ const ProductFormModal = ({
             className="divide-y"
             onSubmit={e => {
               e.preventDefault();
-              // Transform product to ensure publisherID is sent as a number
               const payload = {
                 ...product,
                 publisherID:
@@ -192,14 +193,8 @@ const ProductFormModal = ({
               if ("publisher_ID" in payload) {
                 delete (payload as { publisher_ID?: unknown }).publisher_ID;
               }
-
-              // If your onSave expects the payload, pass it here:
-              // onSave(payload);
-
-              // If onSave does not accept arguments, you may need to lift this logic up to the parent.
-              // For now, you can set publisherID in the product and remove publisher_ID before calling onSave:
-              onChange(payload); // This updates the product state
-              onSave(); // This should use the updated product
+              onChange(payload);
+              onSave();
             }}
           >
             {/* Basic Info */}
@@ -225,7 +220,6 @@ const ProductFormModal = ({
                     placeholder="Slug"
                     value={product.slug}
                     onChange={e => {
-                      // Replace spaces with "-" and lowercase the input
                       const formatted = e.target.value.replace(/\s+/g, "-").toLowerCase();
                       onChange({ ...product, slug: formatted });
                     }}
@@ -415,7 +409,6 @@ const ProductFormModal = ({
                     onChange={e => onChange({ ...product, quantity_stock: parseInt(e.target.value) || 0 })}
                   />
                 </label>
-                {/* Removed Sold input for VCI compliance */}
               </div>
             </section>
             {/* Images */}
@@ -432,9 +425,9 @@ const ProductFormModal = ({
                   >
                     Select from Media Library
                   </button>
-                  {(product.images[0] as NamedImage)?.url && (
+                  {getMainImageObj()?.url && (
                     <img
-                      src={(product.images[0] as NamedImage).url}
+                      src={getMainImageObj()!.url}
                       alt="Main"
                       className="w-14 h-14 object-cover rounded border mt-2"
                     />
@@ -475,9 +468,9 @@ const ProductFormModal = ({
                 <div className="flex flex-col gap-2 mt-2">
                   <div>
                     <div className="text-xs text-gray-500 mb-1">Main</div>
-                    {(product.images as NamedImage[]).find((img) => (img as NamedImage).name === "main")?.url && (
+                    {getMainImageObj()?.url && (
                       <img
-                        src={(product.images as NamedImage[]).find((img) => (img as NamedImage).name === "main")!.url}
+                        src={getMainImageObj()!.url}
                         alt="Main"
                         className="w-14 h-14 object-cover rounded border"
                       />
@@ -560,7 +553,7 @@ const ProductFormModal = ({
         <MediaPicker
           show={!!showMediaPicker}
           multiple={showMediaPicker === "gallery"}
-          folder={product.slug} // <-- always use product.slug as folder
+          folder={product.slug}
           onSelect={(images) => handleImageSelect(images as NamedImage[] | NamedImage)}
           onClose={() => setShowMediaPicker(null)}
         />
