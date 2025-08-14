@@ -120,18 +120,6 @@ const SignIn = () => {
             })
             .finally(() => setLoading(false));
     };
-
-    const handleNavigateSignup = () => {
-        if (containerRef.current) {
-            containerRef.current.classList.add('fade-out');
-            setTimeout(() => {
-                navigate('/signup');
-            }, 300);
-        } else {
-            navigate('/signup');
-        }
-    };
-
     return (
         <Flex
             minH="100vh"
@@ -294,19 +282,7 @@ const SignIn = () => {
                                 >
                                     Đăng nhập
                                 </Button>
-                                <Text textAlign="center" color="gray.500" fontSize="sm">
-                                    Chưa có tài khoản?{" "}
-                                    <Text
-                                        as="span"
-                                        color="blue.500"
-                                        fontWeight="medium"
-                                        cursor="pointer"
-                                        _hover={{ textDecoration: "underline" }}
-                                        onClick={handleNavigateSignup}
-                                    >
-                                        Đăng ký ngay
-                                    </Text>
-                                </Text>
+                               
                             </Stack>
                         </form>
                     ) : (
