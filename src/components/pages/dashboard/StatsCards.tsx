@@ -4,73 +4,118 @@ import {
   FaUsers,
   FaBoxOpen,
   FaUserPlus,
+  FaArrowUp,
+  FaArrowDown,
 } from "react-icons/fa";
 
 type StatsCardsProps = {
   totalRevenue: number;
+  revenueChange: number;
   totalOrders: number;
+  ordersChange: number;
   totalCustomers: number;
+  customersChange: number;
   totalProducts: number;
+  productsChange: number;
   newUsersCount: number;
+  newUsersChange: number;
+};
+
+const STAT_TITLE_COLORS: Record<string, string> = {
+  Revenue: "text-amber-600",
+  Orders: "text-blue-600",
+  Customers: "text-green-600",
+  Products: "text-purple-600",
+  "New Users": "text-pink-600",
+};
+
+const StatCard = ({
+  icon,
+  label,
+  value,
+  change,
+  suffix = "",
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  change: number;
+  suffix?: string;
+}) => {
+  const isUp = change >= 0;
+  const absChange = Math.abs(change);
+
+  // Format revenue as VND if label is "Revenue"
+  const displayValue =
+    label === "Revenue"
+      ? value.toLocaleString("vi-VN", { style: "currency", currency: "VND" })
+      : `${suffix}${value.toLocaleString()}`;
+
+  const titleColor = STAT_TITLE_COLORS[label] || "text-blue-600";
+
+  return (
+    <div className="bg-white rounded-xl shadow p-5 flex flex-col gap-2">
+      <div className={`flex items-center gap-2 ${titleColor}`}>
+        {icon}
+        <span className="font-semibold text-lg">{label}</span>
+      </div>
+      <span className="text-2xl font-bold">{displayValue}</span>
+      <span
+        className={`text-sm flex items-center gap-1 ${
+          isUp ? "text-green-500" : "text-red-500"
+        }`}
+      >
+        {isUp ? <FaArrowUp /> : <FaArrowDown />}
+        {absChange.toFixed(1)}% {isUp ? "up" : "down"} from last month
+      </span>
+    </div>
+  );
 };
 
 const StatsCards = ({
   totalRevenue,
+  revenueChange,
   totalOrders,
+  ordersChange,
   totalCustomers,
+  customersChange,
   totalProducts,
+  productsChange,
   newUsersCount,
+  newUsersChange,
 }: StatsCardsProps) => (
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 md:gap-6">
-    {/* Revenue */}
-    <div className="bg-white rounded-xl shadow p-5 flex flex-col gap-2">
-      <div className="flex items-center gap-2 text-blue-600">
-        <FaDollarSign size={24} />
-        <span className="font-semibold text-lg">Revenue</span>
-      </div>
-      <span className="text-2xl font-bold">${totalRevenue.toLocaleString()}</span>
-      <span className="text-green-500 text-sm">+12% this month</span>
-    </div>
-
-    {/* Orders */}
-    <div className="bg-white rounded-xl shadow p-5 flex flex-col gap-2">
-      <div className="flex items-center gap-2 text-green-600">
-        <FaShoppingCart size={24} />
-        <span className="font-semibold text-lg">Orders</span>
-      </div>
-      <span className="text-2xl font-bold">{totalOrders}</span>
-      <span className="text-green-500 text-sm">+8% this month</span>
-    </div>
-
-    {/* Customers */}
-    <div className="bg-white rounded-xl shadow p-5 flex flex-col gap-2">
-      <div className="flex items-center gap-2 text-yellow-600">
-        <FaUsers size={24} />
-        <span className="font-semibold text-lg">Customers</span>
-      </div>
-      <span className="text-2xl font-bold">{totalCustomers}</span>
-      <span className="text-green-500 text-sm">+5% this month</span>
-    </div>
-
-    {/* Products */}
-    <div className="bg-white rounded-xl shadow p-5 flex flex-col gap-2">
-      <div className="flex items-center gap-2 text-purple-600">
-        <FaBoxOpen size={24} />
-        <span className="font-semibold text-lg">Products</span>
-      </div>
-      <span className="text-2xl font-bold">{totalProducts}</span>
-      <span className="text-green-500 text-sm">+2% this month</span>
-    </div>
-
-    {/* New Users */}
-    <div className="bg-white rounded-xl shadow p-5 flex flex-col gap-2">
-      <div className="flex items-center gap-2 text-pink-600">
-        <FaUserPlus size={24} />
-        <span className="font-semibold text-lg">New Users</span>
-      </div>
-      <span className="text-2xl font-bold">{newUsersCount}</span>
-      <span className="text-green-500 text-sm">+4 today</span>
-    </div>
+    <StatCard
+      icon={<FaDollarSign size={24} />}
+      label="Revenue"
+      value={totalRevenue}
+      change={revenueChange}
+      suffix="$"
+    />
+    <StatCard
+      icon={<FaShoppingCart size={24} />}
+      label="Orders"
+      value={totalOrders}
+      change={ordersChange}
+    />
+    <StatCard
+      icon={<FaUsers size={24} />}
+      label="Customers"
+      value={totalCustomers}
+      change={customersChange}
+    />
+    <StatCard
+      icon={<FaBoxOpen size={24} />}
+      label="Products"
+      value={totalProducts}
+      change={productsChange}
+    />
+    <StatCard
+      icon={<FaUserPlus size={24} />}
+      label="New Users"
+      value={newUsersCount}
+      change={newUsersChange}
+    />
   </div>
 );
 

@@ -2,33 +2,27 @@ import type { Product } from "./types";
 import { Button } from "../../widgets/button";
 import { formatCurrencyVND } from "./formatCurrencyVND";
 import Pagination from "./Pagination";
-import React from "react";
-
 type ProductTableProps = {
     products: Product[];
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
     onEdit: (product: Product) => void;
     onDelete: (id: number) => void;
     onShowDetails: (product: Product) => void;
     onOpenCms: (productId: number) => void;
 };
 
-const PAGE_SIZE = 10;
-
 const ProductTable = ({
     products,
+    currentPage,
+    totalPages,
+    onPageChange,
     onEdit,
     onDelete,
     onShowDetails,
     onOpenCms,
 }: ProductTableProps) => {
-    const [currentPage, setCurrentPage] = React.useState(1);
-
-    const totalPages = Math.ceil(products.length / PAGE_SIZE);
-    const paginatedProducts = products.slice(
-        (currentPage - 1) * PAGE_SIZE,
-        currentPage * PAGE_SIZE
-    );
-
     return (
         <div className="bg-white rounded-2xl shadow-lg p-8">
             <div className="overflow-x-auto">
@@ -52,7 +46,7 @@ const ProductTable = ({
                         </tr>
                     </thead>
                     <tbody>
-                        {paginatedProducts.map((prod) => {
+                        {products.map((prod) => {
                             // Cast images and tags to the correct types
                             const images = (prod.images as { name?: string; url?: string }[]) || [];
                             const tags = (prod.tags as { name?: string; type?: string }[]) || [];
@@ -180,7 +174,7 @@ const ProductTable = ({
                                 </tr>
                             );
                         })}
-                        {paginatedProducts.length === 0 && (
+                        {products.length === 0 && (
                             <tr>
                                 <td colSpan={14} className="py-8 text-center text-gray-400">
                                     No products found.
@@ -193,7 +187,7 @@ const ProductTable = ({
             <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
-                onPageChange={setCurrentPage}
+                onPageChange={onPageChange}
             />
         </div>
     );

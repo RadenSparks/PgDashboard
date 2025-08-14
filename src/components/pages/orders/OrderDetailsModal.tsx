@@ -10,7 +10,7 @@ interface Props {
     navigate: (path: string) => void;
 }
 
-const OrderDetailsModal: React.FC<Props> = ({ order, onClose, onProductDetail, navigate }) => {
+const OrderDetailsModal: React.FC<Props> = ({ order, onClose, onProductDetail }) => {
     if (!order) return null;
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
@@ -111,12 +111,23 @@ const OrderDetailsModal: React.FC<Props> = ({ order, onClose, onProductDetail, n
                     >
                         Close
                     </Button>
-                    <Button
-                        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                        onClick={() => navigate(`/orders/${order.id}/invoice`)}
-                    >
-                        View Invoice
-                    </Button>
+                    {order.payment_status === "paid" ? (
+                        <Button
+                            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                            onClick={() =>
+                                window.open(
+                                    `${import.meta.env.VITE_BASE_API || "https://pengoo-back-end.vercel.app"}/invoices/${order.id}`,
+                                    "_blank"
+                                )
+                            }
+                        >
+                            View Invoice
+                        </Button>
+                    ) : (
+                        <span className="text-sm text-gray-500 flex items-center">
+                            Invoice available after payment is confirmed.
+                        </span>
+                    )}
                 </div>
             </div>
         </div>

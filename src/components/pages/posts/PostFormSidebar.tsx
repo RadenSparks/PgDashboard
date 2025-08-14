@@ -46,7 +46,7 @@ const PostFormSidebar: React.FC<Props> = ({
   previewBgColor, setPreviewBgColor,
   FONT_FAMILIES, FONT_SIZES, COLORS, BG_COLORS
 }) => (
-  <div className="flex-1 min-w-[400px] max-w-[600px] flex flex-col overflow-y-auto bg-gradient-to-br from-blue-50 to-white border-l">
+  <div className="flex-1 min-w-[400px] max-w-[600px] flex flex-col overflow-y-auto bg-gradient-to-br from-blue-50 via-white to-blue-100 border-l rounded-r-3xl">
     <div className="p-6 pb-2">
       <h4 className="font-bold mb-4 text-blue-700 text-lg flex items-center gap-2">
         <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" />

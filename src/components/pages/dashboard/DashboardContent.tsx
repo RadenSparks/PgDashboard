@@ -14,7 +14,15 @@ import { useGetOrdersQuery } from "../../../redux/api/ordersApi";
 import { useGetProductsQuery } from "../../../redux/api/productsApi";
 import { saveAs } from "file-saver";
 
-const RECENT_USER_COUNT = 4;
+// --- Type helpers for stricter typing ---
+import type { Order } from "../../../redux/api/ordersApi";
+import type { Product as ProductType } from "../../../redux/api/productsApi";
+import type { User as UserType } from "../../../redux/api/usersApi";
+
+// Utility type to add index signature to types
+type WithIndex<T> = T & { [key: string]: unknown };
+
+const RECENT_USER_COUNT = 5;
 
 const DashboardContent = () => {
   const navigate = useNavigate();
@@ -23,17 +31,12 @@ const DashboardContent = () => {
   const { data: users = [], isLoading: usersLoading } = useGetUsersQuery();
   const { data: allReviews = [], isLoading: reviewsLoading } = useGetAllReviewsQuery();
   const { data: orders = [], isLoading: ordersLoading } = useGetOrdersQuery();
-  const { data: products = [], isLoading: productsLoading } = useGetProductsQuery();
+  const { data: products = [], isLoading: productsLoading } = useGetProductsQuery({ page: 1, limit: 100 });
 
   // Defensive arrays
   const safeOrders = useMemo(() => Array.isArray(orders) ? orders : [], [orders]);
-  const safeProducts = useMemo(() => Array.isArray(products) ? products : [], [products]);
 
   // Stats
-  const totalProducts = safeProducts.length;
-  const totalOrders = safeOrders.length;
-  const totalCustomers = Array.from(new Set(safeOrders.map(o => o.user?.username))).length;
-  const totalRevenue = safeOrders.reduce((sum, o) => sum + (Number(o.total_price) || 0), 0);
 
   // --- Sales Chart Data by Day, Week, Month ---
   const getDateKey = (date: Date, mode: "day" | "week" | "month") => {
@@ -197,6 +200,72 @@ const DashboardContent = () => {
     saveAs(blob, `sales_chart_${salesMode}.csv`);
   };
 
+  // Helper: Get start/end of this month and last month
+  const getMonthRange = (date: Date) => {
+    const start = new Date(date.getFullYear(), date.getMonth(), 1);
+    const end = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
+    return { start, end };
+  };
+  const getPrevMonthRange = (date: Date) => {
+    const prevMonth = new Date(date.getFullYear(), date.getMonth() - 1, 1);
+    return getMonthRange(prevMonth);
+  };
+  const today = new Date();
+  const { start: thisMonthStart, end: thisMonthEnd } = getMonthRange(today);
+  const { start: lastMonthStart, end: lastMonthEnd } = getPrevMonthRange(today);
+
+  // Helper: Filter by date range
+  function filterByDate<T>(items: T[], dateField: keyof T, start: Date, end: Date): T[] {
+    return items.filter(item => {
+      const raw = (item as WithIndex<T>)[dateField];
+      if (!raw) return false;
+      const d = new Date(raw as string);
+      return d >= start && d <= end;
+    });
+  }
+
+  // --- Revenue ---
+  const thisMonthOrders = filterByDate<WithIndex<Order>>(safeOrders as WithIndex<Order>[], "order_date", thisMonthStart, thisMonthEnd);
+  const lastMonthOrders = filterByDate<WithIndex<Order>>(safeOrders as WithIndex<Order>[], "order_date", lastMonthStart, lastMonthEnd);
+
+  const thisMonthRevenue = thisMonthOrders.reduce((sum, o) => sum + (Number(o.total_price) || 0), 0);
+  const lastMonthRevenue = lastMonthOrders.reduce((sum, o) => sum + (Number(o.total_price) || 0), 0);
+  const revenueChange = lastMonthRevenue === 0 ? 100 : ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100;
+
+  // --- Orders ---
+  const thisMonthOrderCount = thisMonthOrders.length;
+  const lastMonthOrderCount = lastMonthOrders.length;
+  const ordersChange = lastMonthOrderCount === 0 ? 100 : ((thisMonthOrderCount - lastMonthOrderCount) / lastMonthOrderCount) * 100;
+
+  // --- Customers ---
+  const thisMonthCustomers = Array.from(new Set(thisMonthOrders.map(o => o.user?.username))).length;
+  const lastMonthCustomers = Array.from(new Set(lastMonthOrders.map(o => o.user?.username))).length;
+  const customersChange = lastMonthCustomers === 0 ? 100 : ((thisMonthCustomers - lastMonthCustomers) / lastMonthCustomers) * 100;
+
+  // --- Products ---
+  type PaginatedProducts = { data: ProductType[]; [key: string]: unknown };
+  const isPaginatedProducts = (obj: unknown): obj is PaginatedProducts =>
+    !!obj && typeof obj === "object" && "data" in obj && Array.isArray((obj as PaginatedProducts).data);
+
+  const safeProductsArr: ProductType[] = isPaginatedProducts(products)
+    ? products.data
+    : (Array.isArray(products) ? products as ProductType[] : []);
+
+  // Define product month ranges (fixes the missing variable error)
+  const { start: thisMonthProductStart, end: thisMonthProductEnd } = getMonthRange(today);
+  const { start: lastMonthProductStart, end: lastMonthProductEnd } = getPrevMonthRange(today);
+
+  // Use 'as keyof ProductType' to satisfy TS
+  const thisMonthProducts = filterByDate<WithIndex<ProductType>>(safeProductsArr as WithIndex<ProductType>[], "created_at", thisMonthProductStart, thisMonthProductEnd).length;
+  const lastMonthProducts = filterByDate<WithIndex<ProductType>>(safeProductsArr as WithIndex<ProductType>[], "created_at", lastMonthProductStart, lastMonthProductEnd).length;
+  const productsChange = lastMonthProducts === 0 ? (thisMonthProducts > 0 ? 100 : 0) : ((thisMonthProducts - lastMonthProducts) / lastMonthProducts) * 100;
+
+  // --- New Users ---
+  const usersArr: UserType[] = Array.isArray(users) ? users : [];
+  const thisMonthUsers = filterByDate<WithIndex<UserType>>(usersArr as WithIndex<UserType>[], "created_at", thisMonthStart, thisMonthEnd).length;
+  const lastMonthUsers = filterByDate<WithIndex<UserType>>(usersArr as WithIndex<UserType>[], "created_at", lastMonthStart, lastMonthEnd).length;
+  const newUsersChange = lastMonthUsers === 0 ? (thisMonthUsers > 0 ? 100 : 0) : ((thisMonthUsers - lastMonthUsers) / lastMonthUsers) * 100;
+
   return (
     <main className="flex flex-1 px-4 md:px-12 py-8 bg-gradient-to-br from-blue-50 to-white min-h-screen">
       <div className="flex flex-col gap-10 w-full">
@@ -208,11 +277,16 @@ const DashboardContent = () => {
         ) : (
           <>
             <StatsCards
-              totalRevenue={totalRevenue}
-              totalOrders={totalOrders}
-              totalCustomers={totalCustomers}
-              totalProducts={totalProducts}
-              newUsersCount={recentUsers.length}
+              totalRevenue={thisMonthRevenue}
+              revenueChange={revenueChange}
+              totalOrders={thisMonthOrderCount}
+              ordersChange={ordersChange}
+              totalCustomers={thisMonthCustomers}
+              customersChange={customersChange}
+              totalProducts={thisMonthProducts}
+              productsChange={productsChange}
+              newUsersCount={thisMonthUsers}
+              newUsersChange={newUsersChange}
             />
 
             {/* Orders Table */}

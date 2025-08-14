@@ -1,4 +1,3 @@
-import { Button } from "../widgets/button";
 import React, { useState, useEffect } from "react";
 import {
   MdDashboard,
@@ -21,7 +20,7 @@ import { getCurrentUserId } from "../../utils/auth";
 
 const Logo = ({ size = 80 }: { size?: number }) => (
   <img
-    src="/assets/icons/logo-01.svg"
+    src="/assets/icons/logopengoo.png"
     alt="Pengoo Logo"
     width={size}
     height={size}
@@ -80,9 +79,9 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
       <div className="flex items-center justify-center px-3 mb-4 mt-3">
         <span
           className="inline-flex items-center justify-center shadow-lg border-2 border-blue-200 bg-gradient-to-br from-blue-100 to-blue-300 rounded-full transition-all duration-300"
-          style={{ width: collapsed ? 44 : 64, height: collapsed ? 44 : 64 }}
+          style={{ width: collapsed ? 43 : 80, height: collapsed ? 56 : 80 }} // Make circle tighter
         >
-          <Logo size={collapsed ? 32 : 48} />
+          <Logo size={collapsed ? 57 : 68} /> {/* Make logo larger inside the circle */}
         </span>
       </div>
       {/* Welcome Section */}
@@ -164,10 +163,11 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
 type SidebarProps = {
   isOpen?: boolean;
   onClose?: () => void;
+  collapsed: boolean;
+  setCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  const [collapsed, setCollapsed] = useState(false);
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, collapsed, setCollapsed }) => {
   const [activeTab, setActiveTab] = useState("Dashboard");
   const navigate = useNavigate();
   const location = useLocation();
@@ -197,43 +197,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     );
   }
 
-  // --- Place the button absolutely, below the navbar, so it's never obscured ---
   return (
     <div
       className={`relative h-screen transition-all duration-300 z-[200] ${collapsed ? 'w-[72px]' : 'w-[260px]'}`}
       style={{ minWidth: collapsed ? 72 : 260 }}
     >
-      {/* Collapse/Expand Button */}
-      <Tooltip label={collapsed ? "Expand sidebar" : "Collapse sidebar"} placement="right" hasArrow>
-        <Button
-          onClick={() => setCollapsed((prev) => !prev)}
-          className="fixed z-[210] left-[60px] md:left-[244px] transition-all duration-300 bg-white border border-gray-200 shadow-lg p-1 w-10 h-10 flex items-center justify-center hover:bg-blue-100 focus:outline-none rounded-full"
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          aria-pressed={collapsed}
-          tabIndex={0}
-          type="button"
-          style={{
-            top: 88, // Place below the navbar (adjust if your navbar height changes)
-            left: collapsed ? 60 : 244, // 72px sidebar - 12px overlap, or 260px - 16px overlap
-            boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
-            border: "1.5px solid #e5e7eb",
-            outline: 'none',
-          }}
-          onKeyDown={e => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              setCollapsed(prev => !prev);
-            }
-          }}
-        >
-          <img
-            src="/assets/icons/lefticon.svg"
-            height={24}
-            width={24}
-            alt="toggle sidebar"
-            className={`transition-transform duration-300 ${collapsed ? "rotate-180" : ""}`}
-          />
-        </Button>
-      </Tooltip>
       <SidebarContent
         collapsed={collapsed}
         setCollapsed={setCollapsed}

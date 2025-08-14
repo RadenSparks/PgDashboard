@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { Box, Flex } from "@chakra-ui/react";
 import { Outlet } from "react-router-dom";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 
 const RootLayout = () => {
+  const [collapsed, setCollapsed] = useState(false);
+
   return (
     <Flex
       w="full"
@@ -22,7 +25,7 @@ const RootLayout = () => {
         borderColor="gray.100"
         zIndex={20}
       >
-        <Sidebar />
+        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       </Box>
       <Flex flexDir="column" flex="1" minW={0} h="full">
         {/* Navbar: Sticky on mobile */}
@@ -33,7 +36,7 @@ const RootLayout = () => {
           boxShadow="md"
           bg="white"
         >
-          <Navbar />
+          <Navbar collapsed={collapsed} setCollapsed={setCollapsed} />
         </Box>
         <Box
           flex="1"

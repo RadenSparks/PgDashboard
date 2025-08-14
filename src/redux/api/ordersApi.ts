@@ -1,11 +1,11 @@
 import { createApi } from '@reduxjs/toolkit/query/react'
 import { axiosBaseQuery } from '../axiosBaseQuery'
 
+// Match backend field names and types
 export interface User {
   id: number;
   username: string;
   full_name: string;
-  password: string;
   email: string;
   role: 'user' | 'admin';
   phone_number: string;
@@ -14,8 +14,6 @@ export interface User {
   address: string;
   points: number;
   minigame_tickets: number;
-  resetPasswordToken: string | null;
-  resetPasswordExpires: string | null;
 }
 
 export interface Delivery {
@@ -33,7 +31,7 @@ export interface Product {
   description: string;
   product_price: number;
   slug: string;
-  status: 'Available' | 'Unavailable' | string;
+  status: string;
   discount: number;
   meta_title: string;
   meta_description: string;
@@ -41,7 +39,7 @@ export interface Product {
   quantity_stock: number;
   created_at: string;
   updated_at: string;
-  images?: string[]; // <-- Add images property for compatibility with order details
+  images?: string[]; // For compatibility with order details
 }
 
 export interface OrderDetail {
@@ -57,17 +55,15 @@ export interface Order {
   delivery: Delivery;
   coupon_id: number | null;
   coupon_code: string | null;
-  payment_type: 'paypal' | 'payos' | string;
+  payment_type: string;
   order_date: string;
   total_price: number;
   shipping_address: string;
-  payment_status: 'pending' | 'paid' | 'failed' | string;
-  productStatus: 'pending' | 'shipped' | 'completed' | string;
+  payment_status: string;
+  productStatus: string;
   details: OrderDetail[];
-  // Add these if your UI expects them (for compatibility with UI code)
-  // trackingNumber?: string;
-  // status?: string;
-  // deliveryMethod?: string;
+  order_code?: string;
+  paypal_order_id?: string;
 }
 
 export const ordersApi = createApi({
@@ -87,11 +83,11 @@ export const ordersApi = createApi({
       }),
       invalidatesTags: ['Order'],
     }),
-    updateOrder: builder.mutation<Order, FormData>({
+    updateOrder: builder.mutation<Order, Partial<Order>>({
       query: (body) => ({
-        url: '/orders/' + body.get('id'),
+        url: `/orders/${body.id}`,
         method: 'PUT',
-        data: body,
+        data: body, // send as JSON
       }),
       invalidatesTags: ['Order'],
     }),
@@ -102,11 +98,11 @@ export const ordersApi = createApi({
       }),
       invalidatesTags: ['Order'],
     }),
-    updateStatus: builder.mutation<Order, Order>({
-      query: (body) => ({
-        url: `/orders/${body.id}/status`,
+    updateStatus: builder.mutation<Order, { id: number; productStatus: string }>({
+      query: ({ id, productStatus }) => ({
+        url: `/orders/${id}/status`,
         method: 'PATCH',
-        data: body,
+        data: { productStatus },
       }),
       invalidatesTags: ['Order'],
     }),

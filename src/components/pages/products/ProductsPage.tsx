@@ -5,7 +5,7 @@ import ProductTable from "./ProductTable";
 import ProductDetailsModal from "./ProductDetailsModal";
 import ProductFormModal from "./ProductFormModal";
 import ProductCmsModal from "./ProductCmsModal";
-import type { Product, CmsContent, Tag } from "./types";
+import type { Product as LocalProduct, CmsContent, Tag, Product } from "./types";
 import { useAddProductMutation, useGetProductsQuery, useUpdateProductMutation, useDeleteProductMutation, useGetProductCmsQuery, useUpdateProductCmsMutation } from "../../../redux/api/productsApi";
 import Loading from "../../../components/widgets/loading";
 import { toaster } from "../../widgets/toaster";
@@ -16,14 +16,55 @@ const ProductsPage = () => {
     const [addProduct, { isLoading: isAdding }] = useAddProductMutation();
     const [updateProduct] = useUpdateProductMutation();
     const [deleteProduct] = useDeleteProductMutation();
-    const { data: products = [], isLoading } = useGetProductsQuery() as unknown as { data: Product[], isLoading: boolean };
-    //
+    const [currentPage, setCurrentPage] = useState(1);
+    const PAGE_SIZE = 10; // or your preferred value
+    const [searchTerm, setSearchTerm] = useState("");
+
+    // --- Caching paginated results ---
+    const [pageCache, setPageCache] = useState<Record<number, LocalProduct[]>>({});
+    const [totalPages, setTotalPages] = useState(1);
+
+    // Fetch paginated products from backend
+    const { data: paginated, isLoading } = useGetProductsQuery({
+        page: currentPage,
+        limit: PAGE_SIZE,
+        search: searchTerm.trim() || undefined,
+    });
+
+    // Map backend Product type to local Product type for compatibility
+    useEffect(() => {
+        if (paginated) {
+            const products: LocalProduct[] = (paginated.data || []).map(p => ({
+                ...p,
+                description: p.description ?? "",
+                discount: p.discount ?? 0,
+                slug: p.slug ?? "",
+                meta_title: p.meta_title ?? "",
+                meta_description: p.meta_description ?? "",
+                quantity_sold: p.quantity_sold ?? 0,
+                status: p.status ?? "Available",
+                publisher_ID: p.publisher_ID ?? { id: 0, name: "" },
+                tags: p.tags ?? [],
+                images: p.images ?? [],
+                category_ID: p.category_ID ?? { id: 0, name: "" },
+                quantity_stock: p.quantity_stock ?? 0,
+            }));
+            setPageCache(prev => ({
+                ...prev,
+                [currentPage]: products,
+            }));
+            setTotalPages(Math.ceil(paginated.total / paginated.limit));
+        }
+    }, [paginated, currentPage]);
+
+    // Use cached products if available, else fallback to loading state
+    const products = pageCache[currentPage] || [];
+
     const [detailProduct, setDetailProduct] = useState<Product | null>(null);
     const [editProduct, setEditProduct] = useState<Product | null>(null);
     const [showAddModal, setShowAddModal] = useState(false);
     const [cmsProductId, setCmsProductId] = useState<number | null>(null);
     const [cmsProductContent, setCmsProductContent] = useState<CmsContent | null>(null);
-    const [searchTerm, setSearchTerm] = useState("");
 
     const { data: fetchedCmsContent, refetch: refetchCmsContent } = useGetProductCmsQuery(cmsProductId!, { skip: cmsProductId === null });
     const [updateProductCms] = useUpdateProductCmsMutation();
@@ -92,7 +133,7 @@ const ProductsPage = () => {
                 formData.append("quantity_stock", editProduct.quantity_stock.toString());
                 formData.append("status", editProduct.status);
                 formData.append("category_ID", editProduct.category_ID.id.toString());
-                formData.append("publisher_ID", publisherId?.toString() || "");
+                formData.append("publisherID", publisherId?.toString() || ""); // <-- FIXED: use publisherID
                 formData.append(
                     "tags",
                     (editProduct.tags as (Tag | number)[]).map((t) => typeof t === "object" ? t.id : t).join(" ")
@@ -157,7 +198,7 @@ const ProductsPage = () => {
                 formData.append("quantity_stock", editProduct.quantity_stock.toString());
                 formData.append("status", editProduct.status);
                 formData.append("category_ID", editProduct.category_ID.id.toString());
-                formData.append("publisher_ID", publisherId?.toString() || "");
+                formData.append("publisherID", publisherId?.toString() || ""); // <-- FIXED: use publisherID
                 formData.append(
                     "tags",
                     (editProduct.tags as (Tag | number)[]).map((t) => typeof t === "object" ? t.id : t).join(" ")
@@ -233,12 +274,12 @@ const ProductsPage = () => {
         }
     };
 
-    // Filter products by exact name match (case-insensitive)
-    const filteredProducts = searchTerm.trim()
-        ? products.filter(p => p.product_name.toLowerCase() === searchTerm.trim().toLowerCase())
-        : products;
+    useEffect(() => {
+        setPageCache({});
+        setCurrentPage(1);
+    }, [searchTerm]);
 
-    if (isAdding || isLoading) return <Loading />;
+    if (isAdding || (isLoading && !products.length)) return <Loading />;
     return (
         <div className="p-8">
             <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
@@ -248,7 +289,7 @@ const ProductsPage = () => {
                         <input
                             type="text"
                             className="w-full border rounded-lg px-4 py-2 pl-10 focus:ring-2 focus:ring-blue-300"
-                            placeholder="Search exact product name..."
+                            placeholder="Search product name..."
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
                         />
@@ -266,7 +307,10 @@ const ProductsPage = () => {
                 </div>
             </div>
             <ProductTable
-                products={filteredProducts}
+                products={products}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onShowDetails={setDetailProduct}

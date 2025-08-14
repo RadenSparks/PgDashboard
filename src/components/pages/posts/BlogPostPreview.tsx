@@ -118,7 +118,7 @@ const BlogPostPreview: React.FC<BlogPostPreviewProps> = ({
         flexDirection: 'column',
       }}
     >
-      <div className="h-56 w-full bg-gradient-to-br from-blue-100 to-white flex items-center justify-center overflow-hidden relative flex-shrink-0">
+      <div className="h-56 w-full bg-gradient-to-br from-blue-200 via-blue-100 to-white flex items-center justify-center overflow-hidden relative flex-shrink-0">
         {image ? (
           <img src={image} alt={title} className="object-cover w-full h-full"/>
         ) : (

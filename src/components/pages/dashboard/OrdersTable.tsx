@@ -24,7 +24,7 @@ const STATUS_LABELS: Record<string, string> = {
 const getStatusData = (orders: Order[]) => {
   const statusCount: Record<string, number> = {};
   orders.forEach((order) => {
-    const status = order.productStatus;
+    const status = order.productStatus; // backend field name
     statusCount[status] = (statusCount[status] || 0) + 1;
   });
   return Object.entries(statusCount).map(([key, value]) => ({
@@ -119,7 +119,7 @@ const OrdersTable = ({ orders }: OrdersTableProps) => {
                 <td className="py-2">{order.id}</td>
                 <td className="py-2">{order.user?.full_name || order.user?.username || "Unknown"}</td>
                 <td className="py-2">{STATUS_LABELS[order.productStatus] || order.productStatus || "-"}</td>
-                <td className="py-2">${Number(order.total_price).toFixed(2)}</td>
+                <td className="py-2">{Number(order.total_price).toLocaleString("vi-VN", { style: "currency", currency: "VND" })}</td>
               </tr>
             ))}
           </tbody>

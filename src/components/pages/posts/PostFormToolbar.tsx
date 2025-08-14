@@ -35,7 +35,7 @@ interface Props {
 }
 
 const ICON_BTN =
-  "p-2 rounded-lg hover:bg-blue-50 transition text-base font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300";
+  "p-2 rounded-xl hover:bg-blue-100 transition text-base font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300 shadow-sm";
 
 const PostFormToolbar: React.FC<Props> = ({
   onHeading, onBold, onItalic, onUnderline,
@@ -58,7 +58,7 @@ const PostFormToolbar: React.FC<Props> = ({
   onParagraphBreak,
 }) => {
   return (
-    <div className="border-b bg-white px-3 py-2">
+    <div className="border-b bg-white px-3 py-2 rounded-t-2xl shadow-sm">
       <div className="flex flex-wrap gap-2 items-center justify-between">
         {/* Left: Markdown actions */}
         <div className="flex flex-wrap gap-1 items-center">
@@ -110,7 +110,7 @@ const PostFormToolbar: React.FC<Props> = ({
               style={{ borderBottom: `3px solid ${previewTextColor}` }}
             >A</button>
             {showColorPicker && (
-              <div className="absolute z-10 mt-2 left-0 bg-white border rounded-xl shadow p-2 flex gap-1 flex-wrap w-56">
+              <div className="absolute z-10 mt-2 left-0 bg-white border rounded-xl shadow-lg p-2 flex gap-1 flex-wrap w-56">
                 {COLORS.map(color => (
                   <button
                     key={color}
@@ -136,7 +136,7 @@ const PostFormToolbar: React.FC<Props> = ({
               style={{ borderBottom: `3px solid ${previewBgColor}` }}
             >BG</button>
             {showBgColorPicker && (
-              <div className="absolute z-10 mt-2 left-0 bg-white border rounded-xl shadow p-2 flex gap-1 flex-wrap w-56">
+              <div className="absolute z-10 mt-2 left-0 bg-white border rounded-xl shadow-lg p-2 flex gap-1 flex-wrap w-56">
                 {BG_COLORS.map(color => (
                   <button
                     key={color}
@@ -191,13 +191,13 @@ const PostFormToolbar: React.FC<Props> = ({
       {/* Gallery Preview Row */}
       {images.length > 0 && (
         <div className="w-full mt-2">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 border rounded-xl bg-gray-50 px-2" style={{ maxHeight: 70 }}>
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 border rounded-xl bg-blue-50 px-2" style={{ maxHeight: 70 }}>
             {images.map((img, idx) => (
               <div key={idx} className="relative group flex-shrink-0">
                 <img
                   src={img}
                   alt={`Gallery ${idx + 1}`}
-                  className="w-14 h-14 object-cover rounded-xl border"
+                  className="w-14 h-14 object-cover rounded-xl border border-blue-100 shadow"
                 />
                 <button
                   type="button"

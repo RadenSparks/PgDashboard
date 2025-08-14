@@ -137,7 +137,7 @@ const SignIn = () => {
             minH="100vh"
             align="center"
             justify="center"
-            bgGradient="linear(to-br, blue.50, white 60%, blue.100)"
+            bgGradient="linear(to-br, blue.100, blue.200 60%, blue.50)"
             position="relative"
             overflow="hidden"
         >
@@ -180,20 +180,32 @@ const SignIn = () => {
                     <Flex direction="column" align="center" mb={2}>
                         <Box
                             mb={2}
-                            as="img"
-                            src="/assets/icons/logo-01.svg"
-                            alt="Pengoo Logo"
-                            width={56}
-                            height={56}
-                            draggable={false}
-                            style={{
-                                objectFit: "contain",
-                                pointerEvents: "none",
-                                userSelect: "none",
-                                borderRadius: "50%",
-                                boxShadow: "0 2px 12px 0 rgba(30,64,175,0.10)"
-                            }}
-                        />
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                            width="auto"
+                            height="auto"
+                            bgGradient="linear(to-br, blue.200, blue.300, blue.100)"
+                            borderRadius="full"
+                            p={3}
+                        >
+                            <img
+                                src="/assets/icons/logopengoo.png"
+                                alt="Pengoo Logo"
+                                width={120}
+                                height={120}
+                                draggable={false}
+                                style={{
+                                    objectFit: "contain",
+                                    pointerEvents: "none",
+                                    userSelect: "none",
+                                    borderRadius: "50%",
+                                    width: 120,
+                                    height: 120,
+                                    boxShadow: "0 2px 12px 0 rgba(30,64,175,0.10)"
+                                }}
+                            />
+                        </Box>
                         <Heading fontSize="2xl" textAlign="center" color="blue.700" fontWeight="extrabold" letterSpacing="tight">
                             Đăng nhập Pengoo Dashboard
                         </Heading>

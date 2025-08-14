@@ -135,3 +135,68 @@ body {
 .sidebar-scrollbar-hide::-webkit-scrollbar {
   display: none;                /* Chrome, Safari, Opera */
 }
+
+/* Hide all scrollbars globally */
+*::-webkit-scrollbar {
+  display: none !important;
+}
+* {
+  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important;     /* Firefox */
+}
+/* Hide scrollbars for all scrollable containers */
+.scrollbar-hide,
+.sidebar-scrollbar-hide,
+.overflow-y-auto,
+.overflow-x-auto {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.scrollbar-hide::-webkit-scrollbar,
+.sidebar-scrollbar-hide::-webkit-scrollbar,
+.overflow-y-auto::-webkit-scrollbar,
+.overflow-x-auto::-webkit-scrollbar {
+  display: none !important;
+}
+
+/* --- Enhance input and textarea visibility --- */
+input,
+select,
+textarea {
+  background: #f8fafc !important;
+  border: 2px solid #2563eb !important; /* Stronger blue border */
+  border-radius: 0.75rem !important;
+  padding: 0.85em 1.1em !important;
+  font-size: 1.15rem !important;
+  color: #1e293b !important;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+  box-shadow: 0 2px 8px 0 rgba(30,64,175,0.08);
+  font-weight: 500;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #1d4ed8 !important;
+  box-shadow: 0 0 0 3px #93c5fd;
+  background: #fff !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #334155 !important;
+  opacity: 1;
+  font-size: 1.05rem;
+  font-weight: 400;
+}
+
+/* Remove number input spinners for a cleaner look */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}

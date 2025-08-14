@@ -32,7 +32,13 @@ const CommentsPage = () => {
   const [actionLoading, setActionLoading] = useState(false);
 
   const toast = useToast();
-  const { data: products = [] } = useGetProductsQuery();
+  const { data: productsRaw } = useGetProductsQuery({ page: 1, limit: 100 });
+  const products: Product[] = Array.isArray(productsRaw)
+    ? productsRaw
+    : Array.isArray(productsRaw?.data)
+      ? productsRaw.data
+      : [];
+
   const {
     data: reviews = [],
     refetch,
@@ -133,12 +139,12 @@ const CommentsPage = () => {
   const handleViewDetail = (id: number) => setViewDetailId(id);
 
   // Filter products by search
-  const filteredProducts = (products as Product[]).filter((p) =>
+  const filteredProducts = products.filter((p) =>
     p.product_name?.toLowerCase().includes(search.toLowerCase())
   );
 
   // Find selected product for detail modal
-  const selectedProduct = (products as Product[]).find(
+  const selectedProduct = products.find(
     (p) => p.id === selectedProductId
   );
 
@@ -194,15 +200,16 @@ const CommentsPage = () => {
               sm:grid-cols-3 
               md:grid-cols-4 
               lg:grid-cols-5 
-              gap-4 
-              max-h-56 
+              gap-6 
+              max-h-96 
               overflow-y-auto 
-              p-2 
-              bg-blue-50 
-              rounded-xl 
-              shadow-inner
+              p-4 
+              bg-gradient-to-br from-blue-100 to-blue-50 
+              rounded-2xl 
+              shadow-lg
+              border border-blue-200
             "
-            style={{ minHeight: 120 }}
+            style={{ minHeight: 160 }}
           >
             {filteredProducts.length === 0 && (
               <div className="col-span-full text-gray-400 italic text-center py-8">
@@ -212,14 +219,15 @@ const CommentsPage = () => {
             {filteredProducts.map((p: Product) => (
               <div
                 key={p.id}
-                className={`flex flex-col items-center cursor-pointer border-2 rounded-lg p-2 shadow-md transition-all duration-150 bg-white
+                className={`flex flex-col items-center cursor-pointer border-2 rounded-xl p-3 shadow-md transition-all duration-150 bg-white
                   ${selectedProductId === p.id
-                    ? "border-blue-600 ring-2 ring-blue-200 scale-105"
+                    ? "border-blue-600 ring-4 ring-blue-300 scale-105"
                     : "border-gray-200 hover:border-blue-400 hover:scale-105"
                   }`}
                 onClick={() => setSelectedProductId(p.id)}
                 tabIndex={0}
                 style={{ outline: "none" }}
+                title={p.product_name}
               >
                 <img
                   src={
@@ -230,10 +238,10 @@ const CommentsPage = () => {
                     "/default-image.jpg"
                   }
                   alt={p.product_name}
-                  className="w-16 h-16 object-cover rounded mb-2 border shadow"
+                  className="w-20 h-20 object-cover rounded-lg mb-2 border-2 border-blue-100 shadow"
                   loading="lazy"
                 />
-                <span className="text-xs text-center font-semibold text-blue-900 line-clamp-2">
+                <span className="text-sm text-center font-bold text-blue-900 line-clamp-2" style={{ maxWidth: 100 }}>
                   {p.product_name}
                 </span>
               </div>

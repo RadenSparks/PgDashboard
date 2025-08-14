@@ -11,6 +11,8 @@ import { mediaApi } from './api/mediaApi';
 import { usersApi } from './api/usersApi';
 import { collectionsApi } from './api/collectionsApi';
 import { publishersApi } from './api/publishersApi'
+import { paymentsApi } from './api/paymentsApi';
+
 
 export const store = configureStore({
     reducer: {
@@ -26,6 +28,7 @@ export const store = configureStore({
         [usersApi.reducerPath]: usersApi.reducer,
         [collectionsApi.reducerPath]: collectionsApi.reducer,
         [publishersApi.reducerPath]: publishersApi.reducer,
+        [paymentsApi.reducerPath]: paymentsApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware()
@@ -41,6 +44,7 @@ export const store = configureStore({
             .concat(usersApi.middleware)
             .concat(collectionsApi.middleware)
             .concat(publishersApi.middleware)
+            .concat(paymentsApi.middleware)
 });
 
 export type RootState = ReturnType<typeof store.getState>;

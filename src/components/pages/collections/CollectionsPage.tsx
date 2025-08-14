@@ -17,7 +17,10 @@ const CollectionsPage: React.FC = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const toast = useToast();
 
-    const { data: availableProducts = [], isLoading, refetch } = useGetProductsQuery();
+    const { data: productsData, isLoading, refetch } = useGetProductsQuery({ page: 1, limit: 100 });
+    const availableProducts: Product[] = Array.isArray(productsData)
+        ? productsData
+        : (productsData?.data ?? []);
     const { data: collections = [], isLoading: isLoadingCollection } = useGetCollectionsQuery();
     const [addCollection, { isLoading: addLoading }] = useAddCollectionMutation();
     const [deleteCollection, { isLoading: deleteLoading }] = useDeleteCollectionMutation();

@@ -2,7 +2,16 @@ import { createApi } from '@reduxjs/toolkit/query/react'
 import { axiosBaseQuery } from '../axiosBaseQuery'
 import type { CmsContent } from '../../components/pages/products/types'
 
-export type Product = { 
+export type Product = {
+  description: string;
+  discount: number;
+  slug: string;
+  meta_title: string;
+  meta_description: string;
+  quantity_sold: number;
+  status: string;
+  publisher_ID: { id: number; name: string; };
+  tags: never[]; 
   id: number;
   product_name: string;
   product_price: number;
@@ -12,13 +21,24 @@ export type Product = {
   // ...other fields as needed
 };
 
+export type PaginatedProducts = {
+  data: Product[];
+  total: number;
+  page: number;
+  limit: number;
+};
+
 export const productsApi = createApi({
   reducerPath: 'productsApi',
   baseQuery: axiosBaseQuery,
   tagTypes: ['Product', 'CmsContent'],
   endpoints: (builder) => ({
-    getProducts: builder.query<Product[], void>({
-      query: () => ({ url: '/products', method: 'GET' }),
+    getProducts: builder.query<PaginatedProducts, { page: number; limit: number; search?: string }>({
+      query: ({ page, limit, search }) => ({
+        url: '/products',
+        method: 'GET',
+        params: { page, limit, search },
+      }),
       providesTags: ['Product'],
     }),
     addProduct: builder.mutation<Product, FormData>({

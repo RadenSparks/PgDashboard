@@ -13,7 +13,6 @@ import VoucherPage from './components/pages/vouchers/VoucherPage';
 import ProtectedRoute from './components/pages/route/protected-route';
 import PublicRoute from './components/pages/route/public-route';
 import SignIn from './components/pages/signin/signin';
-import SignUp from './components/pages/signup/signup';
 import CommentsPage from './components/pages/comments/CommentsPage';
 import PermissionPage from './components/pages/permission/PermisionPage';
 import { useState } from 'react';
@@ -53,7 +52,6 @@ const App: React.FC = () => {
             <Route path="/publishers" element={<ProtectedRoute><PublishersPage /></ProtectedRoute>} />
           </Route>
           <Route path="/signin" element={<PublicRoute><SignIn /></PublicRoute>} />
-          <Route path="/signup" element={<PublicRoute><SignUp /></PublicRoute>} />
         </Routes>
       </Router>
     </ChakraProvider>

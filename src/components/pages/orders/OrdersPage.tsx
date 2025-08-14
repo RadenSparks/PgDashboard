@@ -1,20 +1,33 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../widgets/button";
-import { FaEye, FaEdit, FaExchangeAlt } from "react-icons/fa";
+import { FaEye, FaEdit, FaExchangeAlt, FaFileInvoice } from "react-icons/fa";
 import Loading from "../../../components/widgets/loading";
 import { formatCurrencyVND } from "../products/formatCurrencyVND";
-import { useGetOrdersQuery, useUpdateStatusMutation } from "../../../redux/api/ordersApi";
-import { type Order } from "../../../redux/api/ordersApi";
+import {
+    useGetOrdersQuery,
+    useUpdateStatusMutation,
+    useDeleteOrderMutation,
+    type Order,
+} from "../../../redux/api/ordersApi";
+import {
+    useMarkOrderAsPaidMutation,
+    useRefundOrderMutation,
+    useCancelOrderMutation,
+} from "../../../redux/api/paymentsApi";
 import OrderDetailsModal from "./OrderDetailsModal";
 import ProductDetailModal from "./ProductDetailModal";
 import EditOrderModal from "./EditOrderModal";
+import { getCurrentUserId } from "../../../utils/auth";
+import { useToast } from "@chakra-ui/react"; // <-- Use Chakra Toast
 
 const paymentTypes = [
     "Credit Card",
     "Bank Transfer",
     "Cash on Delivery",
     "E-Wallet",
+    "payos",
+    "paypal",
 ];
 const deliveryMethods = ["Standard Shipping", "Express Shipping", "Pickup"];
 const statusCycle = ["pending", "shipped", "delivered", "cancelled"];
@@ -25,41 +38,212 @@ const STATUS_LABELS: { [key: string]: string } = {
     cancelled: "Đã hủy",
 };
 
+const PAYMENT_STATUS_LABELS: Record<string, string> = {
+    paid: "Paid",
+    pending: "Pending",
+    pending_on_delivery: "Pending On Delivery",
+    refunded: "Refunded",
+    success: "Success",
+    canceled: "Canceled",
+};
+
+const PAYMENT_STATUS_COLORS: Record<string, string> = {
+    paid: "bg-green-100 text-green-700",
+    pending: "bg-yellow-100 text-yellow-700",
+    pending_on_delivery: "bg-blue-100 text-blue-700",
+    refunded: "bg-gray-100 text-gray-700",
+    success: "bg-green-100 text-green-700",
+    canceled: "bg-red-100 text-red-700",
+};
+
 const PAGE_SIZE = 10;
 
+
+type SortField = "id" | "total_price" | "order_date";
+type SortDirection = "asc" | "desc";
+
 const OrdersPage = () => {
-    const [updateStatus] = useUpdateStatusMutation();
-    const { data: orders = [], isLoading } = useGetOrdersQuery();
+    const [updateStatus, { isLoading: updatingStatus }] = useUpdateStatusMutation();
+    const [deleteOrder] = useDeleteOrderMutation();
+    const { data: orders = [], isLoading, refetch } = useGetOrdersQuery();
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [editOrder, setEditOrder] = useState<Order | null>(null);
     const [productDetail, setProductDetail] = useState<number | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
-    const navigate = useNavigate();
+    const [sortField, setSortField] = useState<SortField>("id");
+    const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
-    const handleToggleStatus = (orderId: number) => {
-        const result = orders.find(order => order.id === orderId);
-        if (!result) return;
-        const currentIdx = statusCycle.indexOf(result.productStatus);
+    // Payment mutations (match backend logic)
+    const [markOrderAsPaid, { isLoading: markingPaid }] = useMarkOrderAsPaidMutation();
+    const [refundOrder, { isLoading: refunding }] = useRefundOrderMutation();
+    const [cancelOrder, { isLoading: canceling }] = useCancelOrderMutation();
+
+    const navigate = useNavigate();
+    const userId = getCurrentUserId() ?? 0;
+    const userRole = localStorage.getItem("role") || "user";
+    const toast = useToast(); // <-- Chakra Toast
+
+    // Handle status update
+    const handleToggleStatus = async (orderId: number) => {
+        const order = orders.find(order => order.id === orderId);
+        if (!order) return;
+        const currentIdx = statusCycle.indexOf(order.productStatus);
         const nextStatus = statusCycle[(currentIdx + 1) % statusCycle.length];
-        updateStatus({ ...result, productStatus: nextStatus }); // <-- fix here
+        await updateStatus({ id: orderId, productStatus: nextStatus });
+    };
+
+    // Payment status actions
+    const handleMarkPaid = async (order: Order) => {
+        try {
+            await markOrderAsPaid({ orderId: order.id, userId, userRole }).unwrap();
+            toast({
+                title: "Order marked as paid.",
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+            });
+            refetch();
+        } catch (err: unknown) {
+            const errorMessage =
+                typeof err === "object" && err !== null && "data" in err && typeof (err as { data?: { message?: unknown } }).data?.message === "string"
+                    ? (err as { data: { message: string } }).data.message
+                    : "Failed to mark as paid.";
+            toast({
+                title: errorMessage,
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+        }
+    };
+
+    const handleRefund = async (order: Order) => {
+        if (order.payment_type?.toLowerCase() === "cash on delivery" || order.payment_type?.toLowerCase() === "on_delivery") {
+            toast({
+                title: "Refund not available for Cash on Delivery orders.",
+                status: "warning",
+                duration: 4000,
+                isClosable: true,
+            });
+            return;
+        }
+        if (!window.confirm("Are you sure you want to refund this order?")) return;
+        try {
+            await refundOrder({ orderId: order.id, userId, userRole }).unwrap();
+            toast({
+                title: "Order refunded and cancelled.",
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+            });
+            refetch();
+        } catch (err: unknown) {
+            const errorMessage =
+                typeof err === "object" &&
+                err !== null &&
+                "data" in err &&
+                typeof (err as { data?: { message?: unknown } }).data?.message === "string"
+                    ? (err as { data: { message: string } }).data.message
+                    : "Refund failed.";
+            toast({
+                title: errorMessage,
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+        }
+    };
+
+    const handleCancel = async (order: Order) => {
+        if (order.payment_type?.toLowerCase() === "cash on delivery" || order.payment_type?.toLowerCase() === "on_delivery") {
+            toast({
+                title: "Canceling COD orders will not trigger a refund.",
+                status: "info",
+                duration: 4000,
+                isClosable: true,
+            });
+        }
+        if (!window.confirm("Are you sure you want to cancel this order?")) return;
+        try {
+            await cancelOrder({ orderId: order.id, userId, userRole }).unwrap();
+            toast({
+                title: "Order cancelled.",
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+            });
+            refetch();
+        } catch (err: unknown) {
+            const errorMessage =
+                typeof err === "object" &&
+                err !== null &&
+                "data" in err &&
+                typeof (err as { data?: { message?: unknown } }).data?.message === "string"
+                    ? (err as { data: { message: string } }).data.message
+                    : "Cancel failed.";
+            toast({
+                title: errorMessage,
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+        }
+    };
+
+    // Handle invoice viewing (opens PDF in new tab)
+    const handleViewInvoice = (orderId: number) => {
+        window.open(`${import.meta.env.VITE_BASE_API || "https://pengoo-back-end.vercel.app"}/invoices/${orderId}`, "_blank");
+    };
+
+    // Handle order deletion
+    const handleDeleteOrder = async (orderId: number) => {
+        if (window.confirm("Are you sure you want to delete this order?")) {
+            await deleteOrder(orderId);
+        }
     };
 
     // Search and filter logic
     const filteredOrders = orders.filter(order =>
         (searchTerm === "" ||
             order.id.toString().includes(searchTerm) ||
-            order.user.username.toLowerCase().includes(searchTerm.toLowerCase())) &&
+            order.user?.username?.toLowerCase().includes(searchTerm.toLowerCase())) &&
         (statusFilter === "" || order.productStatus === statusFilter)
     );
 
+    // Sorting logic
+    const sortedOrders = [...filteredOrders].sort((a, b) => {
+        let aValue: number | string = a[sortField];
+        let bValue: number | string = b[sortField];
+
+        // Handle date sorting
+        if (sortField === "order_date") {
+            aValue = aValue ? new Date(aValue).getTime() : 0;
+            bValue = bValue ? new Date(bValue).getTime() : 0;
+        }
+
+        if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+        return 0;
+    });
+
     // Pagination logic
-    const totalPages = Math.ceil(filteredOrders.length / PAGE_SIZE);
-    const paginatedOrders = filteredOrders.slice(
+    const totalPages = Math.ceil(sortedOrders.length / PAGE_SIZE);
+    const paginatedOrders = sortedOrders.slice(
         (currentPage - 1) * PAGE_SIZE,
         currentPage * PAGE_SIZE
     );
+
+    // Sorting UI handler
+    const handleSort = (field: SortField) => {
+        if (sortField === field) {
+            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+        } else {
+            setSortField(field);
+            setSortDirection("asc");
+        }
+    };
 
     if (isLoading) {
         return <Loading />;
@@ -105,16 +289,33 @@ const OrdersPage = () => {
 
                 <div className="overflow-x-auto w-full">
                     <table className="min-w-full text-sm">
-                        <thead className="bg-gray-50 sticky top-0 z-10">
+                        <thead>
                             <tr className="text-left border-b">
-                                <th className="py-2 px-2">Order ID</th>
+                                <th className="py-2 px-2 cursor-pointer" onClick={() => handleSort("id")}>
+                                    Order ID
+                                    {sortField === "id" && (
+                                        <span>{sortDirection === "asc" ? " ▲" : " ▼"}</span>
+                                    )}
+                                </th>
                                 <th className="py-2 px-2">Customer</th>
-                                <th className="py-2 px-2">Date</th>
+                                <th className="py-2 px-2 cursor-pointer" onClick={() => handleSort("order_date")}>
+                                    Date
+                                    {sortField === "order_date" && (
+                                        <span>{sortDirection === "asc" ? " ▲" : " ▼"}</span>
+                                    )}
+                                </th>
                                 <th className="py-2 px-2">Items</th>
-                                <th className="py-2 px-2">Total</th>
+                                <th className="py-2 px-2 cursor-pointer" onClick={() => handleSort("total_price")}>
+                                    Total
+                                    {sortField === "total_price" && (
+                                        <span>{sortDirection === "asc" ? " ▲" : " ▼"}</span>
+                                    )}
+                                </th>
                                 <th className="py-2 px-2">Payment</th>
                                 <th className="py-2 px-2">Delivery</th>
                                 <th className="py-2 px-2">Status</th>
+                                <th className="py-2 px-2">Payment Status</th>
+                                <th className="py-2 px-2">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -129,13 +330,13 @@ const OrdersPage = () => {
                                             <FaEye className="mr-1" /> {order.id}
                                         </Button>
                                     </td>
-                                    <td className="py-2 px-2">{order.user.username}</td>
-                                    <td className="py-2 px-2">{order.order_date}</td>
-                                    <td className="py-2 px-2">{order.details.length}</td>
+                                    <td className="py-2 px-2">{order.user?.username}</td>
+                                    <td className="py-2 px-2">{order.order_date ? new Date(order.order_date).toLocaleDateString() : "-"}</td>
+                                    <td className="py-2 px-2">{order.details?.length ?? 0}</td>
                                     <td className="py-2 px-2">{formatCurrencyVND(+order.total_price)}</td>
                                     <td className="py-2 px-2">{order.payment_type || "-"}</td>
-                                    <td className="py-2 px-2">{order.delivery.name || "-"}</td>
-                                    <td className="py-2 px-2 flex items-center gap-2">
+                                    <td className="py-2 px-2">{order.delivery?.name || "-"}</td>
+                                    <td className="py-2 px-2">
                                         <span
                                             className={
                                                 order.productStatus === "delivered"
@@ -149,29 +350,86 @@ const OrdersPage = () => {
                                         >
                                             {STATUS_LABELS[order.productStatus] || order.productStatus}
                                         </span>
-                                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <Button
-                                                size="sm"
-                                                title="Toggle Status"
-                                                className="bg-gray-100 border border-gray-300 hover:bg-gray-200 px-2 py-1 rounded"
-                                                onClick={() => handleToggleStatus(order.id)}
-                                            >
-                                                <FaExchangeAlt />
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                className="bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200 px-3 py-1 rounded"
-                                                onClick={() => setEditOrder(order)}
-                                            >
-                                                <FaEdit className="mr-1" /> Edit
-                                            </Button>
+                                    </td>
+                                    {/* Payment Status column with backend logic actions */}
+                                    <td className="py-2 px-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className={`px-2 py-1 rounded text-xs font-semibold ${PAYMENT_STATUS_COLORS[order.payment_status] || "bg-gray-100 text-gray-700"}`}>
+                                                {PAYMENT_STATUS_LABELS[order.payment_status] || order.payment_status}
+                                            </span>
+                                            {/* Only allow admin actions if not already paid/canceled/refunded */}
+                                            {order.payment_status !== "paid" && order.payment_status !== "canceled" && order.payment_status !== "refunded" && (
+                                                <Button
+                                                    size="sm"
+                                                    className="bg-green-100 text-green-700 border border-green-200 hover:bg-green-200 px-2 py-1 rounded"
+                                                    onClick={() => handleMarkPaid(order)}
+                                                    disabled={markingPaid}
+                                                >
+                                                    Mark as Paid
+                                                </Button>
+                                            )}
+                                            {order.payment_status === "paid" && (
+                                                <Button
+                                                    size="sm"
+                                                    className="bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 px-2 py-1 rounded"
+                                                    onClick={() => handleRefund(order)}
+                                                    disabled={refunding}
+                                                >
+                                                    Refund
+                                                </Button>
+                                            )}
+                                            {order.payment_status !== "canceled" && (
+                                                <Button
+                                                    size="sm"
+                                                    className="bg-red-100 text-red-700 border border-red-200 hover:bg-red-200 px-2 py-1 rounded"
+                                                    onClick={() => handleCancel(order)}
+                                                    disabled={canceling}
+                                                >
+                                                    Cancel
+                                                </Button>
+                                            )}
                                         </div>
+                                    </td>
+                                    <td className="py-2 px-2 flex gap-2">
+                                        <Button
+                                            size="sm"
+                                            className="bg-green-100 text-green-800 border border-green-300 hover:bg-green-200 px-2 py-1 rounded"
+                                            onClick={() => handleViewInvoice(order.id)}
+                                            title="View Invoice"
+                                        >
+                                            <FaFileInvoice />
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            className="bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200 px-2 py-1 rounded"
+                                            onClick={() => handleToggleStatus(order.id)}
+                                            disabled={updatingStatus}
+                                            title="Update Status"
+                                        >
+                                            <FaExchangeAlt />
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            className="bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 px-2 py-1 rounded"
+                                            onClick={() => setEditOrder(order)}
+                                            title="Edit Order"
+                                        >
+                                            <FaEdit />
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            className="bg-red-100 text-red-800 border border-red-300 hover:bg-red-200 px-2 py-1 rounded"
+                                            onClick={() => handleDeleteOrder(order.id)}
+                                            title="Delete Order"
+                                        >
+                                            &times;
+                                        </Button>
                                     </td>
                                 </tr>
                             ))}
                             {paginatedOrders.length === 0 && (
                                 <tr>
-                                    <td colSpan={8} className="py-6 text-center text-gray-400">
+                                    <td colSpan={10} className="py-6 text-center text-gray-400">
                                         No orders found.
                                     </td>
                                 </tr>
@@ -231,7 +489,6 @@ const OrdersPage = () => {
                 onClose={() => setEditOrder(null)}
                 paymentTypes={paymentTypes}
                 deliveryMethods={deliveryMethods}
-                // Add onSave if you want to persist changes
             />
         </div>
     );

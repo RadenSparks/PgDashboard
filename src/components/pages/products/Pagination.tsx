@@ -7,7 +7,9 @@ interface PaginationProps {
 }
 
 const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPageChange }) => {
-  if (totalPages <= 1) return null;
+  const safeTotalPages = Number.isFinite(totalPages) && totalPages > 0 ? totalPages : 1;
+
+  if (safeTotalPages <= 1) return null;
   return (
     <div className="flex justify-center items-center gap-2 mt-6">
       <button
@@ -17,7 +19,7 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
       >
         Prev
       </button>
-      {[...Array(totalPages)].map((_, i) => (
+      {[...Array(safeTotalPages)].map((_, i) => (
         <button
           key={i}
           className={`px-3 py-1 rounded font-semibold ${
@@ -33,7 +35,7 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
       <button
         className="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold disabled:opacity-50"
         onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
+        disabled={currentPage === safeTotalPages}
       >
         Next
       </button>
