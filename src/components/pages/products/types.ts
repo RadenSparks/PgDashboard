@@ -37,7 +37,7 @@ export interface Product {
   quantity_stock: number;
   status: string;
   category_ID: { id: number; name: string };
-  publisher_ID: { id: number; name: string };
+  publisherID: { id: number; name: string }; // unified publisher field
   tags: unknown[];
   images: unknown[];
   mainImage?: File | string;
@@ -63,7 +63,7 @@ export type TabSection = {
 export interface CmsContent {
   heroTitle?: string;
   heroSubtitle?: string;
-  heroImages?: string[]; // <-- array, not string
+  heroImages?: string[]; // array, not string
   aboutTitle?: string;
   aboutText?: string;
   aboutImages?: string[];
@@ -75,5 +75,5 @@ export interface CmsContent {
   fontSize?: string;
   textColor?: string;
   bgColor?: string;
-  featuredSections?: FeaturedSection[]; // <-- add this
+  featuredSections?: FeaturedSection[]; //
 }

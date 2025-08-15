@@ -183,19 +183,38 @@ const ProductFormModal = ({
       return;
     }
     setShowSizeWarning(false);
-    const payload = {
-      ...product,
-      publisherID:
-        typeof product.publisher_ID === "object"
-          ? product.publisher_ID.id
-          : product.publisher_ID,
-    };
-    if ("publisher_ID" in payload) {
-      delete (payload as { publisher_ID?: unknown }).publisher_ID;
+    let publisherObj =
+      typeof product.publisherID === "object"
+        ? product.publisherID
+        : (publishers || []).find(pub => pub.id === Number(product.publisherID));
+
+    // Fallback to first publisher if not found, or keep previous value
+    if (!publisherObj && publishers && publishers.length > 0) {
+      publisherObj = publishers[0];
     }
-    onChange(payload);
-    onSave();
+
+    // Only call onChange if publisherObj is valid
+    if (publisherObj) {
+      const payload = {
+        ...product,
+        publisherID: publisherObj,
+      };
+      onChange(payload);
+      onSave();
+    } else {
+      toast({
+        title: "Please select a valid publisher.",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
+    }
   };
+
+  // Sort publishers A-Z
+  const sortedPublishers = (publishers || [])
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   if (loadCat || loadTags) {
     return <Loading />;
@@ -411,19 +430,21 @@ const ProductFormModal = ({
                   <select
                     className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
                     value={
-                      typeof product.publisher_ID === "object"
-                        ? product.publisher_ID.id
-                        : product.publisher_ID || ""
+                      typeof product.publisherID === "object"
+                        ? product.publisherID.id
+                        : product.publisherID || ""
                     }
                     onChange={e => {
                       const selectedPublisher = (publishers || []).find(pub => pub.id === Number(e.target.value));
                       if (selectedPublisher) {
-                        onChange({ ...product, publisher_ID: selectedPublisher });
+                        // Always set the full publisher object
+                        onChange({ ...product, publisherID: selectedPublisher });
                       }
                     }}
+                    required
                   >
                     <option value="">Select publisher</option>
-                    {(publishers || []).map(pub => (
+                    {sortedPublishers.map(pub => (
                       <option key={pub.id} value={pub.id}>{pub.name}</option>
                     ))}
                   </select>

@@ -5,60 +5,60 @@ import ProductTable from "./ProductTable";
 import ProductDetailsModal from "./ProductDetailsModal";
 import ProductFormModal from "./ProductFormModal";
 import ProductCmsModal from "./ProductCmsModal";
-import type { Product as LocalProduct, CmsContent, Tag, Product } from "./types";
-import { useAddProductMutation, useGetProductsQuery, useUpdateProductMutation, useDeleteProductMutation, useGetProductCmsQuery, useUpdateProductCmsMutation } from "../../../redux/api/productsApi";
+import type { Product, CmsContent, Tag } from "./types";
+import {
+    useAddProductMutation,
+    useGetProductsQuery,
+    useUpdateProductMutation,
+    useDeleteProductMutation,
+    useGetProductCmsQuery,
+    useUpdateProductCmsMutation
+} from "../../../redux/api/productsApi";
 import Loading from "../../../components/widgets/loading";
 import { toaster } from "../../widgets/toaster";
+import { useGetPublishersQuery } from "../../../redux/api/publishersApi";
 
 // Main Products Page
 const ProductsPage = () => {
-    //Store
     const [addProduct, { isLoading: isAdding }] = useAddProductMutation();
     const [updateProduct] = useUpdateProductMutation();
     const [deleteProduct] = useDeleteProductMutation();
     const [currentPage, setCurrentPage] = useState(1);
-    const PAGE_SIZE = 10; // or your preferred value
+    const PAGE_SIZE = 10;
     const [searchTerm, setSearchTerm] = useState("");
 
-    // --- Caching paginated results ---
-    const [pageCache, setPageCache] = useState<Record<number, LocalProduct[]>>({});
-    const [totalPages, setTotalPages] = useState(1);
+    // Optional: Debounce search for better UX
+    const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
+    useEffect(() => {
+        const handler = setTimeout(() => setDebouncedSearch(searchTerm), 300);
+        return () => clearTimeout(handler);
+    }, [searchTerm]);
 
-    // Fetch paginated products from backend
+    // Fetch paginated products from backend, using 'name' for search
     const { data: paginated, isLoading } = useGetProductsQuery({
         page: currentPage,
         limit: PAGE_SIZE,
-        search: searchTerm.trim() || undefined,
+        name: debouncedSearch.trim() || undefined,
     });
 
-    // Map backend Product type to local Product type for compatibility
-    useEffect(() => {
-        if (paginated) {
-            const products: LocalProduct[] = (paginated.data || []).map(p => ({
-                ...p,
-                description: p.description ?? "",
-                discount: p.discount ?? 0,
-                slug: p.slug ?? "",
-                meta_title: p.meta_title ?? "",
-                meta_description: p.meta_description ?? "",
-                quantity_sold: p.quantity_sold ?? 0,
-                status: p.status ?? "Available",
-                publisher_ID: p.publisher_ID ?? { id: 0, name: "" },
-                tags: p.tags ?? [],
-                images: p.images ?? [],
-                category_ID: p.category_ID ?? { id: 0, name: "" },
-                quantity_stock: p.quantity_stock ?? 0,
-            }));
-            setPageCache(prev => ({
-                ...prev,
-                [currentPage]: products,
-            }));
-            setTotalPages(Math.ceil(paginated.total / paginated.limit));
-        }
-    }, [paginated, currentPage]);
+    // Always pass an array to ProductTable
+    const products = Array.isArray(paginated?.data)
+        ? paginated.data.map((p) => ({
+            ...p,
+            category_ID: p.category_ID ?? { id: 0, name: "" },
+            publisherID: p.publisherID ?? { id: 0, name: "" }, // Ensure publisherID is always present
+            images: p.images ?? [],
+        }))
+        : [];
 
-    // Use cached products if available, else fallback to loading state
-    const products = pageCache[currentPage] || [];
+    const totalPages = paginated
+        ? Math.max(1, Math.ceil(paginated.total / paginated.limit))
+        : 1;
+
+    // Reset to page 1 when search changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
 
     const [detailProduct, setDetailProduct] = useState<Product | null>(null);
     const [editProduct, setEditProduct] = useState<Product | null>(null);
@@ -104,7 +104,7 @@ const ProductsPage = () => {
             quantity_stock: 0,
             status: "Available",
             category_ID: { id: 0, name: "" },
-            publisher_ID: { id: 0, name: "" },
+            publisherID: { id: 0, name: "" },
             tags: [],
             images: [],
         });
@@ -117,10 +117,10 @@ const ProductsPage = () => {
             if (editProduct) {
                 const formData = new FormData();
 
-                // Ensure publisher_ID is an object with id and name
-                const publisherId = typeof editProduct.publisher_ID === "object"
-                    ? editProduct.publisher_ID.id
-                    : editProduct.publisher_ID;
+                // Ensure publisherID is an object with id and name
+                const publisherId = typeof editProduct.publisherID === "object"
+                    ? editProduct.publisherID.id
+                    : editProduct.publisherID;
 
                 formData.append("product_name", editProduct.product_name);
                 formData.append("product_price", editProduct.product_price.toString());
@@ -133,7 +133,7 @@ const ProductsPage = () => {
                 formData.append("quantity_stock", editProduct.quantity_stock.toString());
                 formData.append("status", editProduct.status);
                 formData.append("category_ID", editProduct.category_ID.id.toString());
-                formData.append("publisherID", publisherId?.toString() || ""); // <-- FIXED: use publisherID
+                formData.append("publisherID", publisherId?.toString() || "");
                 formData.append(
                     "tags",
                     (editProduct.tags as (Tag | number)[]).map((t) => typeof t === "object" ? t.id : t).join(" ")
@@ -166,9 +166,23 @@ const ProductsPage = () => {
     };
 
     // UPDATE
+    const { data: publishers } = useGetPublishersQuery(); // Add this if not already present
+
     const handleEdit = (prod: Product) => {
+        // Find the full publisher object from the publishers list
+        let publisherObj = prod.publisherID;
+        if (typeof publisherObj === "number" && publishers) {
+            publisherObj = publishers.find(pub => pub.id === (typeof prod.publisherID === "number" ? prod.publisherID : prod.publisherID.id)) || { id: 0, name: "" };
+        }
+        if (typeof publisherObj === "object" && publisherObj && publishers) {
+            // If publisherObj is an object but missing name, try to find it
+            const found = publishers.find(pub => pub.id === publisherObj.id);
+            if (found) publisherObj = found;
+        }
+
         setEditProduct({
             ...prod,
+            publisherID: publisherObj,
             tags: prod.tags || [],
             deleteImages: [],
         });
@@ -181,10 +195,10 @@ const ProductsPage = () => {
             if (editProduct) {
                 const formData = new FormData();
 
-                // Ensure publisher_ID is an object with id and name
-                const publisherId = typeof editProduct.publisher_ID === "object"
-                    ? editProduct.publisher_ID.id
-                    : editProduct.publisher_ID;
+                // Ensure publisherID is an object with id and name
+                const publisherId = typeof editProduct.publisherID === "object"
+                    ? editProduct.publisherID.id
+                    : editProduct.publisherID;
 
                 formData.append("id", editProduct.id.toString());
                 formData.append("product_name", editProduct.product_name);
@@ -198,7 +212,7 @@ const ProductsPage = () => {
                 formData.append("quantity_stock", editProduct.quantity_stock.toString());
                 formData.append("status", editProduct.status);
                 formData.append("category_ID", editProduct.category_ID.id.toString());
-                formData.append("publisherID", publisherId?.toString() || ""); // <-- FIXED: use publisherID
+                formData.append("publisherID", publisherId?.toString() || "");
                 formData.append(
                     "tags",
                     (editProduct.tags as (Tag | number)[]).map((t) => typeof t === "object" ? t.id : t).join(" ")
@@ -262,7 +276,6 @@ const ProductsPage = () => {
         }
         try {
             await updateProductCms({ productId: cmsProductId, data: cmsProductContent }).unwrap();
-            // Optionally refetch products or CMS content here
             alert("Saved!");
             setCmsProductId(null);
         } catch (err: unknown) {
@@ -274,37 +287,45 @@ const ProductsPage = () => {
         }
     };
 
-    useEffect(() => {
-        setPageCache({});
-        setCurrentPage(1);
-    }, [searchTerm]);
+    // --- Show loading spinner during transitions ---
+    if (isAdding || isLoading) return <Loading />;
 
-    if (isAdding || (isLoading && !products.length)) return <Loading />;
     return (
         <div className="p-8">
             <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                <h2 className="text-2xl font-bold">Products</h2>
-                <div className="flex gap-2 items-center w-full md:w-auto">
-                    <div className="relative w-full md:w-64">
-                        <input
-                            type="text"
-                            className="w-full border rounded-lg px-4 py-2 pl-10 focus:ring-2 focus:ring-blue-300"
-                            placeholder="Search product name..."
-                            value={searchTerm}
-                            onChange={e => setSearchTerm(e.target.value)}
-                        />
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                            <IoMdSearch size={20} />
-                        </span>
-                    </div>
-                    <Button
-                        className="flex gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                        onClick={handleAddProduct}
-                    >
-                        <IoMdAdd size={20} />
-                        <span>Add Product</span>
-                    </Button>
+                {/* Enhanced Search Bar */}
+                <div className="relative w-full md:w-96">
+                    <input
+                        type="text"
+                        className="border border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg px-4 py-2 w-full pr-12 transition"
+                        placeholder="Search products by name..."
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                        aria-label="Search products"
+                    />
+                    <IoMdSearch
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-400 pointer-events-none"
+                        size={22}
+                    />
+                    {searchTerm && (
+                        <button
+                            className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 transition"
+                            onClick={() => setSearchTerm("")}
+                            aria-label="Clear search"
+                            tabIndex={0}
+                            type="button"
+                        >
+                            ×
+                        </button>
+                    )}
                 </div>
+                <Button
+                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold shadow transition"
+                    onClick={handleAddProduct}
+                >
+                    <IoMdAdd size={20} />
+                    Add Product
+                </Button>
             </div>
             <ProductTable
                 products={products}

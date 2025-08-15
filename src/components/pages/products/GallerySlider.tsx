@@ -1,9 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 
+type GalleryImage = string | { url: string; size?: number };
 type GallerySliderProps = {
-  images: string[];
+  images: GalleryImage[];
   renderAction?: (url: string) => React.ReactNode;
 };
+
+function getUrl(img: GalleryImage) {
+  return typeof img === "string" ? img : img.url;
+}
+function getSize(img: GalleryImage) {
+  return typeof img === "object" && img.size ? img.size : undefined;
+}
 
 const GallerySlider = ({ images, renderAction }: GallerySliderProps) => {
   const [current, setCurrent] = useState(0);
@@ -23,21 +31,28 @@ const GallerySlider = ({ images, renderAction }: GallerySliderProps) => {
 
   if (!images.length)
     return (
-      <div className="w-full h-16 bg-gray-100 flex items-center justify-center rounded mt-2">
-        <span className="text-gray-400 text-xs">[Slider/Carousel Here]</span>
+      <div className="w-full h-20 bg-gray-100 flex items-center justify-center rounded mt-2">
+        <span className="text-gray-400 text-xs">No images available</span>
       </div>
     );
 
   return (
-    <div className="w-full flex flex-col items-center mt-2" ref={sliderRef} tabIndex={0}>
+    <div
+      className="w-full flex flex-col items-center mt-2"
+      ref={sliderRef}
+      tabIndex={0}
+      aria-label="Gallery slider, use arrow keys to navigate"
+    >
       {/* Main image preview */}
-      <div className="relative w-56 h-36 flex items-center justify-center bg-gray-100 rounded-lg shadow group">
+      <div className="relative w-72 h-44 flex items-center justify-center bg-gradient-to-br from-blue-50 to-white rounded-xl shadow-lg group transition-all duration-300">
         <img
-          src={images[current]}
+          src={getUrl(images[current])}
           alt={`Slide ${current + 1}`}
-          className="w-56 h-36 object-cover rounded-lg border"
+          className="w-72 h-44 object-cover rounded-xl border transition-all duration-300"
           draggable={false}
+          style={{ boxShadow: "0 4px 24px 0 rgba(30,64,175,0.10)" }}
         />
+        {/* Navigation buttons */}
         {images.length > 1 && (
           <>
             <button
@@ -54,23 +69,30 @@ const GallerySlider = ({ images, renderAction }: GallerySliderProps) => {
               aria-label="Next"
               tabIndex={0}
             >&gt;</button>
-            <span className="absolute bottom-2 right-1/2 translate-x-1/2 bg-black bg-opacity-60 text-white text-xs px-2 py-0.5 rounded">
-              {current + 1} / {images.length}
-            </span>
           </>
+        )}
+        {/* Image counter */}
+        <span className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black bg-opacity-60 text-white text-xs px-3 py-1 rounded shadow">
+          {current + 1} / {images.length}
+        </span>
+        {/* File size display (if available) */}
+        {getSize(images[current]) && (
+          <span className="absolute top-2 right-2 bg-white bg-opacity-80 text-gray-700 text-xs px-2 py-0.5 rounded shadow">
+            {(getSize(images[current])! / (1024 * 1024)).toFixed(2)} MB
+          </span>
         )}
       </div>
       {/* Action button (e.g. insert to content) */}
       {renderAction && (
-        <div className="mt-2">{renderAction(images[current])}</div>
+        <div className="mt-2">{renderAction(getUrl(images[current]))}</div>
       )}
       {/* Thumbnails */}
       {images.length > 1 && (
-        <div className="flex gap-2 mt-3">
+        <div className="flex gap-2 mt-4">
           {images.map((img, idx) => (
             <button
-              key={idx}
-              className={`w-10 h-10 rounded border-2 transition
+              key={getUrl(img) + idx}
+              className={`w-12 h-12 rounded border-2 transition
                 ${idx === current ? 'border-blue-600 ring-2 ring-blue-300' : 'border-gray-200'}
                 bg-white p-0.5 shadow-sm hover:border-blue-400 focus:ring-2 focus:ring-blue-400`}
               onClick={() => setCurrent(idx)}
@@ -79,15 +101,19 @@ const GallerySlider = ({ images, renderAction }: GallerySliderProps) => {
               tabIndex={0}
             >
               <img
-                src={img}
+                src={getUrl(img)}
                 alt={`Thumbnail ${idx + 1}`}
-                className="w-full h-full object-cover rounded"
+                className={`w-full h-full object-cover rounded transition-all duration-200 ${idx === current ? "scale-105" : ""}`}
                 draggable={false}
               />
             </button>
           ))}
         </div>
       )}
+      {/* Keyboard navigation hint */}
+      <div className="text-xs text-gray-400 mt-2">
+        Use <span className="font-semibold text-blue-600">←</span> / <span className="font-semibold text-blue-600">→</span> keys to navigate
+      </div>
     </div>
   );
 };

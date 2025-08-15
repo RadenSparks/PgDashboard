@@ -10,15 +10,14 @@ export type Product = {
   meta_description: string;
   quantity_sold: number;
   status: string;
-  publisher_ID: { id: number; name: string; };
-  tags: never[]; 
+  publisherID: { id: number; name: string }; // <-- unified
+  tags: never[];
   id: number;
   product_name: string;
   product_price: number;
   quantity_stock: number;
   images?: { url: string; name?: string }[];
   category_ID?: { id: number; name: string };
-  // ...other fields as needed
 };
 
 export type PaginatedProducts = {
@@ -33,11 +32,11 @@ export const productsApi = createApi({
   baseQuery: axiosBaseQuery,
   tagTypes: ['Product', 'CmsContent'],
   endpoints: (builder) => ({
-    getProducts: builder.query<PaginatedProducts, { page: number; limit: number; search?: string }>({
-      query: ({ page, limit, search }) => ({
+    getProducts: builder.query<PaginatedProducts, { page?: number; limit?: number; search?: string; name?: string }>({
+      query: ({ page = 1, limit = 10, search, name } = {}) => ({
         url: '/products',
         method: 'GET',
-        params: { page, limit, search },
+        params: { page, limit, search, name },
       }),
       providesTags: ['Product'],
     }),
