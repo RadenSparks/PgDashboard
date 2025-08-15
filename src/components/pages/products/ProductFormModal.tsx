@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import type { Product, NamedImage, Tag } from "./types";
 import { Button } from "../../widgets/button";
 import GallerySlider from "./GallerySlider";
@@ -38,16 +38,6 @@ const ProductFormModal = ({
   const [showMediaPicker, setShowMediaPicker] = useState<"main" | "gallery" | null>(null);
 
   const modalRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-        onClose();
-      }
-    };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [onClose]);
 
   // Tag assignment handlers
   const tagsArray: number[] = Array.isArray(product.tags)
@@ -163,8 +153,8 @@ const ProductFormModal = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 overflow-y-auto">
       <div
         ref={modalRef}
-        className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-0 relative flex flex-row items-stretch my-12"
-        style={{ maxHeight: "90vh", overflowY: "auto" }}
+        className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-0 relative flex flex-row items-stretch my-12"
+        style={{ maxHeight: "95vh", overflowY: "auto" }}
       >
         <div className="w-full">
           <div className="border-b px-8 py-6 flex items-center justify-between rounded-t-2xl bg-blue-50">
@@ -235,7 +225,8 @@ const ProductFormModal = ({
                     placeholder="Description"
                     value={product.description}
                     onChange={e => onChange({ ...product, description: e.target.value })}
-                    rows={2}
+                    rows={6}
+                    style={{ minHeight: "120px" }}
                   />
                 </label>
                 <label>

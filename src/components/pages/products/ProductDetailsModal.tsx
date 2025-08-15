@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import type { Product, Tag, NamedImage } from "./types";
 import GallerySlider from "./GallerySlider";
 import { formatCurrencyVND } from "./formatCurrencyVND";
@@ -10,16 +10,6 @@ type ProductDetailsModalProps = {
 
 const ProductDetailsModal = ({ product, onClose }: ProductDetailsModalProps) => {
     const modalRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const handleClick = (e: MouseEvent) => {
-            if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-                onClose();
-            }
-        };
-        document.addEventListener("mousedown", handleClick);
-        return () => document.removeEventListener("mousedown", handleClick);
-    }, [onClose]);
 
     // Group tags by type for display
     const tags = (product.tags as Tag[]) || [];
