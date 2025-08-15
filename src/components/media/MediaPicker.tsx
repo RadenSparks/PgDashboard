@@ -229,6 +229,12 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
                     <div className="text-xs mt-1 truncate text-gray-700 group-hover:text-blue-700">
                       {item.name}
                     </div>
+                    {/* --- File size display --- */}
+                    {typeof item.size === "number" && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        {(item.size / (1024 * 1024)).toFixed(2)} MB
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

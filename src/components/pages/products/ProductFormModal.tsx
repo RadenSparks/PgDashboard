@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import type { Product, NamedImage, Tag } from "./types";
 import { Button } from "../../widgets/button";
 import GallerySlider from "./GallerySlider";
@@ -16,6 +16,8 @@ type ProductFormModalProps = {
   onClose: () => void;
   mode: "add" | "edit";
 };
+
+const MAX_PAYLOAD_SIZE_MB = 5;
 
 const ProductFormModal = ({
   product,
@@ -146,6 +148,55 @@ const ProductFormModal = ({
     }
   };
 
+  // --- Calculate payload size ---
+  const payloadSize = useMemo(() => {
+    let total = 0;
+    // Text fields
+    [
+      product.product_name,
+      product.description,
+      product.slug,
+      product.meta_title,
+      product.meta_description,
+      product.status,
+    ].forEach(str => {
+      if (str) total += new Blob([str]).size;
+    });
+    // Images
+    (product.images as NamedImage[]).forEach(img => {
+      if (img.file instanceof File) total += img.file.size;
+    });
+    if (product.mainImage instanceof File) total += product.mainImage.size;
+    return total;
+  }, [product]);
+
+  const payloadSizeMB = (payloadSize / (1024 * 1024)).toFixed(2);
+
+  // --- UI warning state ---
+  const [showSizeWarning, setShowSizeWarning] = useState(false);
+
+  // --- Save handler with safeguard ---
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (payloadSize / (1024 * 1024) > MAX_PAYLOAD_SIZE_MB) {
+      setShowSizeWarning(true);
+      return;
+    }
+    setShowSizeWarning(false);
+    const payload = {
+      ...product,
+      publisherID:
+        typeof product.publisher_ID === "object"
+          ? product.publisher_ID.id
+          : product.publisher_ID,
+    };
+    if ("publisher_ID" in payload) {
+      delete (payload as { publisher_ID?: unknown }).publisher_ID;
+    }
+    onChange(payload);
+    onSave();
+  };
+
   if (loadCat || loadTags) {
     return <Loading />;
   }
@@ -172,22 +223,37 @@ const ProductFormModal = ({
           </div>
           <form
             className="divide-y"
-            onSubmit={e => {
-              e.preventDefault();
-              const payload = {
-                ...product,
-                publisherID:
-                  typeof product.publisher_ID === "object"
-                    ? product.publisher_ID.id
-                    : product.publisher_ID,
-              };
-              if ("publisher_ID" in payload) {
-                delete (payload as { publisher_ID?: unknown }).publisher_ID;
-              }
-              onChange(payload);
-              onSave();
-            }}
+            onSubmit={handleSubmit}
           >
+            {/* --- Payload Size Display & Warning --- */}
+            <section className="px-8 py-2">
+              <div className="mb-2">
+                <span className="text-xs text-gray-500">Total payload size: </span>
+                <span className={payloadSize / (1024 * 1024) > MAX_PAYLOAD_SIZE_MB ? "text-red-600 font-bold" : "text-blue-700 font-bold"}>
+                  {payloadSizeMB} MB
+                </span>
+                <span className="text-xs text-gray-400 ml-2">(limit: {MAX_PAYLOAD_SIZE_MB} MB)</span>
+              </div>
+              {(product.images as NamedImage[]).length > 0 && (
+                <div className="mb-2">
+                  <span className="text-xs text-gray-500">Image sizes:</span>
+                  <ul className="ml-2 text-xs">
+                    {(product.images as NamedImage[]).map((img, idx) =>
+                      img.file instanceof File ? (
+                        <li key={idx} className={img.file.size > 2 * 1024 * 1024 ? "text-red-600" : ""}>
+                          {img.name || `Image ${idx + 1}`}: {(img.file.size / (1024 * 1024)).toFixed(2)} MB
+                        </li>
+                      ) : null
+                    )}
+                  </ul>
+                </div>
+              )}
+              {showSizeWarning && (
+                <div className="text-red-600 font-semibold mb-2">
+                  Warning: The total payload size exceeds {MAX_PAYLOAD_SIZE_MB} MB. Please reduce image sizes or content before saving.
+                </div>
+              )}
+            </section>
             {/* Basic Info */}
             <section className="px-8 py-6">
               <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide">Basic Info</div>

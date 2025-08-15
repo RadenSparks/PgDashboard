@@ -2,12 +2,11 @@ import { createApi } from '@reduxjs/toolkit/query/react';
 import { axiosBaseQuery } from '../axiosBaseQuery';
 
 export interface MediaItem {
-  id?: number; // <-- use id (number) to match backend
+  id: number;
   url: string;
-  folder: string;
   name: string;
-  ord?: number;
-  product?: { id: number };
+  folder?: string;
+  size?: number; // <-- Add this
 }
 
 export const mediaApi = createApi({

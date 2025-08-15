@@ -48,6 +48,12 @@ const MediaGrid: React.FC<MediaGridProps> = ({
           onClick={() => handlePreview(item.url)}
         />
         <div className="break-all text-xs text-gray-700 mt-4 font-medium">{item.name}</div>
+        {/* --- File size display --- */}
+        {typeof item.size === "number" && (
+          <div className="text-xs text-gray-500 mt-1">
+            {(item.size / (1024 * 1024)).toFixed(2)} MB
+          </div>
+        )}
         <div className="flex flex-wrap gap-2 mt-4 justify-start">
           <button
             className="flex items-center gap-1 px-3 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-semibold hover:bg-blue-100 hover:text-blue-900 transition"
