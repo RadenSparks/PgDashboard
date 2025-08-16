@@ -154,7 +154,7 @@ const ProductDetailsModal = ({ product, onClose }: ProductDetailsModalProps) => 
                         {/* Remove created_at and updated_at if not in Product type */}
                         <div className="mb-3">
                             <span className="font-semibold text-gray-600">Publisher:</span>{" "}
-                            {product.publisher_ID?.name || "-"}
+                            {product.publisherID?.name || "-"}
                         </div>
                     </div>
                 </div>

@@ -6,9 +6,10 @@ interface ProductDetailModalProps {
     productId: number | null;
     onClose: () => void;
     navigate: (path: string) => void;
+    orderId?: number; // <-- Add this if needed
 }
 
-const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ productId, onClose, navigate }) => {
+const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ productId, onClose, navigate, orderId }) => {
     const { data: product, isLoading } = useGetProductByIdQuery(productId ?? 0, { skip: productId === null });
     const modalRef = useRef<HTMLDivElement>(null);
 
@@ -30,6 +31,16 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ productId, onCl
                 ? product.images[0]
                 : (product.images[0] as { url: string })?.url || ""
             : "";
+
+    // Helper to open invoice
+    const handleViewInvoice = () => {
+        // Use orderId if available, otherwise fallback to productId
+        const invoiceId = orderId ?? productId;
+        window.open(
+            `${import.meta.env.VITE_BASE_API || "https://pengoo-back-end.vercel.app"}/invoices/${invoiceId}`,
+            "_blank"
+        );
+    };
 
     return (
         <div
@@ -94,15 +105,23 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ productId, onCl
                                 {(product as { status?: string }).status ?? "Unknown"}
                             </span>
                         </div>
-                        <Button
-                            className="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
-                            onClick={() => {
-                                onClose();
-                                navigate(`/products/${product.id}`);
-                            }}
-                        >
-                            Go to Product Detail Page
-                        </Button>
+                        <div className="flex gap-2 mt-4">
+                            <Button
+                                className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+                                onClick={() => {
+                                    onClose();
+                                    navigate(`/products/${product.id}`);
+                                }}
+                            >
+                                Go to Product Detail Page
+                            </Button>
+                            <Button
+                                className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
+                                onClick={handleViewInvoice}
+                            >
+                                View Invoice
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </div>

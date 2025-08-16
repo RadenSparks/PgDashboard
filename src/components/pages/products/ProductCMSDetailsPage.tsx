@@ -141,7 +141,7 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
       {/* PRODUCT TABS SECTION - Fixed Tabs: Specifications, How To Play, Contents */}
       <section className="mb-10">
         <h4 className="text-xl font-semibold mb-2" style={{ color: textColor, fontFamily }}>Product Tabs</h4>
-        {["Specifications", "How To Play", "Contents"].map((fixedTitle) => {
+        {["Nội dung", "Cách chơi", "Tham Khảo"].map((fixedTitle) => {
           const tab = cmsContent.tabs?.find(
             t => t.title.trim().toLowerCase() === fixedTitle.trim().toLowerCase()
           );

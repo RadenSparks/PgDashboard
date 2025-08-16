@@ -59,15 +59,18 @@ const ProductCmsModal = ({
   const tabs: TabSection[] = cmsContent.tabs || [];
   const updateTab = (idx: number, tab: TabSection) => {
     const newTabs = [...tabs];
-    newTabs[idx] = tab;
+    // Always ensure images is an array
+    newTabs[idx] = { ...tab, images: Array.isArray(tab.images) ? tab.images : [] };
     onChange({ ...cmsContent, tabs: newTabs });
   };
 
   // Tab image helpers
   const addTabImage = (tabIdx: number) => {
-    const tab = { ...tabs[tabIdx], images: [...(tabs[tabIdx].images || []), ""] };
+    const tab = { ...tabs[tabIdx] };
+    // Ensure images is always an array
+    tab.images = Array.isArray(tab.images) ? [...tab.images, ""] : [""];
     updateTab(tabIdx, tab);
-    setShowMediaPicker({ field: "tabImages", tabIdx, imgIdx: tab.images.length });
+    setShowMediaPicker({ field: "tabImages", tabIdx, imgIdx: tab.images.length - 1 });
   };
   const removeTabImage = (tabIdx: number, imgIdx: number) => {
     const tab = { ...tabs[tabIdx] };
@@ -89,12 +92,12 @@ const ProductCmsModal = ({
   };
 
   // Update tab names
-  const TAB_TITLES = ["Specifications", "How To Play", "Reference"];
+  const TAB_TITLES = ["Nội dung", "Cách chơi", "Tài liệu tham khảo"];
 
   // Reference tab helpers
   const updateReferenceTab = (references: { title: string; link: string }[]) => {
     const tabIdx = tabs.findIndex(t => t.title.trim().toLowerCase() === "reference");
-    const newTab: TabSection = { title: "Reference", content: "", images: [], references };
+    const newTab: TabSection = { title: "Tài liệu tham khảo", content: "", images: [], references };
     if (tabIdx >= 0) updateTab(tabIdx, newTab);
     else onChange({ ...cmsContent, tabs: [...tabs, newTab] });
   };
@@ -102,8 +105,8 @@ const ProductCmsModal = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 overflow-y-auto">
       <div
-        className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full p-0 relative my-12 flex flex-col md:flex-row overflow-hidden"
-        style={{ maxHeight: "90vh", minHeight: "60vh" }}
+        className="bg-white rounded-2xl shadow-2xl max-w-[90vw] w-[90vw] min-h-[80vh] p-0 relative my-12 flex flex-col md:flex-row overflow-hidden"
+        style={{ maxHeight: "95vh", minHeight: "80vh" }}
       >
         {/* Close Button */}
         <button
@@ -139,20 +142,20 @@ const ProductCmsModal = ({
               <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" /> Hero Section
             </div>
             <input
-              className="w-full border rounded px-3 py-2 mb-2 focus:ring-2 focus:ring-blue-300"
+              className="w-full border rounded px-4 py-3 mb-2 text-lg focus:ring-2 focus:ring-blue-300"
               value={cmsContent.heroTitle || ""}
               onChange={e => onChange({ ...cmsContent, heroTitle: e.target.value })}
               placeholder="Hero Title"
             />
             <input
-              className="w-full border rounded px-3 py-2 mb-2 focus:ring-2 focus:ring-blue-300"
+              className="w-full border rounded px-4 py-3 mb-2 text-lg focus:ring-2 focus:ring-blue-300"
               value={cmsContent.heroSubtitle || ""}
               onChange={e => onChange({ ...cmsContent, heroSubtitle: e.target.value })}
               placeholder="Hero Subtitle"
             />
             <div className="flex items-center gap-3 mt-2">
               {cmsContent.heroImages && cmsContent.heroImages[0] && (
-                <img src={cmsContent.heroImages[0]} alt="Hero" className="w-24 h-24 object-cover rounded-lg border shadow" />
+                <img src={cmsContent.heroImages[0]} alt="Hero" className="w-32 h-32 object-cover rounded-lg border shadow" />
               )}
               <button
                 type="button"
@@ -184,27 +187,27 @@ const ProductCmsModal = ({
               <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" /> About Section
             </div>
             <input
-              className="w-full border rounded px-3 py-2 mb-2 focus:ring-2 focus:ring-blue-300"
+              className="w-full border rounded px-4 py-3 mb-2 text-lg focus:ring-2 focus:ring-blue-300"
               value={cmsContent.aboutTitle || ""}
               onChange={e => onChange({ ...cmsContent, aboutTitle: e.target.value })}
               placeholder="About Title"
             />
             <textarea
-              className="w-full border rounded px-3 py-2 mb-2 focus:ring-2 focus:ring-blue-300"
+              className="w-full border rounded px-4 py-3 mb-2 text-lg focus:ring-2 focus:ring-blue-300"
               value={cmsContent.aboutText || ""}
               onChange={e => onChange({ ...cmsContent, aboutText: e.target.value })}
               placeholder="About Text"
-              rows={3}
+              rows={4}
             />
             <div className="flex flex-col gap-2">
               {(cmsContent.aboutImages || []).map((img, idx) => (
                 <div key={idx} className="flex items-center gap-2">
                   {img && (
-                    <img src={img} alt={`About ${idx + 1}`} className="w-16 h-16 object-cover rounded border shadow" />
+                    <img src={img} alt={`About ${idx + 1}`} className="w-20 h-20 object-cover rounded border shadow" />
                   )}
                   <button
                     type="button"
-                    className="bg-blue-100 text-blue-700 rounded px-3 py-2 hover:bg-blue-200 font-semibold"
+                    className="bg-blue-100 text-blue-700 rounded px-4 py-2 hover:bg-blue-200 font-semibold"
                     onClick={() => setShowMediaPicker({ field: "aboutImages", idx })}
                   >
                     {img ? "Change" : "Select"} Image
@@ -221,7 +224,7 @@ const ProductCmsModal = ({
               ))}
               <button
                 type="button"
-                className="mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-xs font-semibold w-fit"
+                className="mt-2 px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-base font-semibold w-fit"
                 onClick={() => addArrayItem("aboutImages")}
               >
                 + Add About Image
@@ -240,11 +243,11 @@ const ProductCmsModal = ({
                     {idx + 1}
                   </span>
                   {img && (
-                    <img src={img} alt={`Slider ${idx + 1}`} className="w-16 h-16 object-cover rounded border shadow" />
+                    <img src={img} alt={`Slider ${idx + 1}`} className="w-20 h-20 object-cover rounded border shadow" />
                   )}
                   <button
                     type="button"
-                    className="bg-blue-100 text-blue-700 rounded px-3 py-2 hover:bg-blue-200 font-semibold"
+                    className="bg-blue-100 text-blue-700 rounded px-4 py-2 hover:bg-blue-200 font-semibold"
                     onClick={() => setShowMediaPicker({ field: "sliderImages", idx })}
                   >
                     {img ? "Change" : "Select"} Image
@@ -261,7 +264,7 @@ const ProductCmsModal = ({
               ))}
               <button
                 type="button"
-                className="mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-xs font-semibold w-fit"
+                className="mt-2 px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-base font-semibold w-fit"
                 onClick={() => addArrayItem("sliderImages")}
               >
                 + Add Slider Image
@@ -274,17 +277,17 @@ const ProductCmsModal = ({
               <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" /> Product Details Section
             </div>
             <input
-              className="w-full border rounded px-3 py-2 mb-2 focus:ring-2 focus:ring-blue-300"
+              className="w-full border rounded px-4 py-3 mb-2 text-lg focus:ring-2 focus:ring-blue-300"
               value={cmsContent.detailsTitle || ""}
               onChange={e => onChange({ ...cmsContent, detailsTitle: e.target.value })}
               placeholder="Details Title"
             />
             <textarea
-              className="w-full border rounded px-3 py-2 font-mono focus:ring-2 focus:ring-blue-300"
+              className="w-full border rounded px-4 py-3 font-mono text-lg focus:ring-2 focus:ring-blue-300"
               value={cmsContent.detailsContent || ""}
               onChange={e => onChange({ ...cmsContent, detailsContent: e.target.value })}
               placeholder="Details Content (Markdown supported)"
-              rows={6}
+              rows={8}
             />
           </section>
           {/* TABS SECTION */}
@@ -296,8 +299,8 @@ const ProductCmsModal = ({
               const tabIdx = tabs.findIndex(t => t.title.trim().toLowerCase() === fixedTitle.toLowerCase());
               const tab: TabSection = tabIdx >= 0
                 ? tabs[tabIdx]
-                : fixedTitle === "Reference"
-                  ? { title: "Reference", content: "", images: [], references: [] }
+                : fixedTitle === "Tài liệu tham khảo"
+                  ? { title: "Tài liệu tham khảo", content: "", images: [], references: [] }
                   : { title: fixedTitle, content: "", images: [] };
 
               return (
@@ -311,9 +314,9 @@ const ProductCmsModal = ({
                     />
                   </div>
                   {/* How To Play: only video link input */}
-                  {fixedTitle === "How To Play" ? (
+                  {fixedTitle === "Cách chơi" ? (
                     <input
-                      className="w-full border rounded px-3 py-2 mb-2 focus:ring-2 focus:ring-blue-300"
+                      className="w-full border rounded px-4 py-3 mb-2 focus:ring-2 focus:ring-blue-300"
                       value={tab.content}
                       onChange={e => {
                         const newTab: TabSection = { ...tab, content: e.target.value, images: tab.images || [] };
@@ -324,7 +327,7 @@ const ProductCmsModal = ({
                       type="url"
                       pattern="https?://.+"
                     />
-                  ) : fixedTitle === "Reference" ? (
+                  ) : fixedTitle === "Tài liệu tham khảo" ? (
                     <>
                       <div className="flex flex-col gap-2">
                         {(tab.references || []).map((ref: { title: string; link: string }, refIdx: number) => (
@@ -378,7 +381,7 @@ const ProductCmsModal = ({
                     // Specifications tab (markdown + images)
                     <>
                       <textarea
-                        className="w-full border rounded px-3 py-2 mb-2 focus:ring-2 focus:ring-blue-300"
+                        className="w-full border rounded px-4 py-3 mb-2 focus:ring-2 focus:ring-blue-300"
                         value={tab.content}
                         onChange={e => {
                           const newTab = { ...tab, content: e.target.value, images: tab.images || [] };
@@ -392,11 +395,11 @@ const ProductCmsModal = ({
                         {(tab.images || []).map((img, imgIdx) => (
                           <div key={imgIdx} className="flex items-center gap-2">
                             {img && (
-                              <img src={img} alt={`Tab ${fixedTitle} Image ${imgIdx + 1}`} className="w-16 h-16 object-cover rounded border shadow" />
+                              <img src={img} alt={`Tab ${fixedTitle} Image ${imgIdx + 1}`} className="w-20 h-20 object-cover rounded border shadow" />
                             )}
                             <button
                               type="button"
-                              className="bg-blue-100 text-blue-700 rounded px-3 py-2 hover:bg-blue-200 font-semibold"
+                              className="bg-blue-100 text-blue-700 rounded px-4 py-2 hover:bg-blue-200 font-semibold"
                               onClick={() => setShowMediaPicker({ field: "tabImages", tabIdx, imgIdx })}
                             >
                               {img ? "Change" : "Select"} Image
@@ -413,7 +416,7 @@ const ProductCmsModal = ({
                         ))}
                         <button
                           type="button"
-                          className="mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-xs font-semibold w-fit"
+                          className="mt-2 px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-base font-semibold w-fit"
                           onClick={() => addTabImage(tabIdx)}
                         >
                           + Add Tab Image
@@ -456,7 +459,7 @@ const ProductCmsModal = ({
               <div key={idx} className="border rounded-lg p-4 mb-6 bg-white shadow-sm relative group transition hover:shadow-md">
                 <div className="flex items-center gap-2 mb-2">
                   <input
-                    className="flex-1 border rounded px-3 py-2 focus:ring-2 focus:ring-blue-300"
+                    className="flex-1 border rounded px-4 py-3 focus:ring-2 focus:ring-blue-300"
                     value={block.title}
                     onChange={e => {
                       const arr = [...(cmsContent.featuredSections || [])];
@@ -509,7 +512,7 @@ const ProductCmsModal = ({
                   </button>
                 </div>
                 <textarea
-                  className="w-full border rounded px-3 py-2 mb-2 focus:ring-2 focus:ring-blue-300"
+                  className="w-full border rounded px-4 py-3 mb-2 focus:ring-2 focus:ring-blue-300"
                   value={block.description}
                   onChange={e => {
                     const arr = [...(cmsContent.featuredSections || [])];
@@ -525,7 +528,7 @@ const ProductCmsModal = ({
                   )}
                   <button
                     type="button"
-                    className="bg-blue-100 text-blue-700 rounded px-3 py-2 hover:bg-blue-200 font-semibold"
+                    className="bg-blue-100 text-blue-700 rounded px-4 py-2 hover:bg-blue-200 font-semibold"
                     onClick={() => setShowMediaPicker({ field: "featuredSections", idx })}
                   >
                     {block.imageSrc ? "Change" : "Select"} Image
