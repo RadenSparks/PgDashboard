@@ -166,20 +166,17 @@ const ProductsPage = () => {
     };
 
     // UPDATE
-    const { data: publishers } = useGetPublishersQuery(); // Add this if not already present
+    const { data: publishers } = useGetPublishersQuery();
 
     const handleEdit = (prod: Product) => {
-        // Find the full publisher object from the publishers list
         let publisherObj = prod.publisherID;
         if (typeof publisherObj === "number" && publishers) {
-            publisherObj = publishers.find(pub => pub.id === (typeof prod.publisherID === "number" ? prod.publisherID : prod.publisherID.id)) || { id: 0, name: "" };
+            publisherObj = publishers.find(pub => pub.id === (publisherObj as unknown as number)) || { id: 0, name: "" };
         }
         if (typeof publisherObj === "object" && publisherObj && publishers) {
-            // If publisherObj is an object but missing name, try to find it
             const found = publishers.find(pub => pub.id === publisherObj.id);
             if (found) publisherObj = found;
         }
-
         setEditProduct({
             ...prod,
             publisherID: publisherObj,
