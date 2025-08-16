@@ -43,12 +43,24 @@ const ProductsPage = () => {
 
     // Always pass an array to ProductTable
     const products = Array.isArray(paginated?.data)
-        ? paginated.data.map((p) => ({
-            ...p,
-            category_ID: p.category_ID ?? { id: 0, name: "" },
-            publisherID: p.publisherID ?? { id: 0, name: "" }, // Ensure publisherID is always present
-            images: p.images ?? [],
-        }))
+        ? paginated.data.map((p) => {
+            // If publisherID is a number or missing, find the full object from publishers list
+            let publisherObj = p.publisherID;
+            if (publishers) {
+                if (typeof publisherObj === "number") {
+                    publisherObj = publishers.find(pub => pub.id === (p.publisherID as unknown as number)) || { id: 0, name: "" };
+                } else if (typeof publisherObj === "object" && publisherObj) {
+                    const found = publishers.find(pub => pub.id === publisherObj.id);
+                    if (found) publisherObj = found;
+                }
+            }
+            return {
+                ...p,
+                category_ID: p.category_ID ?? { id: 0, name: "" },
+                publisherID: publisherObj,
+                images: p.images ?? [],
+            };
+        })
         : [];
 
     const totalPages = paginated
@@ -170,12 +182,13 @@ const ProductsPage = () => {
 
     const handleEdit = (prod: Product) => {
         let publisherObj = prod.publisherID;
-        if (typeof publisherObj === "number" && publishers) {
-            publisherObj = publishers.find(pub => pub.id === (publisherObj as unknown as number)) || { id: 0, name: "" };
-        }
-        if (typeof publisherObj === "object" && publisherObj && publishers) {
-            const found = publishers.find(pub => pub.id === publisherObj.id);
-            if (found) publisherObj = found;
+        if (publishers) {
+            if (typeof publisherObj === "number") {
+                publisherObj = publishers.find(pub => pub.id === (prod.publisherID as unknown as number)) || { id: 0, name: "" };
+            } else if (typeof publisherObj === "object" && publisherObj) {
+                const found = publishers.find(pub => pub.id === publisherObj.id);
+                if (found) publisherObj = found;
+            }
         }
         setEditProduct({
             ...prod,
