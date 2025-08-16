@@ -20,6 +20,8 @@ import { useGetPublishersQuery } from "../../../redux/api/publishersApi";
 
 // Main Products Page
 const ProductsPage = () => {
+    const { data: publishers } = useGetPublishersQuery();
+
     const [addProduct, { isLoading: isAdding }] = useAddProductMutation();
     const [updateProduct] = useUpdateProductMutation();
     const [deleteProduct] = useDeleteProductMutation();
@@ -178,8 +180,6 @@ const ProductsPage = () => {
     };
 
     // UPDATE
-    const { data: publishers } = useGetPublishersQuery();
-
     const handleEdit = (prod: Product) => {
         let publisherObj = prod.publisherID;
         if (publishers) {
