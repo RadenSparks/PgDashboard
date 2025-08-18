@@ -18,6 +18,7 @@ export type Product = {
   quantity_stock: number;
   images?: { url: string; name?: string }[];
   category_ID?: { id: number; name: string };
+   deletedAt?: string | null;
 };
 
 export type PaginatedProducts = {
@@ -63,6 +64,13 @@ export const productsApi = createApi({
       }),
       invalidatesTags: ['Product'],
     }),
+    restoreProduct: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/products/${id}/restore`,
+        method: 'PUT',
+      }),
+      invalidatesTags: ['Product'],
+    }),
     getProductCms: builder.query<CmsContent, number>({
       query: (productId) => ({ url: `/products/${productId}/cms-content`, method: 'GET' }),
       providesTags: (_result, _error, id) => [{ type: 'CmsContent', id }],
@@ -90,4 +98,5 @@ export const {
   useGetProductCmsQuery,
   useUpdateProductCmsMutation,
   useGetProductByIdQuery,
+  useRestoreProductMutation,
 } = productsApi

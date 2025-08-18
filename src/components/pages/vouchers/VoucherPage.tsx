@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "../../widgets/button";
 import { FaPlus } from "react-icons/fa";
+import { FaTicketAlt } from "react-icons/fa";
 import {
   useGetVouchersQuery,
   useAddVoucherMutation,
@@ -177,24 +178,37 @@ const VoucherPage = () => {
   if (isLoadingVoucher) return <Loading />;
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Vouchers</h2>
-        <Button
-          className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded flex items-center gap-2"
-          onClick={handleAdd}
-        >
-          <FaPlus />
-          Add Voucher
-        </Button>
-      </div>
-      <div className="bg-white rounded-xl shadow p-6">
-        <VoucherTable
-          vouchers={vouchers}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onStatusToggle={handleStatusToggle}
-        />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white p-0 sm:p-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <FaTicketAlt className="text-blue-600 text-3xl" />
+              <h2 className="text-3xl font-bold text-blue-800">Voucher Management</h2>
+            </div>
+            <div className="text-gray-500 text-sm ml-1">
+              Create, edit, and manage your discount vouchers.
+            </div>
+          </div>
+          <Button
+            className="bg-blue-600 text-white hover:bg-blue-700 px-5 py-2 rounded-lg flex items-center gap-2 shadow transition"
+            onClick={handleAdd}
+          >
+            <FaPlus />
+            Add Voucher
+          </Button>
+        </div>
+        <div className="bg-white rounded-2xl shadow-xl p-6 border border-blue-100">
+          <h3 className="text-xl font-semibold text-blue-700 mb-4 border-b border-blue-50 pb-2">
+            All Vouchers
+          </h3>
+          <VoucherTable
+            vouchers={vouchers}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onStatusToggle={handleStatusToggle}
+          />
+        </div>
       </div>
       <VoucherModal
         show={showModal}

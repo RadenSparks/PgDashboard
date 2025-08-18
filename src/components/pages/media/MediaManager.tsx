@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo } from "react";
-import { useToast } from "@chakra-ui/react";
+import { useToast, Spinner, Progress } from "@chakra-ui/react";
 import { useGetMediaQuery, useAddMediaMutation, useDeleteMediaMutation, useUpdateMediaMutation, useDeleteFolderMutation } from "../../../redux/api/mediaApi";
 import type { MediaItem } from "../../../redux/api/mediaApi";
 import FolderTree from "./FolderTree";
@@ -7,11 +7,9 @@ import Breadcrumbs from "./Breadcrumbs";
 import MediaGrid from "./MediaGrid";
 import MoveModal from "./MoveModal";
 import DeleteFolderModal from "./DeleteFolderModal";
-import DeleteMediaModal from "./DeleteMediaModal"; 
-import { Box, Flex } from "@chakra-ui/react"; // Optional: for easier layout
-import Loading from "../../widgets/loading"; // Add this import at the top with others
-
-// FolderTreeNode type is now exported from this file
+import DeleteMediaModal from "./DeleteMediaModal";
+import { Box, Flex } from "@chakra-ui/react";
+import Loading from "../../widgets/loading";
 
 const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "diishpkrl";
 const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "your_unsigned_preset";
@@ -53,6 +51,7 @@ function getAllFolderPaths(tree: FolderTreeNode, prefix: string[] = []): string[
 const MediaManager: React.FC = () => {
   // --- State ---
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0); // NEW: upload progress state
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<MediaItem | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -71,7 +70,7 @@ const MediaManager: React.FC = () => {
   const { data: media = [], refetch, isLoading } = useGetMediaQuery();
   const [addMedia] = useAddMediaMutation();
   const [deleteMedia] = useDeleteMediaMutation();
-  const [updateMedia] = useUpdateMediaMutation(); // Add this to your imports from mediaApi
+  const [updateMedia] = useUpdateMediaMutation();
   const [deleteFolder] = useDeleteFolderMutation();
 
   // --- Folder tree logic ---
@@ -123,44 +122,71 @@ const MediaManager: React.FC = () => {
     if (!files) return;
 
     setUploading(true);
+    setUploadProgress(0);
+
     try {
       const folder = productSlug
         ? productSlug
         : folderPath.length ? folderPath.join("/") : "default";
-      const uploads = Array.from(files).map(async (file) => {
-        if (file.size > 10 * 1024 * 1024) {
-          toast({
-            title: "File too large",
-            description: "Max file size is 10MB.",
-            status: "error",
-            duration: 4000,
-            isClosable: true,
-          });
-          return null;
-        }
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-        formData.append("folder", folder);
+      let completed = 0;
 
-        const res = await fetch(
-          `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/upload`,
-          { method: "POST", body: formData }
-        );
-        const data = await res.json();
-        if (!data.secure_url) throw new Error("Upload failed");
+      const uploads = Array.from(files).map((file, _, arr) => {
+        return new Promise<void>((resolve, reject) => {
+          if (file.size > 10 * 1024 * 1024) {
+            toast({
+              title: "File too large",
+              description: "Max file size is 10MB.",
+              status: "error",
+              duration: 4000,
+              isClosable: true,
+            });
+            setUploadProgress(0);
+            return reject();
+          }
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+          formData.append("folder", folder);
 
-        // Save URL to backend via RTK Query
-        await addMedia({
-          url: data.secure_url,
-          name: file.name,
-          folder: folder,
-        }).unwrap();
-
-        return { url: data.secure_url, folder, name: file.name };
+          // Use XMLHttpRequest for progress
+          const xhr = new XMLHttpRequest();
+          xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/upload`);
+          xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+              // Progress for this file
+              const percent = (event.loaded / event.total) * 100;
+              // Average progress across all files
+              setUploadProgress(Math.round(((completed + percent / 100) / arr.length) * 100));
+            }
+          };
+          xhr.onload = () => {
+            (async () => {
+              completed += 1;
+              setUploadProgress(Math.round((completed / arr.length) * 100));
+              if (xhr.status === 200) {
+                const data = JSON.parse(xhr.responseText);
+                try {
+                  await addMedia({
+                    url: data.secure_url,
+                    name: file.name,
+                    folder: folder,
+                  }).unwrap();
+                  resolve();
+                } catch (err) {
+                  reject(err);
+                }
+              } else {
+                reject(new Error("Upload failed"));
+              }
+            })();
+          };
+          xhr.onerror = () => reject(new Error("Upload failed"));
+          xhr.send(formData);
+        });
       });
 
       await Promise.all(uploads);
+      setUploadProgress(100);
       toast({
         title: "Upload successful",
         status: "success",
@@ -178,6 +204,7 @@ const MediaManager: React.FC = () => {
       });
     } finally {
       setUploading(false);
+      setUploadProgress(0);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
@@ -382,17 +409,24 @@ const MediaManager: React.FC = () => {
         p={6}
         display="flex"
         flexDirection="column"
-        boxShadow="lg"
+        boxShadow="2xl"
         zIndex={2}
+        className="sticky top-0 h-screen overflow-y-auto"
       >
         <Flex align="center" justify="space-between" mb={4}>
           <Box fontWeight="bold" fontSize="xl" color="blue.700">
-            Thư mục
+            <span className="flex items-center gap-2">
+              <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 7l9 6 9-6" />
+              </svg>
+              Media Folders
+            </span>
           </Box>
           <button
             className="ml-2 flex items-center gap-1 text-xs bg-blue-600 text-white px-3 py-1 rounded-lg shadow hover:bg-blue-700 focus:ring-2 focus:ring-blue-400 transition"
             onClick={() => {
-              const folder = prompt("Nhập tên thư mục mới (dùng / cho thư mục con):");
+              const folder = prompt("Enter new folder name (use / for subfolders):");
               if (folder) {
                 const newPath = [...folderPath, ...folder.split("/").filter(Boolean)];
                 setFolderPath(newPath);
@@ -402,10 +436,9 @@ const MediaManager: React.FC = () => {
                 });
               }
             }}
-            title="Tạo thư mục mới"
+            title="Create new folder"
           >
-            <span className="material-symbols-outlined text-base"></span>
-            Thêm
+            +
           </button>
         </Flex>
         <FolderTree
@@ -415,34 +448,39 @@ const MediaManager: React.FC = () => {
           selectedPath={folderPath}
           setSelectedPath={setFolderPath}
         />
-        {folderPath.length > 0 && (
-          <div className="mt-6 flex flex-col gap-2">
-            <button
-              className="flex items-center gap-1 bg-red-500 text-white px-3 py-1 rounded-lg shadow hover:bg-red-700 focus:ring-2 focus:ring-red-400 text-xs transition"
-              onClick={() => setShowDeleteFolderModal(true)}
-            >
-              <span className="material-symbols-outlined text-base"></span>
-              Xóa thư mục
-            </button>
+      </Box>
+      {/* Main Content */}
+      <main className="flex-1 p-6 sm:p-10">
+        {/* Breadcrumbs and Folder Actions */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+          <div className="bg-white rounded-lg shadow px-4 py-2 flex-1">
+            <Breadcrumbs folderPath={folderPath} setFolderPath={setFolderPath} />
+          </div>
+          {/* Folder Actions */}
+          <div className="flex gap-2">
+            {folderPath.length > 0 && (
+              <button
+                className="flex items-center gap-1 bg-red-500 text-white px-3 py-2 rounded-lg shadow hover:bg-red-700 focus:ring-2 focus:ring-red-400 text-xs transition"
+                onClick={() => setShowDeleteFolderModal(true)}
+              >
+                Delete Folder
+              </button>
+            )}
             {selectedImages.length > 0 && (
               <button
-                className="flex items-center gap-1 bg-blue-500 text-white px-3 py-1 rounded-lg shadow hover:bg-blue-700 focus:ring-2 focus:ring-blue-400 text-xs transition"
+                className="flex items-center gap-1 bg-blue-500 text-white px-3 py-2 rounded-lg shadow hover:bg-blue-700 focus:ring-2 focus:ring-blue-400 text-xs transition"
                 onClick={() => setShowMoveModal(true)}
               >
-                <span className="material-symbols-outlined text-base"></span>
-                Di chuyển ảnh
+                Move Images
               </button>
             )}
           </div>
-        )}
-      </Box>
-      {/* Main Content */}
-      <main className="flex-1 p-10">
-        <Breadcrumbs folderPath={folderPath} setFolderPath={setFolderPath} />
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
+        </div>
+        {/* Upload Bar */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6 bg-white rounded-lg shadow px-6 py-4 items-center">
           <label className="flex items-center gap-2 cursor-pointer">
             <span className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition text-sm font-semibold">
-              Tải ảnh lên
+              Upload Images
             </span>
             <input
               type="file"
@@ -454,10 +492,32 @@ const MediaManager: React.FC = () => {
               ref={fileInputRef}
             />
           </label>
-          {uploading && <span className="text-blue-600 font-semibold">Đang tải lên...</span>}
+          {uploading && (
+            <div className="w-full max-w-xs">
+              <div className="flex items-center gap-2 mb-1">
+                <Spinner color="blue.500" size="sm" />
+                <span className="text-blue-600 font-semibold">Uploading... {uploadProgress}%</span>
+              </div>
+              <Progress
+                value={uploadProgress}
+                size="sm"
+                colorScheme="blue"
+                borderRadius="full"
+                hasStripe
+                isAnimated
+              />
+            </div>
+          )}
         </div>
-        {isLoading ? (
-          <div className="text-blue-600 font-semibold">Đang tải dữ liệu...</div>
+        {/* Media Grid */}
+        {currentMedia.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+            <svg className="w-16 h-16 mb-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 7l9 6 9-6" />
+            </svg>
+            <div>No media found in this folder.</div>
+          </div>
         ) : (
           <MediaGrid
             media={currentMedia}
@@ -470,6 +530,7 @@ const MediaManager: React.FC = () => {
             setPreviewUrl={setPreviewUrl}
           />
         )}
+        {/* Modals */}
         <MoveModal
           show={showMoveModal}
           onClose={() => setShowMoveModal(false)}

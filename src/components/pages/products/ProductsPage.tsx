@@ -12,13 +12,14 @@ import {
     useUpdateProductMutation,
     useDeleteProductMutation,
     useGetProductCmsQuery,
-    useUpdateProductCmsMutation
+    useUpdateProductCmsMutation,
 } from "../../../redux/api/productsApi";
+import { useGetTagsQuery } from "../../../redux/api/tagsApi";
+import { useGetCategoriesQuery } from "../../../redux/api/categoryApi";
 import Loading from "../../../components/widgets/loading";
 import { toaster } from "../../widgets/toaster";
 import { useGetPublishersQuery } from "../../../redux/api/publishersApi";
 
-// Main Products Page
 const ProductsPage = () => {
     const { data: publishers } = useGetPublishersQuery();
 
@@ -37,15 +38,35 @@ const ProductsPage = () => {
     }, [searchTerm]);
 
     // Fetch paginated products from backend, using 'name' for search
-    const { data: paginated, isLoading } = useGetProductsQuery({
-        page: currentPage,
-        limit: PAGE_SIZE,
-        name: debouncedSearch.trim() || undefined,
-    });
+    // const { data: paginated, isLoading } = useGetProductsQuery({
+    //     page: currentPage,
+    //     limit: PAGE_SIZE,
+    //     name: debouncedSearch.trim() || undefined,
+    // });
 
-    // Always pass an array to ProductTable
-    const products = Array.isArray(paginated?.data)
-        ? paginated.data.map((p) => {
+    // Fetch all tags for dropdowns
+    const { data: allTags = [] } = useGetTagsQuery();
+
+    // Tag options by type (unique)
+    const genreTags = allTags.filter((t: Tag) => t.type === "genre");
+    const playerTags = allTags.filter((t: Tag) => t.type === "players");
+    const durationTags = allTags.filter((t: Tag) => t.type === "duration");
+    const ageTags = allTags.filter((t: Tag) => t.type === "age");
+
+    // Fetch categories for dropdown
+    const { data: allCategories = [] } = useGetCategoriesQuery();
+
+    // Category filter state
+    const [categoryFilter, setCategoryFilter] = useState<number | "">("");
+
+    // Fetch all products for filtering
+    const { data: allProductsData, isLoading: isLoadingAll } = useGetProductsQuery({
+        page: 1,
+        limit: 1000, // or higher if needed
+        name: undefined,
+    });
+    const products = Array.isArray(allProductsData?.data)
+        ? allProductsData.data.map((p) => {
             // If publisherID is a number or missing, find the full object from publishers list
             let publisherObj = p.publisherID;
             if (publishers) {
@@ -65,14 +86,21 @@ const ProductsPage = () => {
         })
         : [];
 
-    const totalPages = paginated
-        ? Math.max(1, Math.ceil(paginated.total / paginated.limit))
-        : 1;
+    // Filter states
+    const [genreFilter, setGenreFilter] = useState<number | "">( "");
+    const [playersFilter, setPlayersFilter] = useState<number | "">( "");
+    const [durationFilter, setDurationFilter] = useState<number | "">( "");
+    const [ageFilter, setAgeFilter] = useState<number | "">( "");
 
-    // Reset to page 1 when search changes
+    // --- Combine search and tag filtering ---
+
+    // --- Client-side pagination ---
+    // (Removed duplicate paginatedProducts and totalPages calculation here)
+
+    // Reset to page 1 when filters or search change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm]);
+    }, [debouncedSearch, genreFilter, playersFilter, durationFilter, ageFilter, categoryFilter]);
 
     const [detailProduct, setDetailProduct] = useState<Product | null>(null);
     const [editProduct, setEditProduct] = useState<Product | null>(null);
@@ -297,48 +325,183 @@ const ProductsPage = () => {
         }
     };
 
+    // --- Sorting state ---
+    const [sortField, setSortField] = useState<keyof Product | "category" | "price" | "stock" | "sold">("product_name");
+    const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+    // --- Sorting logic (on ALL products) ---
+    const sortedProducts = [...products].sort((a, b) => {
+        let aValue: string | number = "";
+        let bValue: string | number = "";
+        switch (sortField) {
+            case "product_name":
+                aValue = a.product_name.toLowerCase();
+                bValue = b.product_name.toLowerCase();
+                break;
+            case "category":
+                aValue = a.category_ID?.name?.toLowerCase() || "";
+                bValue = b.category_ID?.name?.toLowerCase() || "";
+                break;
+            case "price":
+                aValue = a.product_price;
+                bValue = b.product_price;
+                break;
+            case "stock":
+                aValue = a.quantity_stock;
+                bValue = b.quantity_stock;
+                break;
+            case "sold":
+                aValue = a.quantity_sold;
+                bValue = b.quantity_sold;
+                break;
+            default:
+                {
+                    const aRaw = (a as Product)[sortField];
+                    const bRaw = (b as Product)[sortField];
+                    aValue = typeof aRaw === "string" || typeof aRaw === "number"
+                        ? aRaw
+                        : aRaw && typeof aRaw === "object" && "name" in aRaw && typeof aRaw.name === "string"
+                            ? aRaw.name
+                            : "";
+                    bValue = typeof bRaw === "string" || typeof bRaw === "number"
+                        ? bRaw
+                        : bRaw && typeof bRaw === "object" && "name" in bRaw && typeof bRaw.name === "string"
+                            ? bRaw.name
+                            : "";
+                }
+        }
+        if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
+        return 0;
+    });
+
+    // --- Pagination logic (declare only ONCE, after sorting) ---
+    const totalPages = Math.max(1, Math.ceil(sortedProducts.length / PAGE_SIZE));
+    const paginatedProducts = sortedProducts.slice(
+        (currentPage - 1) * PAGE_SIZE,
+        currentPage * PAGE_SIZE
+    );
+
+    // --- Pass sort state and handlers to ProductTable ---
     // --- Show loading spinner during transitions ---
-    if (isAdding || isLoading) return <Loading />;
+    if (isAdding || isLoadingAll) return <Loading />;
 
     return (
         <div className="p-8">
-            <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                {/* Enhanced Search Bar */}
-                <div className="relative w-full md:w-96">
-                    <input
-                        type="text"
-                        className="border border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg px-4 py-2 w-full pr-12 transition"
-                        placeholder="Search products by name..."
-                        value={searchTerm}
-                        onChange={e => setSearchTerm(e.target.value)}
-                        aria-label="Search products"
-                    />
-                    <IoMdSearch
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-400 pointer-events-none"
-                        size={22}
-                    />
-                    {searchTerm && (
-                        <button
-                            className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 transition"
-                            onClick={() => setSearchTerm("")}
-                            aria-label="Clear search"
-                            tabIndex={0}
-                            type="button"
-                        >
-                            ×
-                        </button>
-                    )}
+            {/* Filter Bar */}
+            <div className="flex flex-wrap gap-6 mb-10 items-end bg-white rounded-xl shadow-sm px-6 py-5 border border-gray-100">
+                {/* Category Dropdown */}
+                <div className="flex flex-col min-w-[160px]">
+                    <label className="block text-xs font-semibold text-blue-700 mb-1 ml-1 tracking-wide">Category</label>
+                    <select
+                        className="border border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg px-3 py-2 bg-blue-50 text-blue-900 font-medium shadow-sm transition outline-none"
+                        value={categoryFilter}
+                        onChange={e => setCategoryFilter(e.target.value ? Number(e.target.value) : "")}
+                    >
+                        <option value="" className="text-gray-500">All</option>
+                        {allCategories.map(cat => (
+                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                        ))}
+                    </select>
                 </div>
-                <Button
-                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold shadow transition"
-                    onClick={handleAddProduct}
-                >
-                    <IoMdAdd size={20} />
-                    Add Product
-                </Button>
+                {/* Genre Dropdown */}
+                <div className="flex flex-col min-w-[140px]">
+                    <label className="block text-xs font-semibold text-blue-700 mb-1 ml-1 tracking-wide">Genre</label>
+                    <select
+                        className="border border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg px-3 py-2 bg-blue-50 text-blue-900 font-medium shadow-sm transition outline-none"
+                        value={genreFilter}
+                        onChange={e => setGenreFilter(e.target.value ? Number(e.target.value) : "")}
+                    >
+                        <option value="" className="text-gray-500">All</option>
+                        {genreTags.map(tag => (
+                            <option key={tag.id} value={tag.id}>{tag.name}</option>
+                        ))}
+                    </select>
+                </div>
+                {/* Players Dropdown */}
+                <div className="flex flex-col min-w-[120px]">
+                    <label className="block text-xs font-semibold text-blue-700 mb-1 ml-1 tracking-wide">Players</label>
+                    <select
+                        className="border border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg px-3 py-2 bg-blue-50 text-blue-900 font-medium shadow-sm transition outline-none"
+                        value={playersFilter}
+                        onChange={e => setPlayersFilter(e.target.value ? Number(e.target.value) : "")}
+                    >
+                        <option value="" className="text-gray-500">All</option>
+                        {playerTags.map(tag => (
+                            <option key={tag.id} value={tag.id}>{tag.name}</option>
+                        ))}
+                    </select>
+                </div>
+                {/* Duration Dropdown */}
+                <div className="flex flex-col min-w-[120px]">
+                    <label className="block text-xs font-semibold text-blue-700 mb-1 ml-1 tracking-wide">Duration</label>
+                    <select
+                        className="border border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg px-3 py-2 bg-blue-50 text-blue-900 font-medium shadow-sm transition outline-none"
+                        value={durationFilter}
+                        onChange={e => setDurationFilter(e.target.value ? Number(e.target.value) : "")}
+                    >
+                        <option value="" className="text-gray-500">All</option>
+                        {durationTags.map(tag => (
+                            <option key={tag.id} value={tag.id}>{tag.name}</option>
+                        ))}
+                    </select>
+                </div>
+                {/* Age Dropdown */}
+                <div className="flex flex-col min-w-[120px]">
+                    <label className="block text-xs font-semibold text-blue-700 mb-1 ml-1 tracking-wide">Age</label>
+                    <select
+                        className="border border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg px-3 py-2 bg-blue-50 text-blue-900 font-medium shadow-sm transition outline-none"
+                        value={ageFilter}
+                        onChange={e => setAgeFilter(e.target.value ? Number(e.target.value) : "")}
+                    >
+                        <option value="" className="text-gray-500">All</option>
+                        {ageTags.map(tag => (
+                            <option key={tag.id} value={tag.id}>{tag.name}</option>
+                        ))}
+                    </select>
+                </div>
+                {/* Search Bar */}
+                <div className="flex flex-col flex-1 min-w-[220px]">
+                    <label className="block text-xs font-semibold text-blue-700 mb-1 ml-1 tracking-wide">Search</label>
+                    <div className="relative">
+                        <input
+                            type="text"
+                            className="border border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg px-4 py-2 w-full pr-12 transition bg-blue-50 text-blue-900 font-medium shadow-sm outline-none"
+                            placeholder="Search products by name..."
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                            aria-label="Search products"
+                        />
+                        <IoMdSearch
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-400 pointer-events-none"
+                            size={22}
+                        />
+                        {searchTerm && (
+                            <button
+                                className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 transition"
+                                onClick={() => setSearchTerm("")}
+                                aria-label="Clear search"
+                                tabIndex={0}
+                                type="button"
+                            >
+                                ×
+                            </button>
+                        )}
+                    </div>
+                </div>
+                {/* Add Product Button */}
+                <div className="flex flex-col justify-end">
+                    <Button
+                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold shadow transition"
+                        onClick={handleAddProduct}
+                    >
+                        <IoMdAdd size={20} />
+                        Add Product
+                    </Button>
+                </div>
             </div>
             <ProductTable
-                products={products}
+                products={paginatedProducts}
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={setCurrentPage}
@@ -346,6 +509,10 @@ const ProductsPage = () => {
                 onDelete={handleDelete}
                 onShowDetails={setDetailProduct}
                 onOpenCms={handleOpenProductCms}
+                sortField={sortField}
+                sortOrder={sortOrder}
+                setSortField={setSortField}
+                setSortOrder={setSortOrder}
             />
 
             {/* Product Details Modal */}

@@ -31,17 +31,17 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
   handleEditSave,
   handleDelete,
 }) => (
-  <table className="min-w-full text-sm">
+  <table className="min-w-full text-sm rounded-xl overflow-hidden shadow border border-blue-100">
     <thead>
-      <tr className="text-left border-b bg-gray-100">
+      <tr className="text-left border-b bg-blue-50">
         <th className="py-3 px-4 font-semibold text-gray-700">Name</th>
         <th className="py-3 px-4 font-semibold text-gray-700">Description</th>
         <th className="py-3 px-4 font-semibold text-gray-700">Actions</th>
       </tr>
     </thead>
     <tbody>
-      {categories.map(cat => (
-        <tr key={cat.id} className="border-b hover:bg-gray-50 transition">
+      {categories.map((cat, idx) => (
+        <tr key={cat.id} className={`border-b hover:bg-blue-50 transition ${idx % 2 === 0 ? "bg-white" : "bg-blue-50/50"}`}>
           <td className="py-3 px-4 align-top">
             {editId === cat.id ? (
               <Input

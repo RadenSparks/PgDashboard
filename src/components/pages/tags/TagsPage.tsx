@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { Button } from "../../widgets/button";
-import { FaPlus, FaTrash, FaEdit, FaSave, FaTimes } from "react-icons/fa";
+import { FaPlus, FaTrash, FaEdit, FaSave, FaTimes, FaTags, FaUsers, FaClock, FaChild } from "react-icons/fa";
 import { useAddTagMutation, useDeleteTagMutation, useGetTagsQuery, useUpdateTagMutation } from "../../../redux/api/tagsApi";
 import Loading from "../../../components/widgets/loading";
-
 
 type DurationTag = { duration: "Short" | "Average" | "Long" };
 type Tag = { id: number; name: string; type: string; duration?: DurationTag }
 
-
+const sectionStyles = "bg-white rounded-2xl shadow-lg border border-blue-100 p-6 flex flex-col";
+const iconStyles = "inline-block mr-2 text-blue-500 text-xl";
 
 const TagsPage = () => {
   //RTK Query
@@ -50,10 +50,7 @@ const TagsPage = () => {
     addTag({ name: newGenre.trim(), type: "genre" });
     setNewGenre("");
   };
-  const handleDeleteGenre = (id: number) => {
-    deleteTag(id)
-  }
-
+  const handleDeleteGenre = (id: number) => deleteTag(id)
   const handleEditGenre = (tag: Tag) => {
     setEditingGenreId(tag.id);
     setEditGenre(tag.name);
@@ -115,18 +112,22 @@ const TagsPage = () => {
     setEditAge("");
   };
 
-  if (isLoading) return <Loading></Loading>;
-  return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <h2 className="text-2xl font-bold mb-6">Tag Categories Management</h2>
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {/* Genre Tags */}
-        <div className="bg-white rounded-xl shadow p-4 sm:p-6">
-          <h3 className="text-lg font-semibold mb-4">Genres</h3>
+  if (isLoading) return <Loading />;
 
+  return (
+    <div className="p-4 sm:p-8 bg-gradient-to-br from-blue-50 to-white min-h-screen">
+      <h2 className="text-3xl font-bold mb-8 text-blue-800 flex items-center gap-3">
+        <FaTags className="text-blue-500" /> Tag Categories Management
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+        {/* Genre Tags */}
+        <section className={sectionStyles}>
+          <h3 className="text-lg font-semibold mb-4 flex items-center text-blue-700">
+            <FaTags className={iconStyles} /> Genres
+          </h3>
           <div className="flex flex-col sm:flex-row gap-2 mb-4">
             <input
-              className="border rounded px-2 py-1 text-sm flex-1"
+              className="border border-blue-200 rounded-lg px-3 py-2 text-sm flex-1 focus:ring-2 focus:ring-blue-100"
               placeholder="Add genre"
               value={newGenre}
               onChange={(e) => setNewGenre(e.target.value)}
@@ -134,13 +135,12 @@ const TagsPage = () => {
             />
             <Button
               size="sm"
-              className="bg-green-100 text-green-800 border border-green-300 hover:bg-green-200"
+              className="bg-blue-100 text-blue-800 border border-blue-200 hover:bg-blue-200"
               onClick={handleAddGenre}
             >
               <FaPlus />
             </Button>
           </div>
-
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <tbody>
@@ -149,7 +149,7 @@ const TagsPage = () => {
                     <tr key={tag.id} className="whitespace-nowrap">
                       <td className="pr-2 py-1">
                         <input
-                          className="border rounded px-2 py-1 text-sm w-full"
+                          className="border border-blue-200 rounded-lg px-2 py-1 text-sm w-full"
                           value={editGenre}
                           onChange={(e) => setEditGenre(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && handleSaveGenre()}
@@ -178,15 +178,16 @@ const TagsPage = () => {
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
 
         {/* Player Tags */}
-        <div className="bg-white rounded-xl shadow p-4 sm:p-6">
-          <h3 className="text-lg font-semibold mb-4">Number of Players</h3>
-
+        <section className={sectionStyles}>
+          <h3 className="text-lg font-semibold mb-4 flex items-center text-blue-700">
+            <FaUsers className={iconStyles} /> Number of Players
+          </h3>
           <div className="flex flex-col sm:flex-row gap-2 mb-4">
             <input
-              className="border rounded px-2 py-1 text-sm flex-1"
+              className="border border-blue-200 rounded-lg px-3 py-2 text-sm flex-1 focus:ring-2 focus:ring-blue-100"
               placeholder="Add player count (e.g. 2-4, 1-8, Solo)"
               value={newPlayers}
               onChange={(e) => setNewPlayers(e.target.value)}
@@ -194,13 +195,12 @@ const TagsPage = () => {
             />
             <Button
               size="sm"
-              className="bg-green-100 text-green-800 border border-green-300 hover:bg-green-200"
+              className="bg-blue-100 text-blue-800 border border-blue-200 hover:bg-blue-200"
               onClick={handleAddPlayers}
             >
               <FaPlus />
             </Button>
           </div>
-
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <tbody>
@@ -209,7 +209,7 @@ const TagsPage = () => {
                     <tr key={tag.id} className="whitespace-nowrap">
                       <td className="pr-2 py-1">
                         <input
-                          className="border rounded px-2 py-1 text-sm w-full"
+                          className="border border-blue-200 rounded-lg px-2 py-1 text-sm w-full"
                           value={editPlayers}
                           onChange={(e) => setEditPlayers(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && handleSavePlayers()}
@@ -238,14 +238,16 @@ const TagsPage = () => {
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
 
         {/* Duration Tags */}
-        <div className="bg-white rounded-xl shadow p-4 sm:p-6">
-          <h3 className="text-lg font-semibold mb-4">Game Duration</h3>
+        <section className={sectionStyles}>
+          <h3 className="text-lg font-semibold mb-4 flex items-center text-blue-700">
+            <FaClock className={iconStyles} /> Game Duration
+          </h3>
           <div className="flex flex-col sm:flex-row gap-2 mb-4">
             <input
-              className="border rounded px-2 py-1 text-sm flex-1"
+              className="border border-blue-200 rounded-lg px-3 py-2 text-sm flex-1 focus:ring-2 focus:ring-blue-100"
               placeholder="Add duration (e.g. Short, 30-60 min, Long)"
               value={newDuration}
               onChange={(e) => setNewDuration(e.target.value)}
@@ -253,7 +255,7 @@ const TagsPage = () => {
             />
             <Button
               size="sm"
-              className="bg-green-100 text-green-800 border border-green-300 hover:bg-green-200"
+              className="bg-blue-100 text-blue-800 border border-blue-200 hover:bg-blue-200"
               onClick={handleAddDuration}
             >
               <FaPlus />
@@ -267,7 +269,7 @@ const TagsPage = () => {
                     <tr key={tag.id} className="whitespace-nowrap">
                       <td className="pr-2 py-1">
                         <input
-                          className="border rounded px-2 py-1 text-sm w-full"
+                          className="border border-blue-200 rounded-lg px-2 py-1 text-sm w-full"
                           value={editDuration}
                           onChange={(e) => setEditDuration(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && handleSaveDuration()}
@@ -296,14 +298,16 @@ const TagsPage = () => {
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
 
         {/* Age Tags */}
-        <div className="bg-white rounded-xl shadow p-4 sm:p-6">
-          <h3 className="text-lg font-semibold mb-4">Age Tags</h3>
+        <section className={sectionStyles}>
+          <h3 className="text-lg font-semibold mb-4 flex items-center text-blue-700">
+            <FaChild className={iconStyles} /> Age Tags
+          </h3>
           <div className="flex flex-col sm:flex-row gap-2 mb-4">
             <input
-              className="border rounded px-2 py-1 text-sm flex-1"
+              className="border border-blue-200 rounded-lg px-3 py-2 text-sm flex-1 focus:ring-2 focus:ring-blue-100"
               placeholder="Add age tag (e.g. 8+, 12+, All Ages)"
               value={newAge}
               onChange={(e) => setNewAge(e.target.value)}
@@ -311,7 +315,7 @@ const TagsPage = () => {
             />
             <Button
               size="sm"
-              className="bg-green-100 text-green-800 border border-green-300 hover:bg-green-200"
+              className="bg-blue-100 text-blue-800 border border-blue-200 hover:bg-blue-200"
               onClick={handleAddAge}
             >
               <FaPlus />
@@ -325,7 +329,7 @@ const TagsPage = () => {
                     <tr key={tag.id} className="whitespace-nowrap">
                       <td className="pr-2 py-1">
                         <input
-                          className="border rounded px-2 py-1 text-sm w-full"
+                          className="border border-blue-200 rounded-lg px-2 py-1 text-sm w-full"
                           value={editAge}
                           onChange={(e) => setEditAge(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && handleSaveAge()}
@@ -354,11 +358,11 @@ const TagsPage = () => {
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
       </div>
 
-      <div className="mt-6 text-gray-500 text-sm">
-        <strong>Tip:</strong> Manage genres, player numbers, and durations separately. These tags will be available for assignment to boardgames in the Products page.
+      <div className="mt-8 text-gray-500 text-sm text-center">
+        <strong>Tip:</strong> Manage genres, player numbers, durations, and ages separately. These tags will be available for assignment to boardgames in the Products page.
       </div>
     </div>
   );

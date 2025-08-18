@@ -42,6 +42,7 @@ export interface Product {
   images: unknown[];
   mainImage?: File | string;
   deleteImages?: unknown[];
+   deletedAt?: string | null;
 }
 
 export interface FeaturedSection {
@@ -76,4 +77,26 @@ export interface CmsContent {
   textColor?: string;
   bgColor?: string;
   featuredSections?: FeaturedSection[]; //
+}
+
+export function getBaseSlug(slug: string): string {
+  const match = slug.match(/^(.+)-.+$/);
+  return match ? match[1] : slug;
+}
+
+export function groupProductsByBaseGame(products: Product[]) {
+  const baseGames: { [slug: string]: Product } = {};
+  const expansions: { [baseSlug: string]: Product[] } = {};
+
+  products.forEach(prod => {
+    if (prod.category_ID?.name === "Boardgame") {
+      baseGames[prod.slug] = prod;
+    } else if (prod.category_ID?.name === "Expansions") {
+      const baseSlug = getBaseSlug(prod.slug);
+      if (!expansions[baseSlug]) expansions[baseSlug] = [];
+      expansions[baseSlug].push(prod);
+    }
+  });
+
+  return { baseGames, expansions };
 }

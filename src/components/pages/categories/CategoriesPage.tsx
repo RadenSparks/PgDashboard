@@ -6,7 +6,7 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import { FaPlus } from "react-icons/fa";
+import { FaPlus, FaTags } from "react-icons/fa";
 import { Button } from "../../widgets/button";
 import { useAddCategoryMutation, useDeleteCategoryMutation, useGetCategoriesQuery, useUpdateCategoryMutation } from "../../../redux/api/categoryApi";
 import Loading from "../../widgets/loading";
@@ -84,7 +84,7 @@ const CategoriesPage = () => {
   if (isLoading) return <Loading />;
 
   return (
-    <Box minH="100vh" bg="gray.50" py={10} px={2}>
+    <Box minH="100vh" bgGradient="linear(to-br, blue.50, white)" py={10} px={2}>
       <Box
         bg="white"
         rounded="2xl"
@@ -92,18 +92,23 @@ const CategoriesPage = () => {
         maxW="900px"
         mx="auto"
         p={{ base: 4, md: 8 }}
+        border="1px solid"
+        borderColor="blue.100"
       >
         <Stack direction={{ base: "column", md: "row" }} justify="space-between" align="center" mb={6}>
           <Box>
-            <h2 className="text-3xl font-bold text-gray-800 mb-1">Categories</h2>
-            <p className="text-gray-500">Manage your product categories below.</p>
+            <div className="flex items-center gap-3 mb-1">
+              <FaTags className="text-blue-600 text-2xl" />
+              <h2 className="text-3xl font-bold text-blue-800">Category Management</h2>
+            </div>
+            <p className="text-gray-500 ml-1">Manage your product categories below.</p>
           </Box>
           <Button
-            className="bg-blue-600 text-white hover:bg-blue-700 px-6 py-2 rounded-lg font-bold shadow-md"
+            className="bg-blue-600 text-white hover:bg-blue-700 px-6 py-2 rounded-lg font-bold shadow-md flex items-center gap-2 transition"
             onClick={onOpen}
             type="button"
           >
-            <FaPlus style={{ marginRight: 8 }} />
+            <FaPlus />
             Add Category
           </Button>
         </Stack>

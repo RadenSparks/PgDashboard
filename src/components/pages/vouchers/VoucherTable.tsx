@@ -27,9 +27,9 @@ const VoucherTable: React.FC<VoucherTableProps> = ({
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full text-sm">
+      <table className="min-w-full text-sm rounded-xl overflow-hidden shadow border border-blue-100">
         <thead>
-          <tr className="text-left border-b">
+          <tr className="text-left border-b bg-blue-50">
             <th className="py-2 px-2">Code</th>
             <th className="py-2 px-2">Discount (%)</th>
             <th className="py-2 px-2">Min Order</th>
@@ -43,8 +43,13 @@ const VoucherTable: React.FC<VoucherTableProps> = ({
           </tr>
         </thead>
         <tbody>
-          {paginatedVouchers.map(voucher => (
-            <tr key={voucher.id} className="border-b hover:bg-gray-50">
+          {paginatedVouchers.map((voucher, idx) => (
+            <tr
+              key={voucher.id}
+              className={`border-b hover:bg-blue-50 transition ${
+                idx % 2 === 0 ? "bg-white" : "bg-blue-50/50"
+              }`}
+            >
               <td className="py-2 px-2">{voucher.code}</td>
               <td className="py-2 px-2">{voucher.discountPercent}</td>
               <td className="py-2 px-2">{voucher.minOrderValue}</td>
@@ -56,10 +61,10 @@ const VoucherTable: React.FC<VoucherTableProps> = ({
                 <span
                   className={
                     voucher.status === "active"
-                      ? "text-green-600 font-semibold"
+                      ? "bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-semibold"
                       : voucher.status === "inactive"
-                      ? "text-yellow-600 font-semibold"
-                      : "text-red-600 font-semibold"
+                      ? "bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold"
+                      : "bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-semibold"
                   }
                 >
                   {voucher.status}
