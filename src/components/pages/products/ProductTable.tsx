@@ -11,10 +11,6 @@ type ProductTableProps = {
     onDelete: (id: number) => void;
     onShowDetails: (product: Product) => void;
     onOpenCms: (productId: number) => void;
-    sortField: keyof Product | "category" | "price" | "stock" | "sold";
-    sortOrder: "asc" | "desc";
-    setSortField: (field: keyof Product | "category" | "price" | "stock" | "sold") => void;
-    setSortOrder: (order: "asc" | "desc") => void;
 };
 
 const ProductTable = ({
@@ -26,21 +22,7 @@ const ProductTable = ({
     onDelete,
     onShowDetails,
     onOpenCms,
-    sortField,
-    sortOrder,
-    setSortField,
-    setSortOrder,
 }: ProductTableProps) => {
-    // --- Sort handler ---
-    const handleSort = (field: typeof sortField) => {
-        if (sortField === field) {
-            setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-        } else {
-            setSortField(field);
-            setSortOrder("asc");
-        }
-    };
-
     return (
         <div className="bg-white rounded-2xl shadow-lg p-8">
             <div className="overflow-x-auto">
@@ -48,57 +30,17 @@ const ProductTable = ({
                     <thead>
                         <tr className="text-left border-b bg-blue-50">
                             <th className="py-4 px-3 font-semibold text-gray-700">Image</th>
-                            <th
-                                className="py-4 px-3 font-semibold text-gray-700 cursor-pointer select-none"
-                                onClick={() => handleSort("product_name")}
-                            >
-                                Name
-                                <span className="ml-1 text-xs">
-                                    {sortField === "product_name" ? (sortOrder === "asc" ? "▲" : "▼") : ""}
-                                </span>
-                            </th>
+                            <th className="py-4 px-3 font-semibold text-gray-700">Name</th>
                             <th className="py-4 px-3 font-semibold text-gray-700">Description</th>
-                            <th
-                                className="py-4 px-3 font-semibold text-gray-700 cursor-pointer select-none"
-                                onClick={() => handleSort("category")}
-                            >
-                                Category
-                                <span className="ml-1 text-xs">
-                                    {sortField === "category" ? (sortOrder === "asc" ? "▲" : "▼") : ""}
-                                </span>
-                            </th>
+                            <th className="py-4 px-3 font-semibold text-gray-700">Category</th>
                             <th className="py-4 px-3 font-semibold text-gray-700">Genres</th>
                             <th className="py-4 px-3 font-semibold text-gray-700">Players</th>
                             <th className="py-4 px-3 font-semibold text-gray-700">Duration</th>
                             <th className="py-4 px-3 font-semibold text-gray-700">Age</th>
-                            <th
-                                className="py-4 px-3 font-semibold text-gray-700 cursor-pointer select-none"
-                                onClick={() => handleSort("price")}
-                            >
-                                Price
-                                <span className="ml-1 text-xs">
-                                    {sortField === "price" ? (sortOrder === "asc" ? "▲" : "▼") : ""}
-                                </span>
-                            </th>
+                            <th className="py-4 px-3 font-semibold text-gray-700">Price</th>
                             <th className="py-4 px-3 font-semibold text-gray-700">Discount</th>
-                            <th
-                                className="py-4 px-3 font-semibold text-gray-700 cursor-pointer select-none"
-                                onClick={() => handleSort("stock")}
-                            >
-                                Stock
-                                <span className="ml-1 text-xs">
-                                    {sortField === "stock" ? (sortOrder === "asc" ? "▲" : "▼") : ""}
-                                </span>
-                            </th>
-                            <th
-                                className="py-4 px-3 font-semibold text-gray-700 cursor-pointer select-none"
-                                onClick={() => handleSort("sold")}
-                            >
-                                Sold
-                                <span className="ml-1 text-xs">
-                                    {sortField === "sold" ? (sortOrder === "asc" ? "▲" : "▼") : ""}
-                                </span>
-                            </th>
+                            <th className="py-4 px-3 font-semibold text-gray-700">Stock</th>
+                            <th className="py-4 px-3 font-semibold text-gray-700">Sold</th>
                             <th className="py-4 px-3 font-semibold text-gray-700">Status</th>
                             <th className="py-4 px-3 font-semibold text-gray-700">Actions</th>
                         </tr>

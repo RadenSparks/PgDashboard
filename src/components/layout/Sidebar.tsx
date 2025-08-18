@@ -12,6 +12,7 @@ import {
   MdComment,
   MdPhotoLibrary,
   MdCollectionsBookmark,
+  MdFeedback,
 } from "react-icons/md";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Drawer, DrawerOverlay, DrawerContent, DrawerCloseButton, useBreakpointValue, Tooltip } from "@chakra-ui/react";
@@ -48,6 +49,7 @@ const tabs = [
   { label: "Users", icon: <MdPeople size={22} />, route: "/users" },
   { label: "Collections", icon: <MdCollectionsBookmark size={22} />, route: "/collections" },
   { label: "Publishers", icon: <MdAdminPanelSettings size={22} />, route: "/publishers" },
+  { label: "Requests", icon: <MdFeedback size={22} />, route: "/feedback" },
 ];
 
 type SidebarContentProps = {

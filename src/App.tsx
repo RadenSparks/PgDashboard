@@ -20,6 +20,7 @@ import TagsPage from './components/pages/tags/TagsPage';
 import MediaManager from './components/pages/media/MediaManager';
 import CollectionsPage from './components/pages/collections/CollectionsPage';
 import PublishersPage from './components/pages/publishers/PublishersPage';
+import FeedbackRefundPage from './components/pages/feedback/FeedbackRefundPage';
 import type { User } from '../src/redux/api/usersApi';
 
 const App: React.FC = () => {
@@ -50,6 +51,7 @@ const App: React.FC = () => {
             <Route path="/collections" element={<ProtectedRoute><CollectionsPage /></ProtectedRoute>} />
             <Route path="/media" element={<ProtectedRoute><MediaManager /></ProtectedRoute>} />
             <Route path="/publishers" element={<ProtectedRoute><PublishersPage /></ProtectedRoute>} />
+            <Route path="/feedback" element={<ProtectedRoute><FeedbackRefundPage /></ProtectedRoute>} />
           </Route>
           <Route path="/signin" element={<PublicRoute><SignIn /></PublicRoute>} />
         </Routes>

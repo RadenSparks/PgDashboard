@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../widgets/button";
-import { FaEye, FaEdit, FaExchangeAlt, FaFileInvoice } from "react-icons/fa";
+import { FaEye, FaEdit, FaExchangeAlt, FaFileInvoice, FaSearch } from "react-icons/fa";
 import Loading from "../../../components/widgets/loading";
 import { formatCurrencyVND } from "../products/formatCurrencyVND";
 import {
@@ -72,6 +72,7 @@ const OrdersPage = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
+    const [paymentStatusFilter, setPaymentStatusFilter] = useState(""); // <-- Add state
     const [sortField, setSortField] = useState<SortField>("id");
     const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
@@ -209,7 +210,8 @@ const OrdersPage = () => {
         (searchTerm === "" ||
             order.id.toString().includes(searchTerm) ||
             order.user?.username?.toLowerCase().includes(searchTerm.toLowerCase())) &&
-        (statusFilter === "" || order.productStatus === statusFilter)
+        (statusFilter === "" || order.productStatus === statusFilter) &&
+        (paymentStatusFilter === "" || order.payment_status === paymentStatusFilter) // <-- Add filter
     );
 
     // Sorting logic
@@ -250,23 +252,26 @@ const OrdersPage = () => {
     }
 
     return (
-        <div className="p-8">
-            <h2 className="text-2xl font-bold mb-6">Orders</h2>
-            <div className="bg-white rounded-xl shadow p-6">
+        <div className="p-8 bg-gray-50 min-h-screen">
+            <h2 className="text-3xl font-extrabold mb-8 text-blue-700 tracking-tight">Order Management</h2>
+            <div className="bg-white rounded-2xl shadow-xl p-8">
                 {/* Search and Filter Controls */}
-                <div className="mb-4 flex flex-col sm:flex-row gap-2 items-center">
-                    <input
-                        type="text"
-                        className="border rounded px-3 py-2 w-full sm:w-64"
-                        placeholder="Search by Order ID or Customer"
-                        value={searchTerm}
-                        onChange={e => {
-                            setSearchTerm(e.target.value);
-                            setCurrentPage(1);
-                        }}
-                    />
+                <div className="mb-6 flex flex-col sm:flex-row gap-4 items-center">
+                    <div className="relative w-full sm:w-64">
+                        <input
+                            type="text"
+                            className="border rounded-lg px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                            placeholder="Search by Order ID or Customer"
+                            value={searchTerm}
+                            onChange={e => {
+                                setSearchTerm(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                        />
+                        <FaSearch className="absolute right-3 top-3 text-gray-400" />
+                    </div>
                     <select
-                        className="border rounded px-3 py-2 w-full sm:w-48"
+                        className="border rounded-lg px-4 py-2 w-full sm:w-48 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
                         value={statusFilter}
                         onChange={e => {
                             setStatusFilter(e.target.value);
@@ -280,88 +285,105 @@ const OrdersPage = () => {
                             </option>
                         ))}
                     </select>
+                    <select
+                        className="border rounded-lg px-4 py-2 w-full sm:w-48 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                        value={paymentStatusFilter}
+                        onChange={e => {
+                            setPaymentStatusFilter(e.target.value);
+                            setCurrentPage(1);
+                        }}
+                    >
+                        <option value="">All Payment Statuses</option>
+                        {Object.entries(PAYMENT_STATUS_LABELS).map(([key, label]) => (
+                            <option key={key} value={key}>
+                                {label}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
-                <div className="mb-2 text-gray-500 text-sm">
-                    Showing {(currentPage - 1) * PAGE_SIZE + 1}–
-                    {Math.min(currentPage * PAGE_SIZE, filteredOrders.length)} of {filteredOrders.length} orders
+                <div className="mb-4 text-gray-500 text-sm">
+                    <span className="font-semibold text-blue-700">
+                        Showing {(currentPage - 1) * PAGE_SIZE + 1}–
+                        {Math.min(currentPage * PAGE_SIZE, filteredOrders.length)}
+                    </span>
+                    <span> of {filteredOrders.length} orders</span>
                 </div>
 
-                <div className="overflow-x-auto w-full">
-                    <table className="min-w-full text-sm">
+                <div className="overflow-x-auto w-full rounded-lg border border-gray-200 shadow-sm">
+                    <table className="min-w-full text-sm bg-white rounded-lg">
                         <thead>
-                            <tr className="text-left border-b">
-                                <th className="py-2 px-2 cursor-pointer" onClick={() => handleSort("id")}>
+                            <tr className="text-left border-b bg-blue-50">
+                                <th className="py-3 px-3 cursor-pointer font-semibold text-blue-700" onClick={() => handleSort("id")}>
                                     Order ID
                                     {sortField === "id" && (
                                         <span>{sortDirection === "asc" ? " ▲" : " ▼"}</span>
                                     )}
                                 </th>
-                                <th className="py-2 px-2">Customer</th>
-                                <th className="py-2 px-2 cursor-pointer" onClick={() => handleSort("order_date")}>
+                                <th className="py-3 px-3 font-semibold text-blue-700">Customer</th>
+                                <th className="py-3 px-3 cursor-pointer font-semibold text-blue-700" onClick={() => handleSort("order_date")}>
                                     Date
                                     {sortField === "order_date" && (
                                         <span>{sortDirection === "asc" ? " ▲" : " ▼"}</span>
                                     )}
                                 </th>
-                                <th className="py-2 px-2">Items</th>
-                                <th className="py-2 px-2 cursor-pointer" onClick={() => handleSort("total_price")}>
+                                <th className="py-3 px-3 font-semibold text-blue-700">Items</th>
+                                <th className="py-3 px-3 cursor-pointer font-semibold text-blue-700" onClick={() => handleSort("total_price")}>
                                     Total
                                     {sortField === "total_price" && (
                                         <span>{sortDirection === "asc" ? " ▲" : " ▼"}</span>
                                     )}
                                 </th>
-                                <th className="py-2 px-2">Payment</th>
-                                <th className="py-2 px-2">Delivery</th>
-                                <th className="py-2 px-2">Status</th>
-                                <th className="py-2 px-2">Payment Status</th>
-                                <th className="py-2 px-2">Actions</th>
+                                <th className="py-3 px-3 font-semibold text-blue-700">Payment</th>
+                                <th className="py-3 px-3 font-semibold text-blue-700">Delivery</th>
+                                <th className="py-3 px-3 font-semibold text-blue-700">Status</th>
+                                <th className="py-3 px-3 font-semibold text-blue-700">Payment Status</th>
+                                <th className="py-3 px-3 font-semibold text-blue-700">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {paginatedOrders.map((order) => (
-                                <tr key={order.id} className="border-b hover:bg-gray-50 group">
-                                    <td className="py-2 px-2">
+                                <tr key={order.id} className="border-b hover:bg-blue-50 group transition">
+                                    <td className="py-2 px-3">
                                         <Button
                                             size="sm"
-                                            className="bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 px-3 py-1 rounded"
+                                            className="bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 px-3 py-1 rounded font-semibold transition"
                                             onClick={() => setSelectedOrder(order)}
                                         >
                                             <FaEye className="mr-1" /> {order.id}
                                         </Button>
                                     </td>
-                                    <td className="py-2 px-2">{order.user?.username}</td>
-                                    <td className="py-2 px-2">{order.order_date ? new Date(order.order_date).toLocaleDateString() : "-"}</td>
-                                    <td className="py-2 px-2">{order.details?.length ?? 0}</td>
-                                    <td className="py-2 px-2">{formatCurrencyVND(+order.total_price)}</td>
-                                    <td className="py-2 px-2">{order.payment_type || "-"}</td>
-                                    <td className="py-2 px-2">{order.delivery?.name || "-"}</td>
-                                    <td className="py-2 px-2">
+                                    <td className="py-2 px-3 font-medium">{order.user?.username}</td>
+                                    <td className="py-2 px-3">{order.order_date ? new Date(order.order_date).toLocaleDateString() : "-"}</td>
+                                    <td className="py-2 px-3">{order.details?.length ?? 0}</td>
+                                    <td className="py-2 px-3 font-semibold text-blue-700">{formatCurrencyVND(+order.total_price)}</td>
+                                    <td className="py-2 px-3">{order.payment_type || "-"}</td>
+                                    <td className="py-2 px-3">{order.delivery?.name || "-"}</td>
+                                    <td className="py-2 px-3">
                                         <span
-                                            className={
+                                            className={`px-2 py-1 rounded text-xs font-semibold ${
                                                 order.productStatus === "delivered"
-                                                    ? "text-green-600 font-semibold"
+                                                    ? "bg-green-100 text-green-700"
                                                     : order.productStatus === "pending"
-                                                        ? "text-yellow-600 font-semibold"
+                                                        ? "bg-yellow-100 text-yellow-700"
                                                         : order.productStatus === "shipped"
-                                                            ? "text-blue-600 font-semibold"
-                                                            : "text-red-600 font-semibold"
-                                            }
+                                                            ? "bg-blue-100 text-blue-700"
+                                                            : "bg-red-100 text-red-700"
+                                            }`}
                                         >
                                             {STATUS_LABELS[order.productStatus] || order.productStatus}
                                         </span>
                                     </td>
                                     {/* Payment Status column with backend logic actions */}
-                                    <td className="py-2 px-2">
+                                    <td className="py-2 px-3">
                                         <div className="flex items-center gap-2">
                                             <span className={`px-2 py-1 rounded text-xs font-semibold ${PAYMENT_STATUS_COLORS[order.payment_status] || "bg-gray-100 text-gray-700"}`}>
                                                 {PAYMENT_STATUS_LABELS[order.payment_status] || order.payment_status}
                                             </span>
-                                            {/* Only allow admin actions if not already paid/canceled/refunded */}
                                             {order.payment_status !== "paid" && order.payment_status !== "canceled" && order.payment_status !== "refunded" && (
                                                 <Button
                                                     size="sm"
-                                                    className="bg-green-100 text-green-700 border border-green-200 hover:bg-green-200 px-2 py-1 rounded"
+                                                    className="bg-green-100 text-green-700 border border-green-200 hover:bg-green-200 px-2 py-1 rounded transition"
                                                     onClick={() => handleMarkPaid(order)}
                                                     disabled={markingPaid}
                                                 >
@@ -371,7 +393,7 @@ const OrdersPage = () => {
                                             {order.payment_status === "paid" && (
                                                 <Button
                                                     size="sm"
-                                                    className="bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 px-2 py-1 rounded"
+                                                    className="bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 px-2 py-1 rounded transition"
                                                     onClick={() => handleRefund(order)}
                                                     disabled={refunding}
                                                 >
@@ -381,7 +403,7 @@ const OrdersPage = () => {
                                             {order.payment_status !== "canceled" && (
                                                 <Button
                                                     size="sm"
-                                                    className="bg-red-100 text-red-700 border border-red-200 hover:bg-red-200 px-2 py-1 rounded"
+                                                    className="bg-red-100 text-red-700 border border-red-200 hover:bg-red-200 px-2 py-1 rounded transition"
                                                     onClick={() => handleCancel(order)}
                                                     disabled={canceling}
                                                 >
@@ -390,10 +412,10 @@ const OrdersPage = () => {
                                             )}
                                         </div>
                                     </td>
-                                    <td className="py-2 px-2 flex gap-2">
+                                    <td className="py-2 px-3 flex gap-2">
                                         <Button
                                             size="sm"
-                                            className="bg-green-100 text-green-800 border border-green-300 hover:bg-green-200 px-2 py-1 rounded"
+                                            className="bg-green-100 text-green-800 border border-green-300 hover:bg-green-200 px-2 py-1 rounded transition"
                                             onClick={() => handleViewInvoice(order.id)}
                                             title="View Invoice"
                                         >
@@ -401,7 +423,7 @@ const OrdersPage = () => {
                                         </Button>
                                         <Button
                                             size="sm"
-                                            className="bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200 px-2 py-1 rounded"
+                                            className="bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200 px-2 py-1 rounded transition"
                                             onClick={() => handleToggleStatus(order.id)}
                                             disabled={updatingStatus}
                                             title="Update Status"
@@ -410,7 +432,7 @@ const OrdersPage = () => {
                                         </Button>
                                         <Button
                                             size="sm"
-                                            className="bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 px-2 py-1 rounded"
+                                            className="bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 px-2 py-1 rounded transition"
                                             onClick={() => setEditOrder(order)}
                                             title="Edit Order"
                                         >
@@ -418,7 +440,7 @@ const OrdersPage = () => {
                                         </Button>
                                         <Button
                                             size="sm"
-                                            className="bg-red-100 text-red-800 border border-red-300 hover:bg-red-200 px-2 py-1 rounded"
+                                            className="bg-red-100 text-red-800 border border-red-300 hover:bg-red-200 px-2 py-1 rounded transition"
                                             onClick={() => handleDeleteOrder(order.id)}
                                             title="Delete Order"
                                         >
@@ -429,7 +451,7 @@ const OrdersPage = () => {
                             ))}
                             {paginatedOrders.length === 0 && (
                                 <tr>
-                                    <td colSpan={10} className="py-6 text-center text-gray-400">
+                                    <td colSpan={10} className="py-8 text-center text-gray-400 font-semibold">
                                         No orders found.
                                     </td>
                                 </tr>
@@ -439,9 +461,9 @@ const OrdersPage = () => {
                 </div>
                 {/* Pagination Controls */}
                 {totalPages > 1 && (
-                    <div className="flex justify-center items-center gap-2 mt-6">
+                    <div className="flex justify-center items-center gap-2 mt-8">
                         <button
-                            className="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold disabled:opacity-50"
+                            className="px-4 py-2 rounded-lg bg-blue-100 text-blue-700 font-semibold disabled:opacity-50 transition"
                             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                             disabled={currentPage === 1}
                         >
@@ -450,7 +472,7 @@ const OrdersPage = () => {
                         {[...Array(totalPages)].map((_, i) => (
                             <button
                                 key={i}
-                                className={`px-3 py-1 rounded font-semibold ${
+                                className={`px-4 py-2 rounded-lg font-semibold transition ${
                                     currentPage === i + 1
                                         ? "bg-blue-600 text-white"
                                         : "bg-blue-50 text-blue-700 hover:bg-blue-200"
@@ -461,7 +483,7 @@ const OrdersPage = () => {
                             </button>
                         ))}
                         <button
-                            className="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold disabled:opacity-50"
+                            className="px-4 py-2 rounded-lg bg-blue-100 text-blue-700 font-semibold disabled:opacity-50 transition"
                             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                             disabled={currentPage === totalPages}
                         >

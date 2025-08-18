@@ -44,6 +44,7 @@ const UsersPage: React.FC = () => {
   const [newUser, setNewUser] = useState<User>({ ...emptyUser });
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "suspended">("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -59,7 +60,12 @@ const UsersPage: React.FC = () => {
     if (statusFilter === "active") return user.status === true;
     if (statusFilter === "suspended") return user.status === false;
     return true;
-  });
+  }).filter(user =>
+    searchTerm === "" ||
+    user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // Pagination logic
   const totalPages = Math.ceil(visibleUsers.length / PAGE_SIZE);
@@ -164,18 +170,67 @@ const UsersPage: React.FC = () => {
   };
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">
-          {filterNew ? "Newly Joined Users" : "Users"}
+    <div className="p-8 bg-gray-50 min-h-screen">
+      <div className="flex justify-between items-center mb-8">
+        <h2 className="text-3xl font-extrabold text-blue-700 tracking-tight">
+          {filterNew ? "Newly Joined Users" : "User Management"}
         </h2>
         <Button
-          className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded flex items-center gap-2"
+          className="bg-blue-600 text-white hover:bg-blue-700 px-5 py-2 rounded-lg flex items-center gap-2 shadow"
           onClick={handleAddUser}
         >
           <FaPlus />
           Add User
         </Button>
+      </div>
+
+      {/* Search Bar */}
+      <div className="mb-6 flex flex-col sm:flex-row gap-4 items-center">
+        <div className="relative w-full sm:w-72">
+          <input
+            type="text"
+            className="border rounded-lg px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+            placeholder="Search by name, username, or email"
+            value={searchTerm}
+            onChange={e => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+          />
+        </div>
+        {/* Filter Buttons */}
+        <div className="flex gap-2">
+          <button
+            className={`px-4 py-2 rounded-lg font-semibold transition ${
+              statusFilter === "all"
+                ? "bg-blue-500 text-white shadow"
+                : "bg-gray-200 text-gray-700 hover:bg-blue-100"
+            }`}
+            onClick={() => setStatusFilter("all")}
+          >
+            All
+          </button>
+          <button
+            className={`px-4 py-2 rounded-lg font-semibold transition ${
+              statusFilter === "active"
+                ? "bg-green-500 text-white shadow"
+                : "bg-gray-200 text-gray-700 hover:bg-green-100"
+            }`}
+            onClick={() => setStatusFilter("active")}
+          >
+            Active
+          </button>
+          <button
+            className={`px-4 py-2 rounded-lg font-semibold transition ${
+              statusFilter === "suspended"
+                ? "bg-red-500 text-white shadow"
+                : "bg-gray-200 text-gray-700 hover:bg-red-100"
+            }`}
+            onClick={() => setStatusFilter("suspended")}
+          >
+            Suspended
+          </button>
+        </div>
       </div>
 
       {!filterNew && (
@@ -188,7 +243,7 @@ const UsersPage: React.FC = () => {
       {filterNew && (
         <div className="mb-6 flex justify-end">
           <Button
-            className="flex items-center gap-2 px-3 py-1 bg-gray-100 text-gray-700 border border-gray-300 rounded text-sm hover:bg-gray-200 transition"
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg text-base hover:bg-gray-200 transition"
             onClick={() => navigate("/users")}
           >
             <FaArrowLeft />
@@ -196,28 +251,6 @@ const UsersPage: React.FC = () => {
           </Button>
         </div>
       )}
-
-      {/* Filter Buttons */}
-      <div className="flex gap-2 mb-4">
-        <button
-          className={`px-3 py-1 rounded ${statusFilter === "all" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-          onClick={() => setStatusFilter("all")}
-        >
-          All
-        </button>
-        <button
-          className={`px-3 py-1 rounded ${statusFilter === "active" ? "bg-green-500 text-white" : "bg-gray-200"}`}
-          onClick={() => setStatusFilter("active")}
-        >
-          Active
-        </button>
-        <button
-          className={`px-3 py-1 rounded ${statusFilter === "suspended" ? "bg-red-500 text-white" : "bg-gray-200"}`}
-          onClick={() => setStatusFilter("suspended")}
-        >
-          Suspended
-        </button>
-      </div>
 
       <UsersTable
         users={paginatedUsers}
@@ -229,9 +262,9 @@ const UsersPage: React.FC = () => {
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-6">
+        <div className="flex justify-center items-center gap-2 mt-8">
           <button
-            className="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold disabled:opacity-50"
+            className="px-4 py-2 rounded-lg bg-blue-100 text-blue-700 font-semibold disabled:opacity-50 transition"
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
           >
@@ -240,9 +273,9 @@ const UsersPage: React.FC = () => {
           {[...Array(totalPages)].map((_, i) => (
             <button
               key={i}
-              className={`px-3 py-1 rounded font-semibold ${
+              className={`px-4 py-2 rounded-lg font-semibold transition ${
                 currentPage === i + 1
-                  ? "bg-blue-600 text-white"
+                  ? "bg-blue-600 text-white shadow"
                   : "bg-blue-50 text-blue-700 hover:bg-blue-200"
               }`}
               onClick={() => setCurrentPage(i + 1)}
@@ -251,7 +284,7 @@ const UsersPage: React.FC = () => {
             </button>
           ))}
           <button
-            className="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold disabled:opacity-50"
+            className="px-4 py-2 rounded-lg bg-blue-100 text-blue-700 font-semibold disabled:opacity-50 transition"
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
           >
@@ -287,7 +320,7 @@ const UsersPage: React.FC = () => {
         }
       />
 
-      <div className="mt-6 text-gray-500 text-sm">
+      <div className="mt-8 text-gray-500 text-sm bg-white rounded-xl shadow p-6">
         <strong>Note:</strong> User information is managed and updated from the main site. You cannot edit user info here. Any changes will be reflected automatically when updated on the main site.
       </div>
     </div>

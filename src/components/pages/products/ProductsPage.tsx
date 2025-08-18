@@ -36,15 +36,6 @@ const ProductsPage = () => {
         const handler = setTimeout(() => setDebouncedSearch(searchTerm), 300);
         return () => clearTimeout(handler);
     }, [searchTerm]);
-
-    // Fetch paginated products from backend, using 'name' for search
-    // const { data: paginated, isLoading } = useGetProductsQuery({
-    //     page: currentPage,
-    //     limit: PAGE_SIZE,
-    //     name: debouncedSearch.trim() || undefined,
-    // });
-
-    // Fetch all tags for dropdowns
     const { data: allTags = [] } = useGetTagsQuery();
 
     // Tag options by type (unique)
@@ -55,11 +46,6 @@ const ProductsPage = () => {
 
     // Fetch categories for dropdown
     const { data: allCategories = [] } = useGetCategoriesQuery();
-
-    // Category filter state
-    const [categoryFilter, setCategoryFilter] = useState<number | "">("");
-
-    // Fetch all products for filtering
     const { data: allProductsData, isLoading: isLoadingAll } = useGetProductsQuery({
         page: 1,
         limit: 1000, // or higher if needed
@@ -87,15 +73,21 @@ const ProductsPage = () => {
         : [];
 
     // Filter states
-    const [genreFilter, setGenreFilter] = useState<number | "">( "");
-    const [playersFilter, setPlayersFilter] = useState<number | "">( "");
-    const [durationFilter, setDurationFilter] = useState<number | "">( "");
-    const [ageFilter, setAgeFilter] = useState<number | "">( "");
+    const [genreFilter, setGenreFilter] = useState<number | "">("");
+    const [playersFilter, setPlayersFilter] = useState<number | "">("");
+    const [durationFilter, setDurationFilter] = useState<number | "">("");
+    const [ageFilter, setAgeFilter] = useState<number | "">("");
+    const [categoryFilter, setCategoryFilter] = useState<number | "">("");
 
-    // --- Combine search and tag filtering ---
-
-    // --- Client-side pagination ---
-    // (Removed duplicate paginatedProducts and totalPages calculation here)
+    // Reset all filters handler
+    const handleResetFilters = () => {
+        setGenreFilter("");
+        setPlayersFilter("");
+        setDurationFilter("");
+        setAgeFilter("");
+        setCategoryFilter("");
+        setSearchTerm("");
+    };
 
     // Reset to page 1 when filters or search change
     useEffect(() => {
@@ -325,65 +317,40 @@ const ProductsPage = () => {
         }
     };
 
-    // --- Sorting state ---
-    const [sortField, setSortField] = useState<keyof Product | "category" | "price" | "stock" | "sold">("product_name");
-    const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+    // --- Filtering and search logic ---
+    const filteredProducts = products.filter(prod => {
+        // Category filter
+        if (categoryFilter && prod.category_ID?.id !== categoryFilter) return false;
 
-    // --- Sorting logic (on ALL products) ---
-    const sortedProducts = [...products].sort((a, b) => {
-        let aValue: string | number = "";
-        let bValue: string | number = "";
-        switch (sortField) {
-            case "product_name":
-                aValue = a.product_name.toLowerCase();
-                bValue = b.product_name.toLowerCase();
-                break;
-            case "category":
-                aValue = a.category_ID?.name?.toLowerCase() || "";
-                bValue = b.category_ID?.name?.toLowerCase() || "";
-                break;
-            case "price":
-                aValue = a.product_price;
-                bValue = b.product_price;
-                break;
-            case "stock":
-                aValue = a.quantity_stock;
-                bValue = b.quantity_stock;
-                break;
-            case "sold":
-                aValue = a.quantity_sold;
-                bValue = b.quantity_sold;
-                break;
-            default:
-                {
-                    const aRaw = (a as Product)[sortField];
-                    const bRaw = (b as Product)[sortField];
-                    aValue = typeof aRaw === "string" || typeof aRaw === "number"
-                        ? aRaw
-                        : aRaw && typeof aRaw === "object" && "name" in aRaw && typeof aRaw.name === "string"
-                            ? aRaw.name
-                            : "";
-                    bValue = typeof bRaw === "string" || typeof bRaw === "number"
-                        ? bRaw
-                        : bRaw && typeof bRaw === "object" && "name" in bRaw && typeof bRaw.name === "string"
-                            ? bRaw.name
-                            : "";
-                }
+        // Tag filters
+        const tags = (prod.tags as { id?: number; type?: string }[]) || [];
+        if (genreFilter && !tags.some(t => t.type === "genre" && t.id === genreFilter)) return false;
+        if (playersFilter && !tags.some(t => t.type === "players" && t.id === playersFilter)) return false;
+        if (durationFilter && !tags.some(t => t.type === "duration" && t.id === durationFilter)) return false;
+        if (ageFilter && !tags.some(t => t.type === "age" && t.id === ageFilter)) return false;
+
+        // Search filter (by product name, case-insensitive)
+        if (
+            debouncedSearch &&
+            !prod.product_name.toLowerCase().includes(debouncedSearch.toLowerCase())
+        ) {
+            return false;
         }
-        if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
-        if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
-        return 0;
+
+        return true;
     });
 
-    // --- Pagination logic (declare only ONCE, after sorting) ---
+    // --- Remove sorting logic ---
+    const sortedProducts = filteredProducts;
+
+    // --- Pagination logic (on filtered products) ---
     const totalPages = Math.max(1, Math.ceil(sortedProducts.length / PAGE_SIZE));
     const paginatedProducts = sortedProducts.slice(
         (currentPage - 1) * PAGE_SIZE,
         currentPage * PAGE_SIZE
     );
 
-    // --- Pass sort state and handlers to ProductTable ---
-    // --- Show loading spinner during transitions ---
+    // --- Pass only required props to ProductTable ---
     if (isAdding || isLoadingAll) return <Loading />;
 
     return (
@@ -499,6 +466,16 @@ const ProductsPage = () => {
                         Add Product
                     </Button>
                 </div>
+                {/* Add this after the Add Product Button */}
+                <div className="flex flex-col justify-end">
+                    <Button
+                        className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-semibold shadow transition"
+                        onClick={handleResetFilters}
+                        type="button"
+                    >
+                        Reset Filters
+                    </Button>
+                </div>
             </div>
             <ProductTable
                 products={paginatedProducts}
@@ -509,10 +486,6 @@ const ProductsPage = () => {
                 onDelete={handleDelete}
                 onShowDetails={setDetailProduct}
                 onOpenCms={handleOpenProductCms}
-                sortField={sortField}
-                sortOrder={sortOrder}
-                setSortField={setSortField}
-                setSortOrder={setSortOrder}
             />
 
             {/* Product Details Modal */}
