@@ -76,6 +76,15 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
   const [showMediaPicker, setShowMediaPicker] = useState<"cover" | "insert" | "gallery" | null>(null);
   const [cataloguePosts, setCataloguePosts] = useState<PostFormType[]>([]);
 
+  // AI Content Generation handlers
+  const handleContentGenerated = (newContent: string) => {
+    setForm(prev => ({ ...prev, content: newContent }));
+  };
+
+  const handleApplySeo = (seoFields: { meta_title?: string; meta_description?: string; slug?: string }) => {
+    setForm(prev => ({ ...prev, ...seoFields }));
+  };
+
   useEffect(() => {
     api.get('/post-catalogues').then(res => setCatalogues(res.data));
   }, []);
@@ -367,7 +376,7 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
                     onUnderline={handleInsertUnderline}
                     onImage={handleInsertImage}
                     onHr={handleInsertHr}
-                    onParagraphBreak={handleParagraphBreak} // <-- add this prop
+                    onParagraphBreak={handleParagraphBreak}
                     previewTextColor={previewTextColor}
                     previewBgColor={previewBgColor}
                     showColorPicker={showColorPicker}
@@ -469,6 +478,8 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
             FONT_SIZES={FONT_SIZES}
             COLORS={COLORS}
             BG_COLORS={BG_COLORS}
+            onContentGenerated={handleContentGenerated}
+            onApplySeo={handleApplySeo}
           />
         </form>
       </div>

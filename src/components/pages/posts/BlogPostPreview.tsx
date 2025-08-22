@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { FiBarChart2, FiX } from 'react-icons/fi';
+import { FiBarChart2, FiCpu, FiLoader, FiX } from 'react-icons/fi';
 
-// Data type for the SEO report from n8n
+// --- CÁC KIỂU DỮ LIỆU ---
 interface SeoReport {
   seo_score: number;
   seo_analysis: {
@@ -14,37 +14,45 @@ interface SeoReport {
   generated_seo: {
     meta_title: string;
     meta_description: string;
-    meta_keywords: string;
     slug: string;
   };
 }
 
+interface ArticleInput {
+  topic: string;
+  main_keyword: string;
+  canonical?: string;
+  catalogue?: string;
+  description?: string;
+}
+
 interface BlogPostPreviewProps {
-  // Your current props
   title?: string;
   description?: string;
   image?: string;
   catalogueName?: string;
+  canonical?: string;
   date?: string;
   content: string;
   meta_title?: string;
   meta_description?: string;
   meta_keyword?: string;
-  canonical?: string;
   fontFamily?: string;
   fontSize?: string;
   textColor?: string;
   bgColor?: string;
   publish?: boolean;
-  // Prop to update the parent form when "Apply" is clicked
   onApplySeo: (fields: Partial<SeoReport['generated_seo']>) => void;
+  onContentGenerated: (newContent: string) => void;
 }
 
+// --- COMPONENT CHÍNH ---
 const BlogPostPreview: React.FC<BlogPostPreviewProps> = ({
   title,
   description,
   image,
   catalogueName,
+  canonical,
   date,
   content,
   meta_title,
@@ -54,170 +62,266 @@ const BlogPostPreview: React.FC<BlogPostPreviewProps> = ({
   textColor = '#0f172a',
   bgColor = '#fff',
   onApplySeo,
+  onContentGenerated,
 }) => {
-  const [showSeoScore, setShowSeoScore] = useState(false);
-  
-  // CORRECTED STATE to store the structured JSON report
-  const [seoData, setSeoData] = useState<{
-    isLoading: boolean;
-    error: string | null;
-    report: SeoReport | null;
-  }>({
+  const [showSeoModal, setShowSeoModal] = useState(false);
+  const [showGeneratorModal, setShowGeneratorModal] = useState(false);
+
+  const [seoData, setSeoData] = useState({
     isLoading: false,
-    error: null,
-    report: null,
+    error: null as string | null,
+    report: null as SeoReport | null,
   });
 
-  const fetchSeoScore = async () => {
-    try {
-      setSeoData({ isLoading: true, error: null, report: null });
+  const [generatorData, setGeneratorData] = useState({
+    isLoading: false,
+    error: null as string | null,
+    inputs: { 
+      topic: title || '', 
+      main_keyword: '',
+      canonical: '',
+      catalogue: '',
+      description: ''
+    } as ArticleInput,
+  });
+  
+  useEffect(() => {
+    setGeneratorData(prev => ({ 
+      ...prev, 
+      inputs: { 
+        ...prev.inputs, 
+        topic: title || '',
+        canonical: canonical || '',
+        catalogue: catalogueName || '',
+        description: description || ''
+      } 
+    }));
+  }, [title, canonical, catalogueName, description]);
 
-      const response = await fetch('https://103226109.flown8n.com/webhook/853df892-3ca0-4f8a-9a84-ebb96950f091', {
+  // --- LOGIC GỌI API ---
+
+  const fetchSeoScore = async () => {
+    setSeoData({ isLoading: true, error: null, report: null });
+    setShowSeoModal(true);
+    try {
+      // Gợi ý: Nên đưa URL này vào file .env để quản lý tốt hơn
+      const SEO_WEBHOOK_URL = 'https://103226109.flown8n.com/webhook/853df892-3ca0-4f8a-9a84-ebb96950f091';
+      const response = await fetch(SEO_WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, content })
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`Lỗi HTTP: ${response.status}`);
       
-      // CORRECTED LOGIC to handle the nested "output" key from n8n
       const responseData = await response.json();
-      const reportData: SeoReport = responseData.output; 
-      
-      setSeoData({
-        isLoading: false,
-        error: null,
-        report: reportData, // Store the entire report object
-      });
+      // FIX: Kiểm tra xem 'output' có tồn tại không trước khi gán
+      const reportData: SeoReport = responseData.output;
+      if (!reportData) {
+        throw new Error("Định dạng phản hồi từ API không đúng.");
+      }
+      setSeoData({ isLoading: false, error: null, report: reportData });
 
-      setShowSeoScore(true);
-    } catch (error) {
-      console.error('Error fetching SEO score:', error);
-      setSeoData({
-        isLoading: false,
-        error: 'Failed to fetch SEO analysis',
-        report: null
+    } catch (error: any) {
+      // FIX: Hiển thị lỗi cụ thể thay vì một chuỗi cố định
+      setSeoData({ isLoading: false, error: error.message || 'Không thể phân tích SEO.', report: null });
+    }
+  };
+
+  const handleGenerateArticle = async () => {
+    if (!generatorData.inputs.topic || !generatorData.inputs.main_keyword) {
+      setGeneratorData(prev => ({ ...prev, error: 'Chủ đề và từ khóa chính là bắt buộc.' }));
+      return;
+    }
+    setGeneratorData(prev => ({ ...prev, isLoading: true, error: null }));
+    try {
+      // Gợi ý: Nên đưa URL này vào file .env để quản lý tốt hơn
+      const GENERATOR_WEBHOOK_URL = 'https://103226109.flown8n.com/webhook/b9ceeed3-cb56-4b6e-b523-d85a2a94f90b';
+      const response = await fetch(GENERATOR_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(generatorData.inputs),
       });
-      setShowSeoScore(true);
+      if (!response.ok) throw new Error(`Lỗi HTTP: ${response.status}`);
+      const result = await response.json();
+      if (result.articleContent) {
+        onContentGenerated(result.articleContent); // It tries to call the function here.
+      } else {
+        throw new Error("API không trả về nội dung.");
+      }
+    } catch (error: any) {
+      setGeneratorData(prev => ({ ...prev, error: error.message }));
+    } finally {
+      setGeneratorData(prev => ({ ...prev, isLoading: false }));
     }
   };
 
   return (
-    <article
-      className="rounded-3xl overflow-hidden border max-w-2xl mx-auto shadow-2xl bg-white animate-fade-in"
-      style={{
-        fontFamily,
-        background: bgColor,
-        color: textColor,
-        transition: 'background 0.2s, color 0.2s',
-        minHeight: 200,
-        maxHeight: 700,
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      <div className="h-56 w-full bg-gradient-to-br from-blue-200 via-blue-100 to-white flex items-center justify-center overflow-hidden relative flex-shrink-0">
-        {image ? (
-          <img src={image} alt={title} className="object-cover w-full h-full"/>
-        ) : (
-          <span className="text-gray-300 text-5xl">🖼️</span>
-        )}
+    <article className="rounded-3xl overflow-hidden border max-w-2xl mx-auto shadow-2xl bg-white animate-fade-in"
+    style={{
+      fontFamily,
+      background: bgColor,
+      color: textColor,
+      transition: 'background 0.2s, color 0.2s',
+      minHeight: 200,
+      maxHeight: 700,
+      display: 'flex',
+      flexDirection: 'column',
+    }}>
+      <div className="p-3 border-b flex justify-end gap-2 bg-gray-50/70 flex-shrink-0">
+        <button
+          onClick={() => setShowGeneratorModal(true)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-colors bg-blue-50 text-blue-700 hover:bg-blue-100"
+        >
+          <FiCpu className="w-3.5 h-3.5" />
+          Tạo Nội Dung
+        </button>
+        <button
+          onClick={fetchSeoScore}
+          disabled={seoData.isLoading}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-colors bg-green-50 text-green-700 hover:bg-green-100 disabled:opacity-50"
+        >
+          <FiBarChart2 className="w-3.5 h-3.5" />
+          Phân Tích SEO
+        </button>
       </div>
-      <div className={`p-6 sm:p-8 md:p-10 ${fontSize} overflow-y-auto`} style={{ flex: 1, minHeight: 0 }}>
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-            <div className="flex flex-wrap items-center gap-2">
-              {catalogueName && (
-                <span className="inline-block bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full font-semibold shadow">
-                  {catalogueName}
-                </span>
-              )}
-              {date && (
-                <span className="text-gray-400 text-xs">{date}</span>
-              )}
-            </div>
-            <button
-                onClick={fetchSeoScore}
-                disabled={seoData.isLoading}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-colors bg-blue-50 text-blue-700 hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-                <FiBarChart2 className="w-3.5 h-3.5" />
-                {seoData.isLoading ? 'Analyzing...' : 'Check SEO Score'}
-            </button>
-        </div>
-        
-        {title && <h1 className="text-3xl sm:text-4xl font-extrabold mb-3">{title}</h1>}
-        {description && <div className="mb-6 italic text-gray-500">{description}</div>}
-        
-        {/* SEO Score Modal */}
-        {showSeoScore && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
-              <div className="border-b p-4 flex justify-between items-center">
-                <h3 className="text-lg font-semibold">SEO Analysis</h3>
-                <button onClick={() => setShowSeoScore(false)} className="text-gray-400 hover:text-gray-600">
-                  <FiX className="w-5 h-5" />
-                </button>
-              </div>
-              <div className="p-6 overflow-y-auto flex-1">
-                {seoData.error ? (
-                  <div className="text-red-500">{seoData.error}</div>
-                ) : seoData.isLoading ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                  </div>
-                ) : seoData.report ? (
-                  <div className="space-y-6">
-                    <div>
-                      <h4 className="text-base font-semibold text-gray-800">Overall Analysis</h4>
-                      <div className="mt-2 flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                        <div className="text-4xl font-bold text-blue-600">{seoData.report?.seo_score}<span className="text-2xl text-gray-400">/100</span></div>
-                        <p className="text-sm text-gray-600">{seoData.report?.seo_analysis?.overall_comment}</p>
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="text-base font-semibold text-gray-800">Improvement Suggestions</h4>
-                      <ul className="mt-2 list-disc list-inside space-y-1 text-sm text-gray-700">
-                        {seoData.report?.seo_analysis?.suggestions?.map((suggestion, index) => (
-                          <li key={index}>{suggestion}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="text-base font-semibold text-gray-800">Suggested SEO Content</h4>
-                      <div className="mt-2 space-y-3 text-sm">
-                        <div className="p-3 bg-gray-50 rounded-md">
-                          <label className="block font-medium text-gray-600">Meta Title</label>
-                          <p className="mt-1 text-gray-900">{seoData.report?.generated_seo?.meta_title}</p>
-                          <button onClick={() => onApplySeo({ meta_title: seoData.report?.generated_seo?.meta_title })} className="text-blue-600 hover:underline text-xs mt-1 font-semibold">Apply</button>
-                        </div>
-                        <div className="p-3 bg-gray-50 rounded-md">
-                          <label className="block font-medium text-gray-600">Meta Description</label>
-                          <p className="mt-1 text-gray-900">{seoData.report?.generated_seo?.meta_description}</p>
-                          <button onClick={() => onApplySeo({ meta_description: seoData.report?.generated_seo?.meta_description })} className="text-blue-600 hover:underline text-xs mt-1 font-semibold">Apply</button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-              <div className="border-t p-4 flex justify-end">
-                <button onClick={() => setShowSeoScore(false)} className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm">
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-        <div className="prose prose-blue max-w-none mb-8" style={{ color: textColor }}>
+
+      <div className="p-6 sm:p-8 overflow-y-auto flex-grow">
+        <h1 className="text-3xl sm:text-4xl font-extrabold mb-3">{title || "Tiêu đề sẽ hiện ở đây"}</h1>
+        <div className="prose prose-blue max-w-none">
           <ReactMarkdown>{content}</ReactMarkdown>
         </div>
-        <div className="border-t pt-4 text-xs text-gray-400 space-y-1 mt-6 grid grid-cols-1 sm:grid-cols-2 gap-x-6">
-          {meta_title && <div><span className="font-semibold">Meta Title:</span> {meta_title}</div>}
-          {meta_description && <div><span className="font-semibold">Meta Desc:</span> {meta_description}</div>}
-        </div>
       </div>
+
+      {/* --- CÁC MODAL (POPUP) --- */}
+
+      {showGeneratorModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="border-b p-4 flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Tạo nội dung bằng AI</h3>
+              <button onClick={() => setShowGeneratorModal(false)} className="text-gray-400 hover:text-gray-600"><FiX /></button>
+            </div>
+            <div className="p-6 space-y-4 overflow-y-auto flex-1">
+              <div>
+                <label className="block text-sm font-medium">Chủ đề (Lấy từ tiêu đề)</label>
+                <input type="text" value={generatorData.inputs.topic} disabled className="mt-1 block w-full bg-gray-100 p-2 border rounded-md" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium">Từ khóa chính</label>
+                <input 
+                  type="text" 
+                  value={generatorData.inputs.main_keyword}
+                  onChange={(e) => setGeneratorData(p => ({ ...p, inputs: { ...p.inputs, main_keyword: e.target.value }}))}
+                  className="mt-1 block w-full p-2 border rounded-md focus:ring-blue-500 focus:border-blue-500" 
+                  placeholder="VD: tự động hóa marketing"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium">Canonical</label>
+                <input 
+                  type="text" 
+                  value={generatorData.inputs.canonical}
+                  onChange={(e) => setGeneratorData(p => ({ ...p, inputs: { ...p.inputs, canonical: e.target.value }}))}
+                  className="mt-1 block w-full p-2 border rounded-md focus:ring-blue-500 focus:border-blue-500" 
+                  placeholder="VD: tu-dong-hoa-marketing"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium">Catalogue</label>
+                <input 
+                  type="text" 
+                  value={generatorData.inputs.catalogue}
+                  onChange={(e) => setGeneratorData(p => ({ ...p, inputs: { ...p.inputs, catalogue: e.target.value }}))}
+                  className="mt-1 block w-full p-2 border rounded-md focus:ring-blue-500 focus:border-blue-500" 
+                  placeholder="VD: Marketing"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium">Description</label>
+                <textarea 
+                  value={generatorData.inputs.description}
+                  onChange={(e) => setGeneratorData(p => ({ ...p, inputs: { ...p.inputs, description: e.target.value }}))}
+                  className="mt-1 block w-full p-2 border rounded-md focus:ring-blue-500 focus:border-blue-500" 
+                  placeholder="Mô tả ngắn gọn về bài viết..."
+                  rows={3}
+                />
+              </div>
+              {generatorData.error && <p className="text-sm text-red-600">{generatorData.error}</p>}
+            </div>
+            <div className="border-t p-4 flex justify-end flex-shrink-0">
+              <button 
+                onClick={handleGenerateArticle} 
+                disabled={generatorData.isLoading}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm disabled:bg-gray-400 w-full"
+              >
+                {generatorData.isLoading ? <FiLoader className="animate-spin mx-auto" /> : 'Bắt đầu tạo'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FIX: Khôi phục lại toàn bộ code cho Modal SEO */}
+      {showSeoModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="border-b p-4 flex justify-between items-center">
+              <h3 className="text-lg font-semibold">SEO Analysis</h3>
+              <button onClick={() => setShowSeoModal(false)} className="text-gray-400 hover:text-gray-600">
+                <FiX className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto flex-1">
+              {seoData.error ? (
+                <div className="text-red-500">{seoData.error}</div>
+              ) : seoData.isLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                </div>
+              ) : seoData.report ? (
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="text-base font-semibold text-gray-800">Overall Analysis</h4>
+                    <div className="mt-2 flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                      <div className="text-4xl font-bold text-blue-600">{seoData.report.seo_score}<span className="text-2xl text-gray-400">/100</span></div>
+                      <p className="text-sm text-gray-600">{seoData.report.seo_analysis.overall_comment}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-base font-semibold text-gray-800">Improvement Suggestions</h4>
+                    <ul className="mt-2 list-disc list-inside space-y-1 text-sm text-gray-700">
+                      {/* FIX: Thêm 'key' prop để tránh warning của React */}
+                      {seoData.report.seo_analysis.suggestions.map((suggestion, index) => (
+                        <li key={index}>{suggestion}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="text-base font-semibold text-gray-800">Suggested SEO Content</h4>
+                    <div className="mt-2 space-y-3 text-sm">
+                      <div className="p-3 bg-gray-50 rounded-md">
+                        <label className="block font-medium text-gray-600">Meta Title</label>
+                        <p className="mt-1 text-gray-900">{seoData.report.generated_seo.meta_title}</p>
+                        <button onClick={() => onApplySeo({ meta_title: seoData.report?.generated_seo.meta_title })} className="text-blue-600 hover:underline text-xs mt-1 font-semibold">Apply</button>
+                      </div>
+                      <div className="p-3 bg-gray-50 rounded-md">
+                        <label className="block font-medium text-gray-600">Meta Description</label>
+                        <p className="mt-1 text-gray-900">{seoData.report.generated_seo.meta_description}</p>
+                        <button onClick={() => onApplySeo({ meta_description: seoData.report?.generated_seo.meta_description })} className="text-blue-600 hover:underline text-xs mt-1 font-semibold">Apply</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+            <div className="border-t p-4 flex justify-end">
+              <button onClick={() => setShowSeoModal(false)} className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </article>
   );
 };
