@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import BlogPostPreview from './BlogPostPreview'; // Your component
 
 const CreatePostPage = () => {
@@ -17,7 +17,7 @@ const CreatePostPage = () => {
     setPostData(prev => ({ ...prev, content: newContent }));
   };
 
-  const handleApplySeo = (seoFields: any) => {
+  const handleApplySeo = (seoFields: Record<string, unknown>) => {
     setPostData(prev => ({ ...prev, ...seoFields }));
   };
 

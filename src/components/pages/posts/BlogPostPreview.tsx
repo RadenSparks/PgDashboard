@@ -50,15 +50,10 @@ interface BlogPostPreviewProps {
 const BlogPostPreview: React.FC<BlogPostPreviewProps> = ({
   title,
   description,
-  image,
   catalogueName,
   canonical,
-  date,
   content,
-  meta_title,
-  meta_description,
   fontFamily = 'sans-serif',
-  fontSize = 'text-lg',
   textColor = '#0f172a',
   bgColor = '#fff',
   onApplySeo,
@@ -121,9 +116,13 @@ const BlogPostPreview: React.FC<BlogPostPreviewProps> = ({
       }
       setSeoData({ isLoading: false, error: null, report: reportData });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       // FIX: Hiển thị lỗi cụ thể thay vì một chuỗi cố định
-      setSeoData({ isLoading: false, error: error.message || 'Không thể phân tích SEO.', report: null });
+      setSeoData({ 
+        isLoading: false, 
+        error: typeof error === 'object' && error !== null && 'message' in error ? (error as { message?: string }).message || 'Không thể phân tích SEO.' : 'Không thể phân tích SEO.', 
+        report: null 
+      });
     }
   };
 
@@ -148,8 +147,14 @@ const BlogPostPreview: React.FC<BlogPostPreviewProps> = ({
       } else {
         throw new Error("API không trả về nội dung.");
       }
-    } catch (error: any) {
-      setGeneratorData(prev => ({ ...prev, error: error.message }));
+    } catch (error: unknown) {
+      setGeneratorData(prev => ({
+        ...prev,
+        error:
+          typeof error === 'object' && error !== null && 'message' in error
+            ? (error as { message?: string }).message || 'Không thể tạo nội dung.'
+            : 'Không thể tạo nội dung.',
+      }));
     } finally {
       setGeneratorData(prev => ({ ...prev, isLoading: false }));
     }
