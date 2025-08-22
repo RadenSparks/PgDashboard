@@ -36,6 +36,8 @@ interface Props {
   FONT_SIZES: { label: string; value: string }[];
   COLORS: string[];
   BG_COLORS: string[];
+  onContentGenerated: (newContent: string) => void;
+  onApplySeo: (fields: { meta_title?: string; meta_description?: string; slug?: string }) => void;
 }
 
 const PostFormSidebar: React.FC<Props> = ({
@@ -44,7 +46,8 @@ const PostFormSidebar: React.FC<Props> = ({
   fontSize, setFontSize,
   previewTextColor, setPreviewTextColor,
   previewBgColor, setPreviewBgColor,
-  FONT_FAMILIES, FONT_SIZES, COLORS, BG_COLORS
+  FONT_FAMILIES, FONT_SIZES, COLORS, BG_COLORS,
+  onContentGenerated, onApplySeo
 }) => (
   <div className="flex-1 min-w-[400px] max-w-[600px] flex flex-col overflow-y-auto bg-gradient-to-br from-blue-50 via-white to-blue-100 border-l rounded-r-3xl">
     <div className="p-6 pb-2">
@@ -69,9 +72,10 @@ const PostFormSidebar: React.FC<Props> = ({
           meta_description={form.meta_description}
           meta_keyword={form.meta_keyword}
           canonical={form.canonical}
-          publish={!!form.publish} onApplySeo={function (): void {
-            throw new Error('Function not implemented.');
-          } }        />
+          publish={!!form.publish}
+          onApplySeo={onApplySeo}
+          onContentGenerated={onContentGenerated}
+        />
       </div>
     </div>
     <div className="bg-white rounded-2xl shadow p-6 m-6 mt-4">
