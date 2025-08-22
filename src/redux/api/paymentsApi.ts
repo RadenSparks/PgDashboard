@@ -30,6 +30,9 @@ export const paymentsApi = createApi({
       }),
       invalidatesTags: ['Order'],
     }),
+    getPaymentTypes: builder.query<string[], void>({
+      query: () => ({ url: '/payments/types', method: 'GET' }),
+    }),
   }),
 });
 
@@ -37,4 +40,5 @@ export const {
   useMarkOrderAsPaidMutation,
   useRefundOrderMutation,
   useCancelOrderMutation,
+  useGetPaymentTypesQuery,
 } = paymentsApi;

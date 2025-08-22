@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../../widgets/button";
 import { FaSave, FaTimes } from "react-icons/fa";
 import { type Order } from "../../../redux/api/ordersApi";
+import { type Delivery } from "../../../redux/api/deliveryApi";
 
-interface EditOrderModalProps {
+export interface EditOrderModalProps {
     order: Order | null;
     onClose: () => void;
     paymentTypes: string[];
-    deliveryMethods: string[];
-    // onSave?: (order: Order) => void; // implement if needed
+    deliveryMethods: Delivery[];
 }
 
 const EditOrderModal: React.FC<EditOrderModalProps> = ({
@@ -16,7 +16,6 @@ const EditOrderModal: React.FC<EditOrderModalProps> = ({
     onClose,
     paymentTypes,
     deliveryMethods,
-    // onSave,
 }) => {
     const [editOrder, setEditOrder] = useState<Order | null>(order);
 
@@ -65,7 +64,7 @@ const EditOrderModal: React.FC<EditOrderModalProps> = ({
                             }
                         >
                             <option value="">Select payment type</option>
-                            {paymentTypes.map((type) => (
+                            {paymentTypes.map((type: string) => (
                                 <option key={type} value={type}>
                                     {type}
                                 </option>
@@ -84,14 +83,13 @@ const EditOrderModal: React.FC<EditOrderModalProps> = ({
                             }
                         >
                             <option value="">Select delivery method</option>
-                            {deliveryMethods.map((method) => (
-                                <option key={method} value={method}>
-                                    {method}
+                            {deliveryMethods.map((method: { name: string }) => (
+                                <option key={method.name} value={method.name}>
+                                    {method.name}
                                 </option>
                             ))}
                         </select>
                     </div>
-                    {/* Add tracking number and status fields if your Order type supports them */}
                     <div className="flex justify-end gap-2">
                         <Button
                             className="bg-gray-200 px-6 py-2 rounded"

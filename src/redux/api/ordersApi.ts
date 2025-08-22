@@ -66,6 +66,16 @@ export interface Order {
   paypal_order_id?: string;
 }
 
+export interface RefundRequest {
+  id: number;
+  user: User;
+  order: Order;
+  reason: string;
+  amount: number;
+  status: string;
+  created_at: string;
+}
+
 export const ordersApi = createApi({
   reducerPath: 'ordersApi',
   baseQuery: axiosBaseQuery,
@@ -106,13 +116,44 @@ export const ordersApi = createApi({
       }),
       invalidatesTags: ['Order'],
     }),
+    getRefundRequests: builder.query<RefundRequest[], void>({
+      query: () => ({ url: '/orders/refund-requests', method: 'GET' }),
+      providesTags: ['Order'],
+    }),
+    updateRefundRequestStatus: builder.mutation<RefundRequest, { id: number; status: string }>({
+      query: ({ id, status }) => ({
+        url: `/orders/refund-requests/${id}/status`,
+        method: 'PATCH',
+        data: { status },
+      }),
+      invalidatesTags: ['Order'],
+    }),
+    processRefund: builder.mutation<RefundRequest, { id: number }>({
+      query: ({ id }) => ({
+        url: `/orders/refund-requests/${id}/process-refund`,
+        method: 'POST',
+      }),
+      invalidatesTags: ['Order'],
+    }),
+    cancelOversoldOrders: builder.mutation<{ status: string }, void>({
+      query: () => ({
+        url: '/orders/cancel-oversold',
+        method: 'POST',
+      }),
+      invalidatesTags: ['Order'],
+    }),
   }),
 })
 
+// Export hooks
 export const {
   useGetOrdersQuery,
   useAddOrderMutation,
   useDeleteOrderMutation,
   useUpdateOrderMutation,
   useUpdateStatusMutation,
+  useGetRefundRequestsQuery,
+  useUpdateRefundRequestStatusMutation,
+  useProcessRefundMutation,
+  useCancelOversoldOrdersMutation,
 } = ordersApi
