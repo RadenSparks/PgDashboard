@@ -166,8 +166,7 @@ const ProductsPage = () => {
                 formData.append("quantity_sold", editProduct.quantity_sold.toString());
                 formData.append("quantity_stock", editProduct.quantity_stock.toString());
                 formData.append("status", editProduct.status);
-                // formData.append("category_ID", editProduct.category_ID.id.toString());
-                formData.append("categoryId", editProduct.category_ID.id.toString());
+                formData.append("category_ID", editProduct.category_ID.id.toString());
                 formData.append("publisherID", publisherId?.toString() || "");
                 formData.append(
                     "tags",
@@ -242,7 +241,7 @@ const ProductsPage = () => {
                 formData.append("quantity_sold", editProduct.quantity_sold.toString());
                 formData.append("quantity_stock", editProduct.quantity_stock.toString());
                 formData.append("status", editProduct.status);
-                formData.append("categoryId", editProduct.category_ID.id.toString());
+                formData.append("category_ID", editProduct.category_ID.id.toString());
                 formData.append("publisherID", publisherId?.toString() || "");
                 formData.append(
                     "tags",
