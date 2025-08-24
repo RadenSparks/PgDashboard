@@ -139,30 +139,30 @@ const ProductCmsModal = ({
           {/* HERO SECTION */}
           <section className="mb-8">
             <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide flex items-center gap-2">
-              <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" /> Hero Section
+              <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" /> Phần ảnh chính
             </div>
             <input
               className="w-full border rounded px-4 py-3 mb-2 text-lg focus:ring-2 focus:ring-blue-300"
               value={cmsContent.heroTitle || ""}
               onChange={e => onChange({ ...cmsContent, heroTitle: e.target.value })}
-              placeholder="Hero Title"
+              placeholder="Tiêu đề ảnh chính"
             />
             <input
               className="w-full border rounded px-4 py-3 mb-2 text-lg focus:ring-2 focus:ring-blue-300"
               value={cmsContent.heroSubtitle || ""}
               onChange={e => onChange({ ...cmsContent, heroSubtitle: e.target.value })}
-              placeholder="Hero Subtitle"
+              placeholder="Mô tả ảnh chính"
             />
             <div className="flex items-center gap-3 mt-2">
               {cmsContent.heroImages && cmsContent.heroImages[0] && (
-                <img src={cmsContent.heroImages[0]} alt="Hero" className="w-32 h-32 object-cover rounded-lg border shadow" />
+                <img src={cmsContent.heroImages[0]} alt="Ảnh chính" className="w-32 h-32 object-cover rounded-lg border shadow" />
               )}
               <button
                 type="button"
                 className="bg-blue-100 text-blue-700 rounded px-4 py-2 hover:bg-blue-200 font-semibold transition"
                 onClick={() => setShowMediaPicker({ field: "heroImages", idx: 0 })}
               >
-                {cmsContent.heroImages && cmsContent.heroImages[0] ? "Change" : "Select"} Image
+                {cmsContent.heroImages && cmsContent.heroImages[0] ? "Đổi" : "Chọn"} ảnh
               </button>
               {cmsContent.heroImages && cmsContent.heroImages[0] && (
                 <button
@@ -173,8 +173,8 @@ const ProductCmsModal = ({
                     arr[0] = "";
                     onChange({ ...cmsContent, heroImages: arr });
                   }}
-                  aria-label="Remove image"
-                  title="Remove hero image"
+                  aria-label="Xóa ảnh"
+                  title="Xóa ảnh chính"
                 >
                   &times;
                 </button>
@@ -184,39 +184,39 @@ const ProductCmsModal = ({
           {/* ABOUT SECTION */}
           <section className="mb-8">
             <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide flex items-center gap-2">
-              <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" /> About Section
+              <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" /> Phần giới thiệu
             </div>
             <input
               className="w-full border rounded px-4 py-3 mb-2 text-lg focus:ring-2 focus:ring-blue-300"
               value={cmsContent.aboutTitle || ""}
               onChange={e => onChange({ ...cmsContent, aboutTitle: e.target.value })}
-              placeholder="About Title"
+              placeholder="Tiêu đề giới thiệu"
             />
             <textarea
               className="w-full border rounded px-4 py-3 mb-2 text-lg focus:ring-2 focus:ring-blue-300"
               value={cmsContent.aboutText || ""}
               onChange={e => onChange({ ...cmsContent, aboutText: e.target.value })}
-              placeholder="About Text"
+              placeholder="Nội dung giới thiệu"
               rows={4}
             />
             <div className="flex flex-col gap-2">
               {(cmsContent.aboutImages || []).map((img, idx) => (
                 <div key={idx} className="flex items-center gap-2">
                   {img && (
-                    <img src={img} alt={`About ${idx + 1}`} className="w-20 h-20 object-cover rounded border shadow" />
+                    <img src={img} alt={`Ảnh giới thiệu ${idx + 1}`} className="w-20 h-20 object-cover rounded border shadow" />
                   )}
                   <button
                     type="button"
                     className="bg-blue-100 text-blue-700 rounded px-4 py-2 hover:bg-blue-200 font-semibold"
                     onClick={() => setShowMediaPicker({ field: "aboutImages", idx })}
                   >
-                    {img ? "Change" : "Select"} Image
+                    {img ? "Đổi" : "Chọn"} ảnh
                   </button>
                   <button
                     type="button"
                     className="text-red-500 hover:text-red-700 text-lg"
                     onClick={() => removeArrayItem("aboutImages", idx)}
-                    aria-label="Remove image"
+                    aria-label="Xóa ảnh"
                   >
                     &times;
                   </button>
@@ -227,14 +227,14 @@ const ProductCmsModal = ({
                 className="mt-2 px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-base font-semibold w-fit"
                 onClick={() => addArrayItem("aboutImages")}
               >
-                + Add About Image
+                + Thêm ảnh giới thiệu
               </button>
             </div>
           </section>
           {/* SLIDER SECTION */}
           <section className="mb-8">
             <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide flex items-center gap-2">
-              <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" /> Slider Section
+              <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" /> Phần trình chiếu ảnh
             </div>
             <div className="flex flex-col gap-2">
               {(cmsContent.sliderImages || []).map((img, idx) => (
@@ -243,20 +243,20 @@ const ProductCmsModal = ({
                     {idx + 1}
                   </span>
                   {img && (
-                    <img src={img} alt={`Slider ${idx + 1}`} className="w-20 h-20 object-cover rounded border shadow" />
+                    <img src={img} alt={`Trình chiếu ${idx + 1}`} className="w-20 h-20 object-cover rounded border shadow" />
                   )}
                   <button
                     type="button"
                     className="bg-blue-100 text-blue-700 rounded px-4 py-2 hover:bg-blue-200 font-semibold"
                     onClick={() => setShowMediaPicker({ field: "sliderImages", idx })}
                   >
-                    {img ? "Change" : "Select"} Image
+                    {img ? "Đổi" : "Chọn"} ảnh
                   </button>
                   <button
                     type="button"
                     className="text-red-500 hover:text-red-700 text-lg"
                     onClick={() => removeArrayItem("sliderImages", idx)}
-                    aria-label="Remove image"
+                    aria-label="Xóa ảnh"
                   >
                     &times;
                   </button>
@@ -267,33 +267,33 @@ const ProductCmsModal = ({
                 className="mt-2 px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-base font-semibold w-fit"
                 onClick={() => addArrayItem("sliderImages")}
               >
-                + Add Slider Image
+                + Thêm ảnh trình chiếu
               </button>
             </div>
           </section>
           {/* DETAILS SECTION */}
           <section className="mb-8">
             <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide flex items-center gap-2">
-              <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" /> Product Details Section
+              <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" /> Phần chi tiết sản phẩm
             </div>
             <input
               className="w-full border rounded px-4 py-3 mb-2 text-lg focus:ring-2 focus:ring-blue-300"
               value={cmsContent.detailsTitle || ""}
               onChange={e => onChange({ ...cmsContent, detailsTitle: e.target.value })}
-              placeholder="Details Title"
+              placeholder="Tiêu đề chi tiết"
             />
             <textarea
               className="w-full border rounded px-4 py-3 font-mono text-lg focus:ring-2 focus:ring-blue-300"
               value={cmsContent.detailsContent || ""}
               onChange={e => onChange({ ...cmsContent, detailsContent: e.target.value })}
-              placeholder="Details Content (Markdown supported)"
+              placeholder="Nội dung chi tiết (hỗ trợ Markdown)"
               rows={8}
             />
           </section>
           {/* TABS SECTION */}
           <section className="mb-8">
             <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide flex items-center gap-2">
-              <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" /> Product Tabs
+              <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" /> Thông tin sản phẩm
             </div>
             {TAB_TITLES.map((fixedTitle, _fixedIdx) => {
               const tabIdx = tabs.findIndex(t => t.title.trim().toLowerCase() === fixedTitle.toLowerCase());
@@ -323,7 +323,7 @@ const ProductCmsModal = ({
                         if (tabIdx >= 0) updateTab(tabIdx, newTab);
                         else onChange({ ...cmsContent, tabs: [...tabs, newTab] });
                       }}
-                      placeholder="Paste video link (YouTube, Vimeo, etc.)"
+                      placeholder="Dán link video (YouTube, Vimeo, ...)"
                       type="url"
                       pattern="https?://.+"
                     />
@@ -340,7 +340,7 @@ const ProductCmsModal = ({
                                 refs[refIdx] = { ...refs[refIdx], title: e.target.value };
                                 updateReferenceTab(refs);
                               }}
-                              placeholder="Reference Title"
+                              placeholder="Tiêu đề tài liệu"
                             />
                             <input
                               className="border rounded px-2 py-1 flex-1"
@@ -350,7 +350,7 @@ const ProductCmsModal = ({
                                 refs[refIdx] = { ...refs[refIdx], link: e.target.value };
                                 updateReferenceTab(refs);
                               }}
-                              placeholder="Reference Link (https://...)"
+                              placeholder="Link tài liệu (https://...)"
                               type="url"
                               pattern="https?://.+"
                             />
@@ -362,7 +362,7 @@ const ProductCmsModal = ({
                                 refs.splice(refIdx, 1);
                                 updateReferenceTab(refs);
                               }}
-                              aria-label="Remove reference"
+                              aria-label="Xóa tài liệu"
                             >
                               &times;
                             </button>
@@ -373,7 +373,7 @@ const ProductCmsModal = ({
                           className="mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-xs font-semibold w-fit"
                           onClick={() => updateReferenceTab([...(tab.references || []), { title: "", link: "" }])}
                         >
-                          + Add Reference
+                          + Thêm tài liệu
                         </button>
                       </div>
                     </>
@@ -388,27 +388,27 @@ const ProductCmsModal = ({
                           if (tabIdx >= 0) updateTab(tabIdx, newTab);
                           else onChange({ ...cmsContent, tabs: [...tabs, newTab] });
                         }}
-                        placeholder={`${fixedTitle} Content (Markdown supported)`}
+                        placeholder={`Nội dung ${fixedTitle} (hỗ trợ Markdown)`}
                         rows={4}
                       />
                       <div className="flex flex-col gap-2">
                         {(tab.images || []).map((img, imgIdx) => (
                           <div key={imgIdx} className="flex items-center gap-2">
                             {img && (
-                              <img src={img} alt={`Tab ${fixedTitle} Image ${imgIdx + 1}`} className="w-20 h-20 object-cover rounded border shadow" />
+                              <img src={img} alt={`Tab ${fixedTitle} Ảnh ${imgIdx + 1}`} className="w-20 h-20 object-cover rounded border shadow" />
                             )}
                             <button
                               type="button"
                               className="bg-blue-100 text-blue-700 rounded px-4 py-2 hover:bg-blue-200 font-semibold"
                               onClick={() => setShowMediaPicker({ field: "tabImages", tabIdx, imgIdx })}
                             >
-                              {img ? "Change" : "Select"} Image
+                              {img ? "Đổi" : "Chọn"} ảnh
                             </button>
                             <button
                               type="button"
                               className="text-red-500 hover:text-red-700 text-lg"
                               onClick={() => removeTabImage(tabIdx, imgIdx)}
-                              aria-label="Remove image"
+                              aria-label="Xóa ảnh"
                             >
                               &times;
                             </button>
@@ -419,7 +419,7 @@ const ProductCmsModal = ({
                           className="mt-2 px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-base font-semibold w-fit"
                           onClick={() => addTabImage(tabIdx)}
                         >
-                          + Add Tab Image
+                          + Thêm ảnh
                         </button>
                       </div>
                     </>
@@ -642,14 +642,14 @@ const ProductCmsModal = ({
               className="bg-blue-600 text-white px-8 py-2 rounded-lg hover:bg-blue-700 font-semibold text-base"
               type="submit"
             >
-              Save
+              Lưu
             </Button>
             <Button
               className="bg-gray-200 px-8 py-2 rounded-lg font-semibold text-base"
               type="button"
               onClick={onClose}
             >
-              Cancel
+              Hủy
             </Button>
           </div>
         </form>

@@ -17,11 +17,11 @@ const DeleteFolderModal: React.FC<DeleteFolderModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
       <div className="bg-white rounded-xl shadow-lg max-w-sm w-full p-8 relative">
-        <h3 className="text-lg font-bold mb-4 text-red-600">Delete Folder</h3>
+        <h3 className="text-lg font-bold mb-4 text-red-600">Xóa thư mục</h3>
         <p className="mb-4">
-          Are you sure you want to delete this folder and all its images?
+          Bạn có chắc chắn muốn xóa thư mục này và toàn bộ ảnh bên trong?
           <br />
-          <span className="text-sm text-gray-500">This action cannot be undone.</span>
+          <span className="text-sm text-gray-500">Hành động này không thể hoàn tác.</span>
         </p>
         <div className="flex justify-end gap-2">
           <button
@@ -30,7 +30,7 @@ const DeleteFolderModal: React.FC<DeleteFolderModalProps> = ({
             onClick={onCancel}
             disabled={deleting}
           >
-            Cancel
+            Hủy
           </button>
           <button
             className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700"
@@ -38,7 +38,7 @@ const DeleteFolderModal: React.FC<DeleteFolderModalProps> = ({
             onClick={onDelete}
             disabled={deleting}
           >
-            {deleting ? "Deleting..." : "Delete"}
+            {deleting ? "Đang xóa..." : "Xóa"}
           </button>
         </div>
       </div>

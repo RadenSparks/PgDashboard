@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { FaSearch, FaMoon, FaSun, FaUser, FaCog, FaSignOutAlt } from "react-icons/fa"; // <-- Add Chakra UI icons here
+import { FaSearch, FaMoon, FaSun, FaUser, FaCog, FaSignOutAlt } from "react-icons/fa";
 import { Input } from "../widgets/input";
 import { Button } from "../widgets/button";
 import { Avatar, AvatarImage, AvatarFallback } from "../widgets/avatar";
@@ -100,7 +100,7 @@ const Navbar = ({
       </Avatar>
       <Box>
         <Text fontWeight="bold" color="blue.700" fontSize="md" noOfLines={1}>
-          {currentUser?.username || "User"}
+          {currentUser?.username || "Người dùng"}
         </Text>
         <Text fontSize="xs" color="gray.500" noOfLines={1}>
           {currentUser?.email || ""}
@@ -126,7 +126,6 @@ const Navbar = ({
         backdropFilter: "blur(8px)",
         borderBottom: "1.5px solid #e5e7eb",
         boxShadow: "0 2px 12px 0 rgba(30,64,175,0.06)",
-        // Optional: add a little transparency for a glassy effect
         backgroundColor: "rgba(29, 114, 194, 0.85)",
       }}
     >
@@ -140,8 +139,8 @@ const Navbar = ({
         align="center"
         className="relative"
       >
-        {/* Collapse/Expand Button (left side, vertically centered) */}
-        <Tooltip label={collapsed ? "Expand sidebar" : "Collapse sidebar"} placement="right" hasArrow>
+        {/* Collapse/Expand Button */}
+        <Tooltip label={collapsed ? "Mở rộng menu" : "Thu gọn menu"} placement="right" hasArrow>
           <button
             onClick={() => setCollapsed((prev) => !prev)}
             className={`
@@ -158,7 +157,7 @@ const Navbar = ({
               active:scale-95
               mr-4
             `}
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-label={collapsed ? "Mở rộng menu" : "Thu gọn menu"}
             aria-pressed={collapsed}
             tabIndex={0}
             type="button"
@@ -172,7 +171,7 @@ const Navbar = ({
               }
             }}
           >
-            <span className="sr-only">{collapsed ? "Expand sidebar" : "Collapse sidebar"}</span>
+            <span className="sr-only">{collapsed ? "Mở rộng menu" : "Thu gọn menu"}</span>
             <img
               src="/assets/icons/lefticon.svg"
               height={28}
@@ -204,7 +203,7 @@ const Navbar = ({
             <FaSearch className="text-blue-500" />
             <Input
               type="text"
-              placeholder="Search for anything..."
+              placeholder="Tìm kiếm..."
               className="h-10 md:h-12 w-full border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-sm"
             />
           </Flex>
@@ -214,7 +213,7 @@ const Navbar = ({
         <Flex align="center" gap={4} className="min-w-fit">
           {/* Dark Mode */}
           <IconButton
-            aria-label="Toggle dark mode"
+            aria-label="Chuyển chế độ sáng/tối"
             icon={colorMode === "dark" ? <FaSun /> : <FaMoon />}
             onClick={toggleColorMode}
             variant="ghost"
@@ -235,7 +234,7 @@ const Navbar = ({
                 setNotificationOpen(false);
                 setMenuOpen(false);
               }}
-              aria-label="Open calendar"
+              aria-label="Mở lịch"
             >
               <img
                 src="/assets/icons/calendar.svg"
@@ -260,9 +259,9 @@ const Navbar = ({
                 minW="260px"
                 color={textColor}
               >
-                <div className="text-center font-semibold mb-2">May 2025</div>
+                <div className="text-center font-semibold mb-2">Tháng 5/2025</div>
                 <div className="grid grid-cols-7 gap-1 text-xs">
-                  <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+                  <span>CN</span><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span>
                   <span className="col-span-4" />
                   {[...Array(31)].map((_, i) => (
                     <span
@@ -289,7 +288,7 @@ const Navbar = ({
                 setMenuOpen(false);
                 setNotifications(prev => prev.map(n => ({ ...n, read: true })));
               }}
-              aria-label="Show notifications"
+              aria-label="Thông báo"
             >
               <img
                 src="/assets/icons/notification.svg"
@@ -322,9 +321,9 @@ const Navbar = ({
                 minW="220px"
                 color={textColor}
               >
-                <div className="px-4 py-2 font-semibold border-b border-gray-200 dark:border-gray-600">Notifications</div>
+                <div className="px-4 py-2 font-semibold border-b border-gray-200 dark:border-gray-600">Thông báo</div>
                 {notifications.length === 0 ? (
-                  <div className="px-4 py-2 text-gray-400">No notifications</div>
+                  <div className="px-4 py-2 text-gray-400">Không có thông báo</div>
                 ) : (
                   notifications.map(n => (
                     <div key={n.id} className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer">
@@ -332,7 +331,7 @@ const Navbar = ({
                     </div>
                   ))
                 )}
-                <div className="px-4 py-2 text-center text-xs text-gray-400 border-t dark:border-gray-600">View all</div>
+                <div className="px-4 py-2 text-center text-xs text-gray-400 border-t dark:border-gray-600">Xem tất cả</div>
               </Box>
             )}
           </Box>
@@ -347,7 +346,7 @@ const Navbar = ({
                 setNotificationOpen(false);
                 setCalendarOpen(false);
               }}
-              aria-label="Open user menu"
+              aria-label="Mở menu người dùng"
               aria-haspopup="menu"
               aria-expanded={menuOpen}
               aria-controls="user-menu-dropdown"
@@ -357,7 +356,7 @@ const Navbar = ({
                 <AvatarFallback>{currentUser?.username?.[0] || "U"}</AvatarFallback>
               </Avatar>
               <span className="text-lg max-w-[100px] truncate" title={currentUser?.username}>
-                {currentUser?.username || "User"}
+                {currentUser?.username || "Người dùng"}
               </span>
               <MdOutlineKeyboardArrowDown size={24} />
             </Button>
@@ -393,7 +392,7 @@ const Navbar = ({
                 >
                   <span className="flex items-center gap-2">
                     <FaUser size={18} />
-                    Profile
+                    Hồ sơ
                   </span>
                 </Button>
                 <Button
@@ -407,7 +406,7 @@ const Navbar = ({
                 >
                   <span className="flex items-center gap-2">
                     <FaCog size={18} />
-                    Settings
+                    Cài đặt
                   </span>
                 </Button>
                 <Box px={4} py={2}>
@@ -419,7 +418,7 @@ const Navbar = ({
                   >
                     <span className="flex items-center gap-2">
                       <FaSignOutAlt size={18} />
-                      Sign out
+                      Đăng xuất
                     </span>
                   </Button>
                 </Box>
@@ -440,7 +439,7 @@ const Navbar = ({
               className="block w-full text-left px-4 py-2"
               onClick={handleSignout}
             >
-              Signout
+              Đăng xuất
             </Button>
           </Box>
         </DrawerContent>

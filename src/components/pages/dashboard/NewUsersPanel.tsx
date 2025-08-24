@@ -20,14 +20,14 @@ const NewUsersPanel = ({
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
       <h3 className="font-semibold text-lg flex items-center gap-2">
         <FaUserPlus className="text-pink-500" size={22} />
-        <span>Newly Joined Users</span>
+        <span>Người dùng mới đăng ký</span>
       </h3>
       <div className="self-end sm:self-auto">
         <Button
           className="flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-700 border border-blue-200 rounded text-sm hover:bg-blue-200 transition"
           onClick={handleNavigateToNewUsers}
         >
-          View All
+          Xem tất cả
           <FaArrowRight />
         </Button>
       </div>
@@ -35,7 +35,7 @@ const NewUsersPanel = ({
 
     <ul className="flex flex-col gap-4">
       {newUsers.length === 0 ? (
-        <li className="text-gray-400 text-center py-6">No new users yet.</li>
+        <li className="text-gray-400 text-center py-6">Chưa có người dùng mới.</li>
       ) : (
         newUsers.map((user, idx) => (
           <li
@@ -49,7 +49,7 @@ const NewUsersPanel = ({
               onError={(e) => {
                 (e.currentTarget as HTMLImageElement).src =
                   "https://ui-avatars.com/api/?name=" +
-                  encodeURIComponent(user.name || "User");
+                  encodeURIComponent(user.name || "Người dùng");
               }}
             />
 

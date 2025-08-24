@@ -33,13 +33,13 @@ const CommentTable = ({
     <table className="min-w-full text-sm border-separate border-spacing-y-2">
       <thead>
         <tr className="text-left border-b bg-blue-50">
-          <th className="py-2 px-2 rounded-tl-lg">Product</th>
-          <th className="py-2 px-2">User</th>
-          <th className="py-2 px-2">Comment</th>
-          <th className="py-2 px-2">Date</th>
-          <th className="py-2 px-2">Status</th>
-          <th className="py-2 px-2">Actions</th>
-          <th className="py-2 px-2 rounded-tr-lg">Rating</th>
+          <th className="py-2 px-2 rounded-tl-lg">Sản phẩm</th>
+          <th className="py-2 px-2">Người dùng</th>
+          <th className="py-2 px-2">Bình luận</th>
+          <th className="py-2 px-2">Ngày</th>
+          <th className="py-2 px-2">Trạng thái</th>
+          <th className="py-2 px-2">Thao tác</th>
+          <th className="py-2 px-2 rounded-tr-lg">Đánh giá</th>
         </tr>
       </thead>
       <tbody>
@@ -58,7 +58,7 @@ const CommentTable = ({
                   onClick={() => onViewDetail(comment.id)}
                   disabled={actionLoading}
                 >
-                  View Detail
+                  Xem chi tiết
                 </Button>
               )}
             </td>
@@ -71,7 +71,7 @@ const CommentTable = ({
                     : "text-gray-500 font-semibold"
                 }
               >
-                {comment.status}
+                {comment.status === "Visible" ? "Hiển thị" : "Ẩn"}
               </span>
             </td>
             <td className="py-2 px-2 flex gap-2">
@@ -85,7 +85,7 @@ const CommentTable = ({
                 onClick={() => onToggleStatus(comment.id)}
                 disabled={actionLoading}
               >
-                {comment.status === "Visible" ? "Hide" : "Show"}
+                {comment.status === "Visible" ? "Ẩn" : "Hiển thị"}
               </Button>
               <Button
                 size="sm"
@@ -94,7 +94,7 @@ const CommentTable = ({
                 disabled={actionLoading}
               >
                 <FaTrash className="inline mr-1" />
-                Delete
+                Xóa
               </Button>
             </td>
             <td className="py-2 px-2">{comment.rating ?? "-"}</td>
@@ -103,7 +103,7 @@ const CommentTable = ({
         {comments.length === 0 && (
           <tr>
             <td colSpan={7} className="py-6 text-center text-gray-400">
-              No comments found.
+              Không tìm thấy bình luận nào.
             </td>
           </tr>
         )}

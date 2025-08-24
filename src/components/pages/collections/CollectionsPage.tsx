@@ -197,7 +197,7 @@ const CollectionsPage: React.FC = () => {
             <div className="max-w-7xl mx-auto">
                 <div className="flex justify-between items-center mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Quản lý Collections</h1>
+                        <h1 className="text-3xl font-bold text-gray-900">Quản lý bộ sưu tập</h1>
                         <p className="text-gray-600 mt-2">Tạo và quản lý các bộ sưu tập sản phẩm</p>
                     </div>
                     <Button
@@ -207,7 +207,7 @@ const CollectionsPage: React.FC = () => {
                         onClick={() => handleOpenModal()}
                         className="shadow-lg"
                     >
-                        Thêm Collection
+                        Thêm bộ sưu tập
                     </Button>
                 </div>
                 <SimpleGrid columns={{ base: 1, lg: 2, xl: 3 }} spacing={6}>
@@ -224,7 +224,7 @@ const CollectionsPage: React.FC = () => {
                     isOpen={isOpen}
                     onClose={handleCloseModal}
                     formData={formData}
-                    setFormData={setFormData} // <-- FIX: pass setFormData directly, not with a typed lambda
+                    setFormData={setFormData}
                     editingId={editingId !== null ? String(editingId) : null}
                     categories={categories}
                     productSearch={productSearch}

@@ -46,9 +46,9 @@ const FONT_FAMILIES = [
 ];
 
 const FONT_SIZES = [
-  { label: 'Small', value: 'text-base' },
-  { label: 'Medium', value: 'text-lg' },
-  { label: 'Large', value: 'text-2xl' },
+  { label: 'Nhỏ', value: 'text-base' },
+  { label: 'Vừa', value: 'text-lg' },
+  { label: 'Lớn', value: 'text-2xl' },
 ];
 
 const COLORS = [
@@ -228,7 +228,7 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
         <button
           className="absolute top-4 right-4 z-10 bg-white border border-gray-200 rounded-full shadow p-2 hover:bg-blue-50 transition pointer-events-auto"
           onClick={onSuccess}
-          aria-label="Close"
+          aria-label="Đóng"
           type="button"
         >
           <span className="text-2xl leading-none">&times;</span>
@@ -246,29 +246,29 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
               <div className="p-8 border-b bg-gradient-to-r from-blue-50 to-white shrink-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block font-semibold mb-1 text-blue-900">Title</label>
+                    <label className="block font-semibold mb-1 text-blue-900">Tiêu đề</label>
                     <input
                       name="name"
                       value={form.name || ''}
                       onChange={handleChange}
-                      placeholder="Title"
+                      placeholder="Nhập tiêu đề bài viết"
                       className="w-full border border-blue-100 rounded-lg p-3 text-2xl font-bold bg-blue-50 focus:ring-2 focus:ring-blue-300 transition"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block font-semibold mb-1 text-blue-900">Canonical</label>
+                    <label className="block font-semibold mb-1 text-blue-900">Đường dẫn (Canonical)</label>
                     <input
                       name="canonical"
                       value={form.canonical || ''}
                       onChange={handleChange}
-                      placeholder="Canonical"
+                      placeholder="Nhập đường dẫn"
                       className="w-full border border-blue-100 rounded-lg p-3 text-lg bg-blue-50 focus:ring-2 focus:ring-blue-300 transition"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block font-semibold mb-1 text-blue-900">Catalogue</label>
+                    <label className="block font-semibold mb-1 text-blue-900">Danh mục</label>
                     <select
                       name="catalogueId"
                       value={form.catalogueId || form.catalogue?.id || ''}
@@ -276,37 +276,37 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
                       className="w-full border border-blue-100 rounded-lg p-3 text-lg bg-blue-50 focus:ring-2 focus:ring-blue-300 transition"
                       required
                     >
-                      <option value="">Select Catalogue</option>
+                      <option value="">Chọn danh mục</option>
                       {catalogues.map(cat => (
                         <option key={cat.id} value={cat.id}>{cat.name}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block font-semibold mb-1 text-blue-900">Order</label>
+                    <label className="block font-semibold mb-1 text-blue-900">Thứ tự hiển thị</label>
                     <select
                       name="order"
                       value={form.order || ''}
                       onChange={handleChange}
                       className="w-full border border-blue-100 rounded-lg p-3 text-lg bg-blue-50 focus:ring-2 focus:ring-blue-300 transition"
                     >
-                      <option value="">Select Order</option>
+                      <option value="">Chọn thứ tự</option>
                       {orderOptions.map(i => (
                         <option key={i} value={i}>
-                          {i === 1 ? "1 (Featured)" : i}
-                          {usedOrders.includes(i) && form.order !== i ? " (Used)" : ""}
+                          {i === 1 ? "1 (Nổi bật)" : i}
+                          {usedOrders.includes(i) && form.order !== i ? " (Đã dùng)" : ""}
                         </option>
                       ))}
                     </select>
                   </div>
                 </div>
                 <div className="mt-6">
-                  <label className="block font-semibold mb-1 text-blue-900">Description</label>
+                  <label className="block font-semibold mb-1 text-blue-900">Mô tả</label>
                   <textarea
                     name="description"
                     value={form.description || ''}
                     onChange={handleChange}
-                    placeholder="Description"
+                    placeholder="Nhập mô tả ngắn cho bài viết"
                     rows={2}
                     className="w-full border border-blue-100 rounded-lg p-3 text-lg bg-blue-50 focus:ring-2 focus:ring-blue-300 transition"
                   />
@@ -336,31 +336,31 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
                 </div>
                 {/* Cover Image Picker */}
                 <div className="mt-8 px-0">
-                  <label className="block font-semibold mb-2 text-lg text-blue-900">Cover Image</label>
+                  <label className="block font-semibold mb-2 text-lg text-blue-900">Ảnh bìa</label>
                   <div className="flex items-center gap-4 flex-wrap">
                     <button
                       type="button"
                       className="bg-blue-100 text-blue-700 rounded-lg px-4 py-2 hover:bg-blue-200 text-base font-medium shadow-sm transition"
                       onClick={() => setShowMediaPicker("cover")}
                     >
-                      {form.image ? "Change Cover Image" : "Select from Media Library"}
+                      {form.image ? "Đổi ảnh bìa" : "Chọn từ thư viện"}
                     </button>
                     {form.image && (
                       <button
                         type="button"
                         className="bg-gray-200 text-gray-600 rounded-lg px-3 py-2 hover:bg-gray-300 text-sm font-medium shadow-sm transition"
                         onClick={() => setForm(f => ({ ...f, image: undefined }))}
-                        aria-label="Remove cover image"
-                        title="Remove cover image"
+                        aria-label="Xóa ảnh bìa"
+                        title="Xóa ảnh bìa"
                       >
-                        Remove
+                        Xóa
                       </button>
                     )}
                   </div>
                   {form.image && (
                     <img
                       src={form.image}
-                      alt="Cover"
+                      alt="Ảnh bìa"
                       className="w-32 h-32 object-cover rounded-xl mt-4 border border-blue-100 shadow"
                     />
                   )}
@@ -408,7 +408,7 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
                   value={form.content || ''}
                   onChange={handleChange}
                   onKeyDown={handleKeyDown}
-                  placeholder="Write your post in Markdown..."
+                  placeholder="Viết bài bằng Markdown..."
                   className="w-full flex-1 min-h-[600px] max-h-[1200px] border-none outline-none rounded-xl p-10 font-serif text-2xl bg-blue-50 shadow-inner focus:ring-2 focus:ring-blue-400 transition-all resize-vertical leading-relaxed"
                   style={{
                     fontFamily,
@@ -436,7 +436,7 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
                             className="absolute top-0 right-0 bg-white bg-opacity-80 rounded-full p-1 text-xs text-red-500 hover:bg-red-100 transition"
                             style={{ transform: 'translate(30%,-30%)' }}
                             onClick={() => setGalleryImages(galleryImages.filter((_, i) => i !== idx))}
-                            title="Remove"
+                            title="Xóa"
                           >
                             ×
                           </button>
@@ -444,9 +444,9 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
                             type="button"
                             className="absolute bottom-0 left-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-tr-xl rounded-bl-xl opacity-80 hover:opacity-100 transition"
                             onClick={() => insertMarkdown(`\n\n![](${img})\n\n`)}
-                            title="Insert into post"
+                            title="Chèn vào bài viết"
                           >
-                            Insert
+                            Chèn
                           </button>
                         </div>
                       ))}
@@ -457,7 +457,7 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
               {/* Submit Button */}
               <div className="border-t bg-gradient-to-r from-blue-50 to-white px-8 py-6 flex justify-end shrink-0">
                 <button type="submit" className="bg-blue-600 text-white px-10 py-4 text-xl rounded-xl font-semibold hover:bg-blue-700 shadow transition">
-                  {form.id ? 'Update' : 'Create'} Post
+                  {form.id ? 'Cập nhật' : 'Tạo mới'} bài viết
                 </button>
               </div>
             </div>

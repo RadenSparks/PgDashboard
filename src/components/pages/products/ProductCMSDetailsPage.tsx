@@ -38,7 +38,7 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
             <GallerySlider images={cmsContent.heroImages} />
           ) : (
             <div className="w-full h-64 bg-gray-100 flex items-center justify-center rounded">
-              <span className="text-gray-400">No images</span>
+              <span className="text-gray-400">Không có ảnh nào</span>
             </div>
           )}
         </div>
@@ -60,7 +60,7 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
                   <img
                     key={idx}
                     src={img}
-                    alt={`About ${idx + 1}`}
+                    alt={`Ảnh giới thiệu ${idx + 1}`}
                     className="w-28 h-28 object-cover rounded border"
                   />
                 ) : null
@@ -73,14 +73,14 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
       {/* SLIDER SECTION */}
       {cmsContent.sliderImages && cmsContent.sliderImages.length > 0 && (
         <section className="mb-10">
-          <h4 className="text-xl font-semibold mb-2" style={{ color: textColor, fontFamily }}>Gallery</h4>
+          <h4 className="text-xl font-semibold mb-2" style={{ color: textColor, fontFamily }}>Trình chiếu ảnh</h4>
           <div className="flex gap-2 flex-wrap">
             {cmsContent.sliderImages.map((img, idx) =>
               img ? (
                 <img
                   key={idx}
                   src={img}
-                  alt={`Slider ${idx + 1}`}
+                  alt={`Trình chiếu ${idx + 1}`}
                   className="w-20 h-20 object-cover rounded border"
                 />
               ) : null
@@ -94,7 +94,7 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
         <section className="mb-10">
           <h4 className="text-xl font-semibold mb-2" style={{ color: textColor, fontFamily }}>{cmsContent.detailsTitle}</h4>
           <div className="prose max-w-none border rounded p-4 bg-white" style={{ color: textColor, fontFamily, fontSize }}>
-            <ReactMarkdown>{cmsContent.detailsContent || "*No details provided.*"}</ReactMarkdown>
+            <ReactMarkdown>{cmsContent.detailsContent || "*Không có nội dung chi tiết.*"}</ReactMarkdown>
           </div>
         </section>
       )}
@@ -102,7 +102,7 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
       {/* FEATURED SECTION (Alternating 2-column blocks) */}
       {cmsContent.featuredSections && cmsContent.featuredSections.length > 0 && (
         <section className="mb-10">
-          <h4 className="text-xl font-semibold mb-6" style={{ color: textColor, fontFamily }}>Featured Section</h4>
+          <h4 className="text-xl font-semibold mb-6" style={{ color: textColor, fontFamily }}>Phần nổi bật</h4>
           <div className="grid grid-cols-1 gap-8">
             {cmsContent.featuredSections.map((block, idx) => (
               <div
@@ -118,7 +118,7 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
                   <div className="flex-shrink-0">
                     <img
                       src={block.imageSrc}
-                      alt={block.imageAlt || `Block ${idx + 1}`}
+                      alt={block.imageAlt || `Khối ${idx + 1}`}
                       className="w-40 h-40 object-cover rounded-xl border shadow"
                     />
                   </div>
@@ -128,9 +128,9 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
                   <h5 className="text-2xl font-bold mb-2" style={{ color: textColor, fontFamily }}>{block.title}</h5>
                   <div className="mb-2 text-base" style={{ color: textColor }}>{block.description}</div>
                   <div className="text-xs text-gray-500 mb-1">
-                    {block.isImageRight ? "Image Right" : "Image Left"}
+                    {block.isImageRight ? "Ảnh bên phải" : "Ảnh bên trái"}
                   </div>
-                  <div className="text-xs text-gray-400">Background: <span style={{ background: block.textBgColor, padding: "0 8px", borderRadius: 4 }}>{block.textBgColor}</span></div>
+                  <div className="text-xs text-gray-400">Nền: <span style={{ background: block.textBgColor, padding: "0 8px", borderRadius: 4 }}>{block.textBgColor}</span></div>
                 </div>
               </div>
             ))}
@@ -140,7 +140,7 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
 
       {/* PRODUCT TABS SECTION - Fixed Tabs: Specifications, How To Play, Contents */}
       <section className="mb-10">
-        <h4 className="text-xl font-semibold mb-2" style={{ color: textColor, fontFamily }}>Product Tabs</h4>
+        <h4 className="text-xl font-semibold mb-2" style={{ color: textColor, fontFamily }}>Thông tin sản phẩm</h4>
         {["Nội dung", "Cách chơi", "Tham Khảo"].map((fixedTitle) => {
           const tab = cmsContent.tabs?.find(
             t => t.title.trim().toLowerCase() === fixedTitle.trim().toLowerCase()
@@ -148,11 +148,11 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
           if (!tab) return (
             <div key={fixedTitle} className="mb-6">
               <div className="font-bold mb-1" style={{ color: textColor }}>{fixedTitle}</div>
-              <div className="text-gray-400 italic">No content provided.</div>
+              <div className="text-gray-400 italic">Không có nội dung.</div>
             </div>
           );
 
-          if (fixedTitle === "How To Play") {
+          if (fixedTitle === "Cách chơi") {
             return (
               <div key={fixedTitle} className="mb-6">
                 <div className="font-bold mb-1" style={{ color: textColor }}>{fixedTitle}</div>
@@ -176,7 +176,7 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
                               ? tab.content.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/")
                               : tab.content
                           }
-                          title="How To Play Video"
+                          title="Video hướng dẫn chơi"
                           frameBorder={0}
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                           allowFullScreen
@@ -185,7 +185,7 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
                     )}
                   </div>
                 ) : (
-                  <div className="text-gray-400 italic">No video link provided.</div>
+                  <div className="text-gray-400 italic">Không có link video.</div>
                 )}
               </div>
             );
@@ -196,7 +196,7 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
             <div key={fixedTitle} className="mb-6">
               <div className="font-bold mb-1" style={{ color: textColor }}>{fixedTitle}</div>
               <div className="prose max-w-none border rounded p-4 bg-white" style={{ color: textColor, fontFamily, fontSize }}>
-                <ReactMarkdown>{tab.content || "*No details provided.*"}</ReactMarkdown>
+                <ReactMarkdown>{tab.content || "*Không có nội dung chi tiết.*"}</ReactMarkdown>
               </div>
               {tab.images && tab.images.length > 0 && (
                 <div className="flex gap-2 flex-wrap mt-2">
@@ -205,7 +205,7 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
                       <img
                         key={imgIdx}
                         src={img}
-                        alt={`Tab ${fixedTitle} Image ${imgIdx + 1}`}
+                        alt={`Tab ${fixedTitle} Ảnh ${imgIdx + 1}`}
                         className="w-16 h-16 object-cover rounded border"
                       />
                     ) : null

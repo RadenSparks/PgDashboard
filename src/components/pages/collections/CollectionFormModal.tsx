@@ -83,7 +83,7 @@ const CollectionFormModal: React.FC<CollectionFormModalProps> = ({
       <ModalOverlay />
       <ModalContent className="max-h-[90vh] overflow-hidden rounded-2xl">
         <ModalHeader className="bg-blue-50 border-b rounded-t-2xl">
-          {editingId ? 'Chỉnh sửa Collection' : 'Thêm Collection mới'}
+          {editingId ? 'Chỉnh sửa bộ sưu tập' : 'Thêm bộ sưu tập mới'}
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody className="overflow-y-auto">
@@ -91,11 +91,11 @@ const CollectionFormModal: React.FC<CollectionFormModalProps> = ({
             {/* Form Section */}
             <div className="space-y-4">
               <FormControl isRequired>
-                <FormLabel>Tên Collection</FormLabel>
+                <FormLabel>Tên bộ sưu tập</FormLabel>
                 <Input
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Nhập tên collection"
+                  placeholder="Nhập tên bộ sưu tập"
                   className="rounded-lg"
                 />
               </FormControl>
@@ -104,7 +104,7 @@ const CollectionFormModal: React.FC<CollectionFormModalProps> = ({
                 <Textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Nhập mô tả collection"
+                  placeholder="Nhập mô tả bộ sưu tập"
                   rows={4}
                   className="rounded-lg"
                 />
@@ -117,9 +117,9 @@ const CollectionFormModal: React.FC<CollectionFormModalProps> = ({
                 {formData.image_url && (
                   <Image
                     src={formData.image_url}
-                    alt="Preview"
+                    alt="Xem trước"
                     className="w-full h-40 object-cover rounded-xl mt-2 border border-gray-200"
-                    fallbackSrc="https://via.placeholder.com/400x200?text=Invalid+URL"
+                    fallbackSrc="https://via.placeholder.com/400x200?text=Không+có+ảnh"
                   />
                 )}
               </FormControl>
@@ -138,7 +138,7 @@ const CollectionFormModal: React.FC<CollectionFormModalProps> = ({
                       {formData.products.map((product) => (
                         <WrapItem key={product.id}>
                           <Badge variant={product.category_ID?.name === "Boardgame" ? "default" : "secondary"} className="mr-1">
-                            {product.category_ID?.name === "Boardgame" ? "Boardgame" : product.category_ID?.name === "Expansions" ? "Expansion" : "Other"}
+                            {product.category_ID?.name === "Boardgame" ? "Boardgame" : product.category_ID?.name === "Expansions" ? "Bản mở rộng" : "Khác"}
                           </Badge>
                           <Tag size="md" colorScheme="blue" variant="solid" className="rounded-lg">
                             <TagLabel>{product.product_name}</TagLabel>
@@ -155,7 +155,7 @@ const CollectionFormModal: React.FC<CollectionFormModalProps> = ({
             <div className="space-y-4">
               <div>
                 <Text className="text-lg font-semibold text-gray-900 mb-4">
-                  Chọn sản phẩm cho collection
+                  Chọn sản phẩm cho bộ sưu tập
                 </Text>
                 {/* Search and Filter */}
                 <div className="space-y-3 mb-4">
@@ -214,7 +214,7 @@ const CollectionFormModal: React.FC<CollectionFormModalProps> = ({
                               });
                             }}
                           >
-                            Thêm tất cả expansions
+                            Thêm tất cả bản mở rộng
                           </Button>
                         )}
                       </div>
@@ -222,7 +222,7 @@ const CollectionFormModal: React.FC<CollectionFormModalProps> = ({
                     {/* Expansions for this base game */}
                     {expansions[baseGame.slug]?.length > 0 && (
                       <div className="ml-4">
-                        <span className="text-sm text-gray-600 font-semibold">Expansions:</span>
+                        <span className="text-sm text-gray-600 font-semibold">Bản mở rộng:</span>
                         <div className="flex flex-wrap gap-2 mt-1">
                           {expansions[baseGame.slug].map(exp => (
                             <Button
@@ -234,7 +234,7 @@ const CollectionFormModal: React.FC<CollectionFormModalProps> = ({
                               disabled={formData.products.some(p => p.id === exp.id)}
                               className="flex items-center gap-1"
                             >
-                              <Badge variant="secondary">Expansion</Badge>
+                              <Badge variant="secondary">Bản mở rộng</Badge>
                               {exp.product_name}
                             </Button>
                           ))}
@@ -252,7 +252,7 @@ const CollectionFormModal: React.FC<CollectionFormModalProps> = ({
                   <div key={prod.id} className="mb-2 flex items-center justify-between border rounded-lg p-2">
                     <span className="flex items-center gap-2">
                       <Badge variant={prod.category_ID?.name === "Expansions" ? "secondary" : "outline"}>
-                        {prod.category_ID?.name === "Expansions" ? "Expansion" : "Other"}
+                        {prod.category_ID?.name === "Expansions" ? "Bản mở rộng" : "Khác"}
                       </Badge>
                       {prod.product_name}
                     </span>

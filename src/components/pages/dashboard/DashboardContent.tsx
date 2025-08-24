@@ -292,9 +292,9 @@ const DashboardContent = () => {
             {/* Orders Table */}
             <div className="bg-white rounded-2xl shadow-lg p-8">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="font-bold text-xl text-blue-700">Recent Orders</h3>
+                <h3 className="font-bold text-xl text-blue-700">Đơn hàng gần đây</h3>
                 <Button className="flex gap-2 px-4 py-2 border bg-white border-blue-300 rounded-xl shadow hover:bg-blue-50 transition font-semibold">
-                  <span className="text-blue-700 font-medium">Export</span>
+                  <span className="text-blue-700 font-medium">Xuất dữ liệu</span>
                 </Button>
               </div>
               <OrdersTable orders={recentOrders} />
@@ -305,47 +305,47 @@ const DashboardContent = () => {
               {/* Sales Chart */}
               <div className="bg-white rounded-2xl shadow-lg p-8 col-span-2">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="font-bold text-xl text-blue-700">Sales Overview</h3>
+                  <h3 className="font-bold text-xl text-blue-700">Biểu đồ doanh số</h3>
                   <div className="flex gap-2">
                     <Button
                       className={`px-3 py-1 rounded-lg font-semibold border ${salesMode === "day" ? "bg-blue-100 text-blue-700" : "bg-white text-gray-600"}`}
                       onClick={() => setSalesMode("day")}
                     >
-                      Day
+                      Ngày
                     </Button>
                     <Button
                       className={`px-3 py-1 rounded-lg font-semibold border ${salesMode === "week" ? "bg-blue-100 text-blue-700" : "bg-white text-gray-600"}`}
                       onClick={() => setSalesMode("week")}
                     >
-                      Week
+                      Tuần
                     </Button>
                     <Button
                       className={`px-3 py-1 rounded-lg font-semibold border ${salesMode === "month" ? "bg-blue-100 text-blue-700" : "bg-white text-gray-600"}`}
                       onClick={() => setSalesMode("month")}
                     >
-                      Month
+                      Tháng
                     </Button>
                     <Button
                       className="flex gap-2 px-4 py-2 border bg-white border-blue-300 rounded-xl shadow hover:bg-blue-50 transition font-semibold"
                       onClick={handleExportSalesChart}
                     >
-                      <span className="text-blue-700 font-medium">Export Chart</span>
+                      <span className="text-blue-700 font-medium">Xuất biểu đồ</span>
                     </Button>
                   </div>
                 </div>
                 {salesChartData.length > 0 ? (
                   <SalesChart salesChartData={salesChartData} />
                 ) : (
-                  <div className="text-gray-400 text-center py-12">No sales data available.</div>
+                  <div className="text-gray-400 text-center py-12">Không có dữ liệu doanh số.</div>
                 )}
               </div>
               {/* Top Products */}
               <div className="bg-white rounded-2xl shadow-lg p-8 ">
-                <h3 className="font-bold text-xl text-blue-700 mb-6">Top Products</h3>
+                <h3 className="font-bold text-xl text-blue-700 mb-6">Sản phẩm bán chạy</h3>
                 {topProductsData.length > 0 ? (
                   <TopProducts topProductsData={topProductsData} />
                 ) : (
-                  <div className="text-gray-400 text-center py-12">No product sales data.</div>
+                  <div className="text-gray-400 text-center py-12">Không có dữ liệu sản phẩm.</div>
                 )}
               </div>
             </div>

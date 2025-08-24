@@ -30,7 +30,7 @@ const CategoriesPage = () => {
     if (newCategory.trim()) {
       await addCategory({ name: newCategory.trim(), description: newDescription.trim() }).unwrap();
       toast({
-        title: "Category created.",
+        title: "Đã tạo danh mục.",
         status: "success",
         duration: 2000,
         isClosable: true,
@@ -41,7 +41,7 @@ const CategoriesPage = () => {
       onClose();
     } else {
       toast({
-        title: "Category name required.",
+        title: "Tên danh mục là bắt buộc.",
         status: "warning",
         duration: 2000,
         isClosable: true,
@@ -62,7 +62,7 @@ const CategoriesPage = () => {
     setEditValue("");
     setEditDescription("");
     toast({
-      title: "Category updated.",
+      title: "Đã cập nhật danh mục.",
       status: "success",
       duration: 2000,
       isClosable: true,
@@ -73,7 +73,7 @@ const CategoriesPage = () => {
   const handleDelete = async (id: number) => {
     await deleteCategory(id);
     toast({
-      title: "Category deleted.",
+      title: "Đã xóa danh mục.",
       status: "info",
       duration: 2000,
       isClosable: true,
@@ -99,9 +99,9 @@ const CategoriesPage = () => {
           <Box>
             <div className="flex items-center gap-3 mb-1">
               <FaTags className="text-blue-600 text-2xl" />
-              <h2 className="text-3xl font-bold text-blue-800">Category Management</h2>
+              <h2 className="text-3xl font-bold text-blue-800">Quản lý danh mục</h2>
             </div>
-            <p className="text-gray-500 ml-1">Manage your product categories below.</p>
+            <p className="text-gray-500 ml-1">Quản lý các danh mục sản phẩm bên dưới.</p>
           </Box>
           <Button
             className="bg-blue-600 text-white hover:bg-blue-700 px-6 py-2 rounded-lg font-bold shadow-md flex items-center gap-2 transition"
@@ -109,7 +109,7 @@ const CategoriesPage = () => {
             type="button"
           >
             <FaPlus />
-            Add Category
+            Thêm danh mục
           </Button>
         </Stack>
         <Divider mb={6} />

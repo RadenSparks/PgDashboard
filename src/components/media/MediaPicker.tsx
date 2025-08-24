@@ -135,7 +135,7 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
         }`}
         onClick={() => setFolderPath([])}
       >
-        Root
+        Gốc
       </button>
       {folderPath.map((folderName, idx) => (
         <React.Fragment key={idx}>
@@ -184,7 +184,7 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
       >
         {/* Sidebar: Folder Tree */}
         <aside className="w-full md:w-64 border-b md:border-b-0 md:border-r bg-gray-50 p-4 md:p-6 overflow-y-auto rounded-t-xl md:rounded-l-xl md:rounded-tr-none max-h-40 md:max-h-none">
-          <div className="font-bold text-blue-700 mb-4">Folders</div>
+          <div className="font-bold text-blue-700 mb-4">Thư mục</div>
           <FolderSidebar
             tree={folderTree}
             path={folderPath}
@@ -195,7 +195,7 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
         {/* Main Content */}
         <div className="flex-1 p-4 md:p-8 flex flex-col overflow-y-auto">
           <h3 className="text-lg font-bold mb-2 text-blue-700">
-            Select Image{multiple ? "s" : ""}
+            Chọn ảnh{multiple ? "" : ""}
           </h3>
           {isLoading && (
             <div className="flex justify-center items-center py-8">
@@ -243,7 +243,7 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
                   className="bg-gray-200 px-6 py-2 rounded hover:bg-gray-300"
                   onClick={onClose}
                 >
-                  Cancel
+                  Hủy
                 </button>
                 {multiple && (
                   <button
@@ -254,7 +254,7 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
                     }}
                     disabled={selected.length === 0}
                   >
-                    Select
+                    Chọn
                   </button>
                 )}
               </div>

@@ -58,25 +58,25 @@ const MediaGrid: React.FC<MediaGridProps> = ({
           <button
             className="flex items-center gap-1 px-3 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-semibold hover:bg-blue-100 hover:text-blue-900 transition"
             onClick={() => handleCopy(item.url)}
-            title="Copy URL"
+            title="Sao chép URL"
           >
-            Copy
+            Sao chép
           </button>
           <a
             href={item.url}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1 px-3 py-1 rounded-lg bg-gray-50 text-gray-700 text-xs font-semibold hover:bg-gray-100 hover:text-blue-700 transition"
-            title="View Original"
+            title="Xem ảnh gốc"
           >
-            View
+            Xem
           </a>
           <button
             className="flex items-center gap-1 px-3 py-1 rounded-lg bg-red-50 text-red-600 text-xs font-semibold hover:bg-red-100 hover:text-red-800 transition"
             onClick={() => setDeleteTarget(item)}
-            title="Delete"
+            title="Xóa"
           >
-            Delete
+            Xóa
           </button>
         </div>
         {previewUrl === item.url && (

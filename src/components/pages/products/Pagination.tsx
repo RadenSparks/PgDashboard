@@ -14,8 +14,9 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
         className="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold disabled:opacity-50"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
+        aria-label="Trang trước"
       >
-        Prev
+        Trước
       </button>
       {[...Array(totalPages)].map((_, i) => (
         <button
@@ -26,6 +27,7 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
               : "bg-blue-50 text-blue-700 hover:bg-blue-200"
           }`}
           onClick={() => onPageChange(i + 1)}
+          aria-label={`Trang ${i + 1}`}
         >
           {i + 1}
         </button>
@@ -34,8 +36,9 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
         className="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold disabled:opacity-50"
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
+        aria-label="Trang sau"
       >
-        Next
+        Sau
       </button>
     </div>
   );

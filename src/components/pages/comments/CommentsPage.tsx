@@ -182,13 +182,13 @@ const CommentsPage = () => {
   return (
     <div className="p-8 bg-gradient-to-br from-blue-50 to-white min-h-screen">
       <h2 className="text-3xl font-extrabold mb-8 text-blue-800 tracking-tight drop-shadow">
-        Product Reviews
+        Đánh giá sản phẩm
       </h2>
       <div className="mb-6">
-        <label className="mr-2 font-semibold block mb-2 text-blue-700">Select Product:</label>
+        <label className="mr-2 font-semibold block mb-2 text-blue-700">Chọn sản phẩm:</label>
         <input
           className="border-2 border-blue-200 rounded px-3 py-2 mb-3 w-full max-w-xs focus:ring-2 focus:ring-blue-400 transition"
-          placeholder="Search product..."
+          placeholder="Tìm kiếm sản phẩm..."
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
@@ -213,7 +213,7 @@ const CommentsPage = () => {
           >
             {filteredProducts.length === 0 && (
               <div className="col-span-full text-gray-400 italic text-center py-8">
-                No products found.
+                Không tìm thấy sản phẩm nào.
               </div>
             )}
             {filteredProducts.map((p: Product) => (
@@ -250,7 +250,7 @@ const CommentsPage = () => {
         </div>
       </div>
       <div className="bg-white rounded-2xl shadow-lg p-8 border border-blue-100">
-        {isFetching && <div className="text-blue-600 font-semibold">Loading reviews...</div>}
+        {isFetching && <div className="text-blue-600 font-semibold">Đang tải đánh giá...</div>}
         {!isFetching && selectedProductId && (
           <CommentTable
             comments={comments}
@@ -261,7 +261,7 @@ const CommentsPage = () => {
             actionLoading={actionLoading}
           />
         )}
-        {!selectedProductId && <div className="text-gray-500">Please select a product to view reviews.</div>}
+        {!selectedProductId && <div className="text-gray-500">Vui lòng chọn sản phẩm để xem đánh giá.</div>}
       </div>
 
       {/* View Detail Modal */}
@@ -279,7 +279,7 @@ const CommentsPage = () => {
           modalRef={modalRef}
           onCancel={cancelDelete}
           onConfirm={confirmDelete}
-          loading={actionLoading} // <-- Make sure DeleteCommentModalProps includes 'loading'
+          loading={actionLoading}
         />
       )}
     </div>

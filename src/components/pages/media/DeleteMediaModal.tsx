@@ -20,11 +20,13 @@ const DeleteMediaModal: React.FC<DeleteMediaModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
       <div className="bg-white rounded-xl shadow-lg max-w-sm w-full p-8 relative">
-        <h3 className="text-lg font-bold mb-4 text-red-600">Delete Media</h3>
+        <h3 className="text-lg font-bold mb-4 text-red-600">Xóa ảnh</h3>
         <p className="mb-4">
-          Are you sure you want to delete <span className="font-semibold">{target.name}</span>?
-          <br />
-          <span className="text-sm text-gray-500">This action cannot be undone.</span>
+          Bạn có chắc chắn muốn xóa{" "}
+          <span className="font-semibold">{target.name}</span>?<br />
+          <span className="text-sm text-gray-500">
+            Hành động này không thể hoàn tác.
+          </span>
         </p>
         <div className="flex justify-end gap-2">
           <button
@@ -33,7 +35,7 @@ const DeleteMediaModal: React.FC<DeleteMediaModalProps> = ({
             onClick={onCancel}
             disabled={deleting}
           >
-            Cancel
+            Hủy
           </button>
           <button
             className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700"
@@ -41,7 +43,7 @@ const DeleteMediaModal: React.FC<DeleteMediaModalProps> = ({
             onClick={onDelete}
             disabled={deleting}
           >
-            {deleting ? "Deleting..." : "Delete"}
+            {deleting ? "Đang xóa..." : "Xóa"}
           </button>
         </div>
       </div>

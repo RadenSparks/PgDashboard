@@ -39,6 +39,18 @@ export const tagsApi = createApi({
       }),
       invalidatesTags: ['Tag'],
     }),
+    getDeletedTags: builder.query<Tag[], void>({
+      query: () => ({
+        url: '/tags/deleted',
+        method: 'GET',
+      }),
+    }),
+    restoreTag: builder.mutation<{ message: string }, number>({
+      query: (id) => ({
+        url: `/tags/${id}/restore`,
+        method: 'PUT',
+      }),
+    }),
   }),
 })
 
@@ -46,5 +58,7 @@ export const {
   useGetTagsQuery,
   useAddTagMutation,
   useDeleteTagMutation,
-  useUpdateTagMutation
+  useUpdateTagMutation,
+  useGetDeletedTagsQuery,
+  useRestoreTagMutation,
 } = tagsApi

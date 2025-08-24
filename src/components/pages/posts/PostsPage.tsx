@@ -51,15 +51,15 @@ const PostsPage = () => {
     try {
       await deletePost(postId).unwrap();
       toaster.show({
-        title: "Deleted",
-        description: "Post deleted successfully.",
+        title: "Đã xóa",
+        description: "Bài viết đã được xóa thành công.",
         type: "success",
       });
       refetch();
     } catch {
       toaster.show({
-        title: "Delete failed",
-        description: "Could not delete the post.",
+        title: "Xóa thất bại",
+        description: "Không thể xóa bài viết.",
         type: "error",
       });
     }
@@ -69,8 +69,8 @@ const PostsPage = () => {
     if (undoTimer.current) clearInterval(undoTimer.current);
     setPendingDelete(null);
     toaster.show({
-      title: "Undo Delete",
-      description: "Post was not deleted.",
+      title: "Hoàn tác xóa",
+      description: "Bài viết chưa bị xóa.",
       type: "info",
     });
   };
@@ -80,10 +80,10 @@ const PostsPage = () => {
     setShowForm(false);
     refetch();
     toaster.show({
-      title: action === "add" ? "Post created" : "Post updated",
+      title: action === "add" ? "Đã tạo bài viết" : "Đã cập nhật bài viết",
       description: action === "add"
-        ? "The post was added successfully."
-        : "The post was updated successfully.",
+        ? "Bài viết đã được thêm thành công."
+        : "Bài viết đã được cập nhật thành công.",
       type: "success",
     });
   };
@@ -91,20 +91,20 @@ const PostsPage = () => {
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
-        <h2 className="text-3xl font-extrabold tracking-tight text-gray-800">Posts</h2>
+        <h2 className="text-3xl font-extrabold tracking-tight text-gray-800">Quản lý bài viết</h2>
         <div className="flex gap-2">
           <Button
             className="flex gap-2 px-4 py-2 bg-gray-100 text-blue-700 border border-blue-200 rounded-xl hover:bg-blue-50 transition font-semibold shadow"
             onClick={() => setShowCatalogueManager(true)}
           >
-            <span>Manage Catalogues</span>
+            <span>Quản lý danh mục</span>
           </Button>
           <Button
             className="flex gap-2 px-5 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-semibold shadow"
             onClick={() => { setEditPost(null); setShowForm(true); }}
           >
             <IoMdAdd size={22} />
-            <span>Add Post</span>
+            <span>Thêm bài viết</span>
           </Button>
         </div>
       </div>
@@ -113,11 +113,11 @@ const PostsPage = () => {
           <table className="min-w-full text-base">
             <thead>
               <tr className="text-left border-b bg-blue-50">
-                <th className="py-3 px-3 font-semibold text-gray-700">Title</th>
-                <th className="py-3 px-3 font-semibold text-gray-700">Canonical</th>
-                <th className="py-3 px-3 font-semibold text-gray-700">Catalogue</th>
-                <th className="py-3 px-3 font-semibold text-gray-700">Created</th>
-                <th className="py-3 px-3 font-semibold text-gray-700">Actions</th>
+                <th className="py-3 px-3 font-semibold text-gray-700">Tiêu đề</th>
+                <th className="py-3 px-3 font-semibold text-gray-700">Đường dẫn</th>
+                <th className="py-3 px-3 font-semibold text-gray-700">Danh mục</th>
+                <th className="py-3 px-3 font-semibold text-gray-700">Ngày tạo</th>
+                <th className="py-3 px-3 font-semibold text-gray-700">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -139,21 +139,21 @@ const PostsPage = () => {
                       className="bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 px-3 py-1 rounded-lg font-semibold"
                       onClick={() => setPreviewPost(post)}
                     >
-                      Preview
+                      Xem trước
                     </Button>
                     <Button
                       size="sm"
                       className="bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200 px-3 py-1 rounded-lg font-semibold"
                       onClick={() => { setEditPost(post); setShowForm(true); }}
                     >
-                      Edit
+                      Sửa
                     </Button>
                     <Button
                       size="sm"
                       className="bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 px-3 py-1 rounded-lg font-semibold"
                       onClick={() => handleDelete(post.id)}
                     >
-                      Delete
+                      Xóa
                     </Button>
                   </td>
                 </tr>
@@ -161,7 +161,7 @@ const PostsPage = () => {
               {posts.length === 0 && (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-gray-400 text-lg">
-                    No posts found.
+                    Không tìm thấy bài viết nào.
                   </td>
                 </tr>
               )}
@@ -207,7 +207,7 @@ const PostsPage = () => {
             <button
               className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl"
               onClick={() => setShowCatalogueManager(false)}
-              aria-label="Close catalogue manager"
+              aria-label="Đóng quản lý danh mục"
             >
               &times;
             </button>
@@ -223,7 +223,7 @@ const PostsPage = () => {
             <button
               className="absolute top-4 right-6 text-gray-400 hover:text-gray-700 text-3xl"
               onClick={() => setPreviewPost(null)}
-              aria-label="Close preview"
+              aria-label="Đóng xem trước"
             >
               &times;
             </button>
@@ -264,7 +264,7 @@ const PostsPage = () => {
             <button
               className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl"
               onClick={() => setShowForm(false)}
-              aria-label="Close form"
+              aria-label="Đóng form"
             >
               &times;
             </button>

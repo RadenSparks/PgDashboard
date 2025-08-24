@@ -19,13 +19,13 @@ const CommentDetailModal = ({ comment, modalRef, onClose }: CommentDetailModalPr
         <button
           className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl"
           onClick={onClose}
-          aria-label="Close"
+          aria-label="Đóng"
         >
           &times;
         </button>
-        <h3 className="text-lg font-bold mb-4">Comment Detail</h3>
+        <h3 className="text-lg font-bold mb-4">Chi tiết bình luận</h3>
         <div className="mb-2 text-yellow-600 font-semibold">
-          Rating: {comment.rating ?? "-"}
+          Đánh giá: {comment.rating ?? "-"}
         </div>
         <div className="mb-4 text-gray-700 whitespace-pre-line">
           {comment.content}
@@ -36,7 +36,7 @@ const CommentDetailModal = ({ comment, modalRef, onClose }: CommentDetailModalPr
             type="button"
             onClick={onClose}
           >
-            Close
+            Đóng
           </Button>
         </div>
       </div>

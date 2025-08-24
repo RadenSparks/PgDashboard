@@ -6,14 +6,13 @@ interface ProductDetailModalProps {
     productId: number | null;
     onClose: () => void;
     navigate: (path: string) => void;
-    orderId?: number; // <-- Add this if needed
+    orderId?: number;
 }
 
 const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ productId, onClose, navigate, orderId }) => {
     const { data: product, isLoading } = useGetProductByIdQuery(productId ?? 0, { skip: productId === null });
     const modalRef = useRef<HTMLDivElement>(null);
 
-    // Trap focus and close on ESC
     useEffect(() => {
         if (modalRef.current) modalRef.current.focus();
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -32,12 +31,10 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ productId, onCl
                 : (product.images[0] as { url: string })?.url || ""
             : "";
 
-    // Helper to open invoice
     const handleViewInvoice = () => {
-        // Use orderId if available, otherwise fallback to productId
         const invoiceId = orderId ?? productId;
         window.open(
-            `${import.meta.env.VITE_BASE_API || "https://pengoo-back-end.vercel.app"}/invoices/${invoiceId}`,
+            `${import.meta.env.VITE_BASE_API || "https://pengoo-back-end.vercel.app/"}/invoices/${invoiceId}`,
             "_blank"
         );
     };
@@ -56,7 +53,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ productId, onCl
                 <button
                     className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl"
                     onClick={onClose}
-                    aria-label="Close"
+                    aria-label="Đóng"
                 >
                     &times;
                 </button>
@@ -80,21 +77,21 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ productId, onCl
                     </div>
                     <div className="flex-1">
                         <h3 className="text-2xl font-bold mb-2">{product.product_name}</h3>
-                        <p className="mb-2 text-gray-700">{(product as { description?: string }).description ?? "No description"}</p>
+                        <p className="mb-2 text-gray-700">{(product as { description?: string }).description ?? "Không có mô tả"}</p>
                         <div className="mb-2">
-                            <span className="font-semibold">Price:</span> ${product.product_price.toFixed(2)}
+                            <span className="font-semibold">Giá:</span> {product.product_price.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
                             {((product as { discount?: number }).discount ?? 0) > 0 && (
                                 <span className="ml-2 text-green-600 font-semibold">
-                                    {(product as { discount?: number }).discount}% OFF
+                                    Giảm {(product as { discount?: number }).discount}%
                                 </span>
                             )}
                         </div>
                         <div className="mb-2">
-                            <span className="font-semibold">Stock:</span> {product.quantity_stock}
-                            <span className="ml-4 font-semibold">Sold:</span> {(product as { quantity_sold?: number }).quantity_sold ?? 0}
+                            <span className="font-semibold">Tồn kho:</span> {product.quantity_stock}
+                            <span className="ml-4 font-semibold">Đã bán:</span> {(product as { quantity_sold?: number }).quantity_sold ?? 0}
                         </div>
                         <div className="mb-2">
-                            <span className="font-semibold">Status:</span>{" "}
+                            <span className="font-semibold">Trạng thái:</span>{" "}
                             <span
                                 className={
                                     (product as { status?: string }).status === "Available"
@@ -102,7 +99,11 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ productId, onCl
                                         : "text-red-500 font-semibold"
                                 }
                             >
-                                {(product as { status?: string }).status ?? "Unknown"}
+                                {(product as { status?: string }).status === "Available"
+                                    ? "Còn hàng"
+                                    : (product as { status?: string }).status === "Unavailable"
+                                        ? "Hết hàng"
+                                        : (product as { status?: string }).status ?? "Không xác định"}
                             </span>
                         </div>
                         <div className="flex gap-2 mt-4">
@@ -113,13 +114,13 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ productId, onCl
                                     navigate(`/products/${product.id}`);
                                 }}
                             >
-                                Go to Product Detail Page
+                                Xem chi tiết sản phẩm
                             </Button>
                             <Button
                                 className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
                                 onClick={handleViewInvoice}
                             >
-                                View Invoice
+                                Xem hóa đơn
                             </Button>
                         </div>
                     </div>

@@ -34,24 +34,24 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
   <Modal isOpen={isOpen} onClose={onClose} isCentered>
     <ModalOverlay bg="rgba(0,0,32,0.12)" />
     <ModalContent rounded="2xl" shadow="xl">
-      <ModalHeader fontWeight="bold" fontSize="xl">Create New Category</ModalHeader>
+      <ModalHeader fontWeight="bold" fontSize="xl">Tạo danh mục mới</ModalHeader>
       <ModalCloseButton />
       <ModalBody>
         <FormControl mb={4}>
-          <FormLabel>Category Name</FormLabel>
+          <FormLabel>Tên danh mục</FormLabel>
           <Input
             value={newCategory}
             onChange={e => setNewCategory(e.target.value)}
-            placeholder="Enter category name"
+            placeholder="Nhập tên danh mục"
             autoFocus
           />
         </FormControl>
         <FormControl>
-          <FormLabel>Description</FormLabel>
+          <FormLabel>Mô tả</FormLabel>
           <Input
             value={newDescription}
             onChange={e => setNewDescription(e.target.value)}
-            placeholder="Enter category description"
+            placeholder="Nhập mô tả danh mục"
           />
         </FormControl>
       </ModalBody>
@@ -60,10 +60,10 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
           className="bg-blue-600 text-white hover:bg-blue-700 mr-3 px-6 py-2 rounded-lg font-bold shadow-md"
           onClick={handleAdd}
         >
-          Create
+          Tạo
         </Button>
         <Button variant="ghost" onClick={onClose}>
-          Cancel
+          Hủy
         </Button>
       </ModalFooter>
     </ModalContent>

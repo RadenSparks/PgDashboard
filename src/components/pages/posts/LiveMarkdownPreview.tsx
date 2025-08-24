@@ -60,7 +60,7 @@ const LiveMarkdownPreview: React.FC<Props> = ({
         <h1 className="text-3xl font-extrabold mb-2" style={{ color: textColor }}>{title}</h1>
       )}
       {description && (
-        <div className="mb-4 italic text-gray-500">{description}</div>
+        <div className="mb-4 italic text-gray-500">Mô tả: {description}</div>
       )}
       <div className="prose prose-blue max-w-none" style={{ color: textColor }}>
         <ReactMarkdown>{content}</ReactMarkdown>

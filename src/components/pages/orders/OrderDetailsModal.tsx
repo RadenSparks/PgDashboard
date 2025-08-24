@@ -18,34 +18,34 @@ const OrderDetailsModal: React.FC<Props> = ({ order, onClose, onProductDetail })
                 <button
                     className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl"
                     onClick={onClose}
-                    aria-label="Close"
+                    aria-label="Đóng"
                 >
                     &times;
                 </button>
-                <h3 className="text-xl font-bold mb-2">Order Details</h3>
+                <h3 className="text-xl font-bold mb-2">Chi tiết đơn hàng</h3>
                 <div className="mb-2 text-sm text-gray-500">
-                    <span className="font-semibold">Order ID:</span> {order.id}
+                    <span className="font-semibold">Mã đơn hàng:</span> {order.id}
                 </div>
                 <div className="mb-2 text-sm text-gray-500">
-                    <span className="font-semibold">Customer:</span> {order.user.username}
+                    <span className="font-semibold">Khách hàng:</span> {order.user.username}
                 </div>
                 <div className="mb-2 text-sm text-gray-500">
-                    <span className="font-semibold">Date:</span> {order.order_date}
+                    <span className="font-semibold">Ngày đặt:</span> {order.order_date}
                 </div>
                 <div className="mb-2 text-sm text-gray-500">
-                    <span className="font-semibold">Items:</span> {order.details.length}
+                    <span className="font-semibold">Số lượng sản phẩm:</span> {order.details.length}
                 </div>
                 <div className="mb-2 text-sm text-gray-500">
-                    <span className="font-semibold">Total:</span>{formatCurrencyVND(+order.total_price)}
+                    <span className="font-semibold">Tổng tiền:</span>{formatCurrencyVND(+order.total_price)}
                 </div>
                 <div className="mb-2 text-sm text-gray-500">
-                    <span className="font-semibold">Payment Type:</span> {order.payment_type || "-"}
+                    <span className="font-semibold">Hình thức thanh toán:</span> {order.payment_type || "-"}
                 </div>
                 <div className="mb-2 text-sm text-gray-500">
-                    <span className="font-semibold">Delivery Method:</span> {order.delivery.name || "-"}
+                    <span className="font-semibold">Phương thức giao hàng:</span> {order.delivery.name || "-"}
                 </div>
                 <div className="mb-2 text-sm text-gray-500">
-                    <span className="font-semibold">Tracking Number:</span> {"-"}
+                    <span className="font-semibold">Mã vận đơn:</span> {"-"}
                 </div>
                 <div className="mb-2 text-sm">
                     <span className="inline-block px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
@@ -53,15 +53,15 @@ const OrderDetailsModal: React.FC<Props> = ({ order, onClose, onProductDetail })
                     </span>
                 </div>
                 <div className="mb-4 mt-4">
-                    <span className="font-semibold block mb-2">Products in Order:</span>
+                    <span className="font-semibold block mb-2">Sản phẩm trong đơn hàng:</span>
                     <table className="w-full text-xs border">
                         <thead>
                             <tr className="border-b">
-                                <th className="py-1 px-2 text-left">Product</th>
-                                <th className="py-1 px-2 text-left">Image</th>
-                                <th className="py-1 px-2 text-left">Quantity</th>
-                                <th className="py-1 px-2 text-left">Price</th>
-                                <th className="py-1 px-2 text-left">Subtotal</th>
+                                <th className="py-1 px-2 text-left">Sản phẩm</th>
+                                <th className="py-1 px-2 text-left">Ảnh</th>
+                                <th className="py-1 px-2 text-left">Số lượng</th>
+                                <th className="py-1 px-2 text-left">Giá</th>
+                                <th className="py-1 px-2 text-left">Thành tiền</th>
                                 <th className="py-1 px-2 text-left"></th>
                             </tr>
                         </thead>
@@ -96,7 +96,7 @@ const OrderDetailsModal: React.FC<Props> = ({ order, onClose, onProductDetail })
                                             onClick={() => onProductDetail(prod.product.id)}
                                         >
                                             <FaArrowRight />
-                                            View
+                                            Xem
                                         </Button>
                                     </td>
                                 </tr>
@@ -109,23 +109,23 @@ const OrderDetailsModal: React.FC<Props> = ({ order, onClose, onProductDetail })
                         className="bg-gray-200 px-4 py-2 rounded"
                         onClick={onClose}
                     >
-                        Close
+                        Đóng
                     </Button>
                     {order.payment_status === "paid" ? (
                         <Button
                             className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
                             onClick={() =>
                                 window.open(
-                                    `${import.meta.env.VITE_BASE_API || "https://pengoo-back-end.vercel.app"}/invoices/${order.id}`,
+                                    `${import.meta.env.VITE_BASE_API || "https://pengoo-back-end.vercel.app/"}/invoices/${order.id}`,
                                     "_blank"
                                 )
                             }
                         >
-                            View Invoice
+                            Xem hóa đơn
                         </Button>
                     ) : (
                         <span className="text-sm text-gray-500 flex items-center">
-                            Invoice available after payment is confirmed.
+                            Hóa đơn sẽ có sau khi xác nhận thanh toán.
                         </span>
                     )}
                 </div>

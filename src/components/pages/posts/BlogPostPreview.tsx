@@ -232,7 +232,7 @@ const BlogPostPreview: React.FC<BlogPostPreviewProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium">Catalogue</label>
+                <label className="block text-sm font-medium">Danh mục</label>
                 <input 
                   type="text" 
                   value={generatorData.inputs.catalogue}
@@ -242,7 +242,7 @@ const BlogPostPreview: React.FC<BlogPostPreviewProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium">Description</label>
+                <label className="block text-sm font-medium">Mô tả</label>
                 <textarea 
                   value={generatorData.inputs.description}
                   onChange={(e) => setGeneratorData(p => ({ ...p, inputs: { ...p.inputs, description: e.target.value }}))}
@@ -266,12 +266,11 @@ const BlogPostPreview: React.FC<BlogPostPreviewProps> = ({
         </div>
       )}
 
-      {/* FIX: Khôi phục lại toàn bộ code cho Modal SEO */}
       {showSeoModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
             <div className="border-b p-4 flex justify-between items-center">
-              <h3 className="text-lg font-semibold">SEO Analysis</h3>
+              <h3 className="text-lg font-semibold">Phân tích SEO</h3>
               <button onClick={() => setShowSeoModal(false)} className="text-gray-400 hover:text-gray-600">
                 <FiX className="w-5 h-5" />
               </button>
@@ -286,33 +285,32 @@ const BlogPostPreview: React.FC<BlogPostPreviewProps> = ({
               ) : seoData.report ? (
                 <div className="space-y-6">
                   <div>
-                    <h4 className="text-base font-semibold text-gray-800">Overall Analysis</h4>
+                    <h4 className="text-base font-semibold text-gray-800">Phân tích tổng quan</h4>
                     <div className="mt-2 flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
                       <div className="text-4xl font-bold text-blue-600">{seoData.report.seo_score}<span className="text-2xl text-gray-400">/100</span></div>
                       <p className="text-sm text-gray-600">{seoData.report.seo_analysis.overall_comment}</p>
                     </div>
                   </div>
                   <div>
-                    <h4 className="text-base font-semibold text-gray-800">Improvement Suggestions</h4>
+                    <h4 className="text-base font-semibold text-gray-800">Gợi ý cải thiện</h4>
                     <ul className="mt-2 list-disc list-inside space-y-1 text-sm text-gray-700">
-                      {/* FIX: Thêm 'key' prop để tránh warning của React */}
                       {seoData.report.seo_analysis.suggestions.map((suggestion, index) => (
                         <li key={index}>{suggestion}</li>
                       ))}
                     </ul>
                   </div>
                   <div>
-                    <h4 className="text-base font-semibold text-gray-800">Suggested SEO Content</h4>
+                    <h4 className="text-base font-semibold text-gray-800">Nội dung SEO đề xuất</h4>
                     <div className="mt-2 space-y-3 text-sm">
                       <div className="p-3 bg-gray-50 rounded-md">
                         <label className="block font-medium text-gray-600">Meta Title</label>
                         <p className="mt-1 text-gray-900">{seoData.report.generated_seo.meta_title}</p>
-                        <button onClick={() => onApplySeo({ meta_title: seoData.report?.generated_seo.meta_title })} className="text-blue-600 hover:underline text-xs mt-1 font-semibold">Apply</button>
+                        <button onClick={() => onApplySeo({ meta_title: seoData.report?.generated_seo.meta_title })} className="text-blue-600 hover:underline text-xs mt-1 font-semibold">Áp dụng</button>
                       </div>
                       <div className="p-3 bg-gray-50 rounded-md">
                         <label className="block font-medium text-gray-600">Meta Description</label>
                         <p className="mt-1 text-gray-900">{seoData.report.generated_seo.meta_description}</p>
-                        <button onClick={() => onApplySeo({ meta_description: seoData.report?.generated_seo.meta_description })} className="text-blue-600 hover:underline text-xs mt-1 font-semibold">Apply</button>
+                        <button onClick={() => onApplySeo({ meta_description: seoData.report?.generated_seo.meta_description })} className="text-blue-600 hover:underline text-xs mt-1 font-semibold">Áp dụng</button>
                       </div>
                     </div>
                   </div>
@@ -321,7 +319,7 @@ const BlogPostPreview: React.FC<BlogPostPreviewProps> = ({
             </div>
             <div className="border-t p-4 flex justify-end">
               <button onClick={() => setShowSeoModal(false)} className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm">
-                Close
+                Đóng
               </button>
             </div>
           </div>

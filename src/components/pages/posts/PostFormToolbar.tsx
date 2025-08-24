@@ -62,34 +62,34 @@ const PostFormToolbar: React.FC<Props> = ({
       <div className="flex flex-wrap gap-2 items-center justify-between">
         {/* Left: Markdown actions */}
         <div className="flex flex-wrap gap-1 items-center">
-          <button type="button" aria-label="Heading 1" title="Heading 1" className={ICON_BTN} onClick={() => onHeading(1)}>H1</button>
-          <button type="button" aria-label="Heading 2" title="Heading 2" className={ICON_BTN} onClick={() => onHeading(2)}>H2</button>
-          <button type="button" aria-label="Heading 3" title="Heading 3" className={ICON_BTN} onClick={() => onHeading(3)}>H3</button>
+          <button type="button" aria-label="Tiêu đề 1" title="Tiêu đề 1" className={ICON_BTN} onClick={() => onHeading(1)}>H1</button>
+          <button type="button" aria-label="Tiêu đề 2" title="Tiêu đề 2" className={ICON_BTN} onClick={() => onHeading(2)}>H2</button>
+          <button type="button" aria-label="Tiêu đề 3" title="Tiêu đề 3" className={ICON_BTN} onClick={() => onHeading(3)}>H3</button>
           <span className="w-px h-5 bg-gray-300 mx-1" />
-          <button type="button" aria-label="Bold" title="Bold" className={ICON_BTN + " font-bold"} onClick={onBold}><b>B</b></button>
-          <button type="button" aria-label="Italic" title="Italic" className={ICON_BTN + " italic"} onClick={onItalic}><i>I</i></button>
-          <button type="button" aria-label="Underline" title="Underline" className={ICON_BTN + " underline"} onClick={onUnderline}><u>U</u></button>
+          <button type="button" aria-label="Đậm" title="Đậm" className={ICON_BTN + " font-bold"} onClick={onBold}><b>B</b></button>
+          <button type="button" aria-label="Nghiêng" title="Nghiêng" className={ICON_BTN + " italic"} onClick={onItalic}><i>I</i></button>
+          <button type="button" aria-label="Gạch chân" title="Gạch chân" className={ICON_BTN + " underline"} onClick={onUnderline}><u>U</u></button>
           <span className="w-px h-5 bg-gray-300 mx-1" />
-          <button type="button" aria-label="Clear Formatting" title="Clear Formatting" className={ICON_BTN} onClick={onClearFormatting}>Tx</button>
-          <button type="button" aria-label="Insert Link" title="Insert Link" className={ICON_BTN} onClick={onInsertLink}>🔗</button>
+          <button type="button" aria-label="Xóa định dạng" title="Xóa định dạng" className={ICON_BTN} onClick={onClearFormatting}>Tx</button>
+          <button type="button" aria-label="Chèn liên kết" title="Chèn liên kết" className={ICON_BTN} onClick={onInsertLink}>🔗</button>
           <span className="w-px h-5 bg-gray-300 mx-1" />
           <button
             type="button"
-            aria-label="Insert Gallery Image"
-            title="Insert Gallery Image"
+            aria-label="Chèn ảnh từ thư viện"
+            title="Chèn ảnh từ thư viện"
             className={ICON_BTN + " flex items-center gap-1"}
             onClick={onOpenGalleryPicker}
           >
-            <span role="img" aria-label="Gallery">🖼️</span>
-            <span className="text-sm font-normal">Gallery</span>
+            <span role="img" aria-label="Thư viện">🖼️</span>
+            <span className="text-sm font-normal">Thư viện</span>
           </button>
           <span className="w-px h-5 bg-gray-300 mx-1" />
-          <button type="button" aria-label="Horizontal Rule" title="Horizontal Rule" className={ICON_BTN} onClick={onHr}>―</button>
+          <button type="button" aria-label="Chèn đường kẻ ngang" title="Chèn đường kẻ ngang" className={ICON_BTN} onClick={onHr}>―</button>
           <span className="w-px h-5 bg-gray-300 mx-1" />
           <button
             type="button"
-            aria-label="Paragraph Break"
-            title="Paragraph Break"
+            aria-label="Ngắt đoạn"
+            title="Ngắt đoạn"
             className={ICON_BTN}
             onClick={onParagraphBreak}
           >
@@ -103,8 +103,8 @@ const PostFormToolbar: React.FC<Props> = ({
           <div className="relative">
             <button
               type="button"
-              aria-label="Preview Text Color"
-              title="Preview Text Color"
+              aria-label="Màu chữ xem trước"
+              title="Màu chữ xem trước"
               className={ICON_BTN}
               onClick={() => { setShowColorPicker(!showColorPicker); setShowBgColorPicker(false); }}
               style={{ borderBottom: `3px solid ${previewTextColor}` }}
@@ -115,7 +115,7 @@ const PostFormToolbar: React.FC<Props> = ({
                   <button
                     key={color}
                     type="button"
-                    aria-label={`Set text color ${color}`}
+                    aria-label={`Chọn màu chữ ${color}`}
                     className="w-6 h-6 rounded-full border-2 border-white hover:border-blue-400 transition"
                     style={{ background: color }}
                     onClick={() => { setPreviewTextColor(color); setShowColorPicker(false); }}
@@ -129,8 +129,8 @@ const PostFormToolbar: React.FC<Props> = ({
           <div className="relative">
             <button
               type="button"
-              aria-label="Preview Background Color"
-              title="Preview Background Color"
+              aria-label="Màu nền xem trước"
+              title="Màu nền xem trước"
               className={ICON_BTN}
               onClick={() => { setShowBgColorPicker(!showBgColorPicker); setShowColorPicker(false); }}
               style={{ borderBottom: `3px solid ${previewBgColor}` }}
@@ -141,7 +141,7 @@ const PostFormToolbar: React.FC<Props> = ({
                   <button
                     key={color}
                     type="button"
-                    aria-label={`Set background color ${color}`}
+                    aria-label={`Chọn màu nền ${color}`}
                     className="w-6 h-6 rounded-full border-2 border-white hover:border-blue-400 transition"
                     style={{ background: color }}
                     onClick={() => { setPreviewBgColor(color); setShowBgColorPicker(false); }}
@@ -155,9 +155,9 @@ const PostFormToolbar: React.FC<Props> = ({
             value={fontFamily}
             onChange={e => setFontFamily(e.target.value)}
             className="border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-300"
-            title="Font Family"
+            title="Kiểu chữ"
             style={{ minWidth: 90 }}
-            aria-label="Font Family"
+            aria-label="Kiểu chữ"
           >
             {FONT_FAMILIES.map(f => (
               <option key={f.value} value={f.value}>{f.label}</option>
@@ -167,9 +167,9 @@ const PostFormToolbar: React.FC<Props> = ({
             value={fontSize}
             onChange={e => setFontSize(e.target.value)}
             className="border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-300"
-            title="Font Size"
+            title="Cỡ chữ"
             style={{ minWidth: 70 }}
-            aria-label="Font Size"
+            aria-label="Cỡ chữ"
           >
             {FONT_SIZES.map(f => (
               <option key={f.value} value={f.value}>{f.label}</option>
@@ -182,9 +182,9 @@ const PostFormToolbar: React.FC<Props> = ({
               checked={publish}
               onChange={e => setPublish(e.target.checked)}
               className="accent-green-600"
-              aria-label="Publish"
+              aria-label="Công khai"
             />
-            <span className="select-none">Publish</span>
+            <span className="select-none">Công khai</span>
           </label>
         </div>
       </div>
@@ -204,8 +204,8 @@ const PostFormToolbar: React.FC<Props> = ({
                   className="absolute top-0 right-0 bg-white bg-opacity-80 rounded-full p-1 text-base text-red-500 hover:bg-red-100 transition"
                   style={{ transform: 'translate(30%,-30%)' }}
                   onClick={() => onGalleryImageRemove && onGalleryImageRemove(idx)}
-                  title="Remove"
-                  aria-label="Remove image"
+                  title="Xóa"
+                  aria-label="Xóa ảnh"
                 >
                   ×
                 </button>
@@ -213,10 +213,10 @@ const PostFormToolbar: React.FC<Props> = ({
                   type="button"
                   className="absolute bottom-0 left-0 bg-blue-600 text-white text-xs px-2 py-0.5 rounded-tr-xl rounded-bl-xl opacity-80 hover:opacity-100 transition"
                   onClick={() => onGalleryImageInsert(img)}
-                  title="Insert into post"
-                  aria-label="Insert image into post"
+                  title="Chèn vào bài viết"
+                  aria-label="Chèn ảnh vào bài viết"
                 >
-                  Insert
+                  Chèn
                 </button>
               </div>
             ))}

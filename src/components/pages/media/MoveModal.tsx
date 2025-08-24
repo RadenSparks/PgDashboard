@@ -25,17 +25,17 @@ const MoveModal: React.FC<MoveModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
       <div className="bg-white rounded-xl shadow-lg max-w-sm w-full p-8 relative">
-        <h3 className="text-lg font-bold mb-4 text-blue-600">Move Images</h3>
-        <label className="block mb-2 text-sm font-medium text-gray-700">Destination folder</label>
+        <h3 className="text-lg font-bold mb-4 text-blue-600">Di chuyển ảnh</h3>
+        <label className="block mb-2 text-sm font-medium text-gray-700">Thư mục đích</label>
         <select
           className="border px-2 py-1 rounded w-full mb-4 focus:ring-2 focus:ring-blue-400"
           value={moveTargetFolder || ""}
           onChange={e => setMoveTargetFolder(e.target.value)}
         >
-          <option value="">Select a folder...</option>
+          <option value="">Chọn thư mục...</option>
           {getAllFolderPaths(folderTree).map((path) => (
             <option key={path} value={path}>
-              {path || "Root"}
+              {path || "Gốc"}
             </option>
           ))}
         </select>
@@ -46,7 +46,7 @@ const MoveModal: React.FC<MoveModalProps> = ({
             onClick={onClose}
           >
             <span className="material-symbols-outlined text-base"></span>
-            Cancel
+            Hủy
           </button>
           <button
             className="flex items-center gap-1 bg-blue-600 text-white px-6 py-2 rounded shadow hover:bg-blue-700 focus:ring-2 focus:ring-blue-400"
@@ -55,7 +55,7 @@ const MoveModal: React.FC<MoveModalProps> = ({
             disabled={disabled || !moveTargetFolder}
           >
             <span className="material-symbols-outlined text-base"></span>
-            Move
+            Di chuyển
           </button>
         </div>
       </div>

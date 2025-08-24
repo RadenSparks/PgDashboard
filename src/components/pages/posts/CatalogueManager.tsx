@@ -25,14 +25,14 @@ const CatalogueManager: React.FC = () => {
       setNewName('');
       refetch();
       toaster.show({
-        title: 'Catalogue added',
-        description: `Catalogue "${newName}" was added successfully.`,
+        title: 'Đã thêm danh mục',
+        description: `Danh mục "${newName}" đã được thêm thành công.`,
         type: 'success',
       });
     } catch {
       toaster.show({
-        title: 'Add failed',
-        description: 'Could not add catalogue.',
+        title: 'Thêm thất bại',
+        description: 'Không thể thêm danh mục.',
         type: 'error',
       });
     }
@@ -53,14 +53,14 @@ const CatalogueManager: React.FC = () => {
       setEditCanonical('');
       refetch();
       toaster.show({
-        title: 'Catalogue updated',
-        description: `Catalogue "${editName}" was updated successfully.`,
+        title: 'Đã cập nhật danh mục',
+        description: `Danh mục "${editName}" đã được cập nhật thành công.`,
         type: 'success',
       });
     } catch {
       toaster.show({
-        title: 'Update failed',
-        description: 'Could not update catalogue.',
+        title: 'Cập nhật thất bại',
+        description: 'Không thể cập nhật danh mục.',
         type: 'error',
       });
     }
@@ -71,16 +71,16 @@ const CatalogueManager: React.FC = () => {
       await deleteCatalogue(id);
       refetch();
       toaster.show({
-        title: 'Catalogue deleted',
-        description: 'Catalogue was deleted successfully.',
+        title: 'Đã xóa danh mục',
+        description: 'Danh mục đã được xóa thành công.',
         type: 'success',
       });
     } catch (error: unknown) {
       toaster.show({
-        title: 'Cannot delete catalogue',
+        title: 'Không thể xóa danh mục',
         description:
           (typeof error === 'object' && error !== null && 'data' in error && (error as { data?: { message?: string } }).data?.message) ||
-          'This catalogue is still used by one or more posts.',
+          'Danh mục này vẫn đang được sử dụng bởi một hoặc nhiều bài viết.',
         type: 'error',
       });
     }
@@ -89,13 +89,13 @@ const CatalogueManager: React.FC = () => {
   return (
     <div className="w-full max-w-2xl mx-auto">
       <h3 className="font-bold mb-4 text-lg text-blue-700 flex items-center gap-2 sticky top-0 bg-white z-10 py-2">
-        <span className="inline-block bg-blue-100 text-blue-700 rounded-full px-2 py-1 text-sm">Catalogues</span>
+        <span className="inline-block bg-blue-100 text-blue-700 rounded-full px-2 py-1 text-sm">Danh mục bài viết</span>
       </h3>
       <div className="flex gap-2 mb-4">
         <input
           value={newName}
           onChange={e => setNewName(e.target.value)}
-          placeholder="New catalogue name"
+          placeholder="Tên danh mục mới"
           className="border rounded-lg p-3 flex-1 focus:ring-2 focus:ring-blue-300 transition text-base"
           onKeyDown={e => { if (e.key === 'Enter') handleAdd(); }}
         />
@@ -103,12 +103,12 @@ const CatalogueManager: React.FC = () => {
           onClick={handleAdd}
           className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition shadow text-base"
         >
-          Add
+          Thêm
         </button>
       </div>
       <ul className="max-h-[500px] min-h-[300px] overflow-y-auto divide-y bg-gray-50 rounded-xl shadow-inner">
         {catalogues.length === 0 && (
-          <li className="py-6 text-center text-gray-400">No catalogues yet.</li>
+          <li className="py-6 text-center text-gray-400">Chưa có danh mục nào.</li>
         )}
         {catalogues.map(cat => (
           <li
@@ -121,7 +121,7 @@ const CatalogueManager: React.FC = () => {
                   value={editName}
                   onChange={e => setEditName(e.target.value)}
                   className="border rounded p-2 flex-1 min-w-0 focus:ring-2 focus:ring-blue-200 text-base"
-                  placeholder="Name"
+                  placeholder="Tên danh mục"
                   autoFocus
                 />
                 <input
@@ -134,9 +134,9 @@ const CatalogueManager: React.FC = () => {
                   <button
                     onClick={handleUpdate}
                     className="bg-green-100 text-green-700 font-semibold px-4 py-1 rounded-lg hover:bg-green-200 transition"
-                    title="Save"
+                    title="Lưu"
                   >
-                    Save
+                    Lưu
                   </button>
                   <button
                     onClick={() => {
@@ -145,9 +145,9 @@ const CatalogueManager: React.FC = () => {
                       setEditCanonical('');
                     }}
                     className="bg-gray-100 text-gray-600 px-4 py-1 rounded-lg hover:bg-gray-200 transition"
-                    title="Cancel"
+                    title="Hủy"
                   >
-                    Cancel
+                    Hủy
                   </button>
                 </div>
               </>
@@ -158,16 +158,16 @@ const CatalogueManager: React.FC = () => {
                 <button
                   onClick={() => handleEdit(cat)}
                   className="bg-blue-100 text-blue-700 px-4 py-1 rounded-lg hover:bg-blue-200 transition font-semibold"
-                  title="Edit"
+                  title="Sửa"
                 >
-                  Edit
+                  Sửa
                 </button>
                 <button
                   onClick={() => handleDelete(cat.id)}
                   className="bg-red-100 text-red-600 px-4 py-1 rounded-lg hover:bg-red-200 transition font-semibold"
-                  title="Delete"
+                  title="Xóa"
                 >
-                  Delete
+                  Xóa
                 </button>
               </>
             )}
@@ -175,7 +175,7 @@ const CatalogueManager: React.FC = () => {
         ))}
       </ul>
       <div className="mt-4 text-xs text-gray-400">
-        <b>Tip:</b> Click <span className="text-blue-600">Edit</span> to rename or change the canonical. Catalogues in use cannot be deleted.
+        <b>Mẹo:</b> Nhấn <span className="text-blue-600">Sửa</span> để đổi tên hoặc canonical. Danh mục đang sử dụng sẽ không thể xóa.
       </div>
     </div>
   );

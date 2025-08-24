@@ -39,7 +39,7 @@ const LiveProductMarkdownPreview: React.FC<Props> = ({
             <img
               key={idx}
               src={img}
-              alt={`Hero ${idx + 1}`}
+              alt={`Ảnh chính ${idx + 1}`}
               className="w-24 h-24 object-cover rounded border"
             />
           ) : null
@@ -53,7 +53,7 @@ const LiveProductMarkdownPreview: React.FC<Props> = ({
             <img
               key={idx}
               src={img}
-              alt={`About ${idx + 1}`}
+              alt={`Ảnh giới thiệu ${idx + 1}`}
               className="w-20 h-20 object-cover rounded border"
             />
           ) : null
@@ -61,14 +61,14 @@ const LiveProductMarkdownPreview: React.FC<Props> = ({
       </div>
       {(cmsContent.sliderImages && cmsContent.sliderImages.length > 0) && (
         <div className="mb-6">
-          <h4 className="text-lg font-semibold mb-2">Slider</h4>
+          <h4 className="text-lg font-semibold mb-2">Trình chiếu ảnh</h4>
           <div className="flex gap-2 flex-wrap">
             {cmsContent.sliderImages.map((img, idx) =>
               img ? (
                 <img
                   key={idx}
                   src={img}
-                  alt={`Slider ${idx + 1}`}
+                  alt={`Trình chiếu ${idx + 1}`}
                   className="w-16 h-16 object-cover rounded border"
                 />
               ) : null
@@ -79,12 +79,12 @@ const LiveProductMarkdownPreview: React.FC<Props> = ({
       <div className="mb-4">
         <h4 className="text-lg font-semibold mb-2">{cmsContent.detailsTitle}</h4>
         <div className="prose prose-sm max-w-none border rounded p-3 bg-white min-h-[60px]">
-          <ReactMarkdown>{cmsContent.detailsContent || "*Nothing to preview*"}</ReactMarkdown>
+          <ReactMarkdown>{cmsContent.detailsContent || "*Không có nội dung xem trước*"}</ReactMarkdown>
         </div>
       </div>
       {cmsContent.tabs && cmsContent.tabs.length > 0 && (
         <section className="mb-10">
-          <h4 className="text-xl font-semibold mb-2">Product Tabs</h4>
+          <h4 className="text-xl font-semibold mb-2">Thông tin sản phẩm</h4>
           {cmsContent.tabs.map((tab, idx) => (
             <div key={idx} className="mb-4">
               <h5 className="text-lg font-bold">{tab.title}</h5>
@@ -94,7 +94,7 @@ const LiveProductMarkdownPreview: React.FC<Props> = ({
               {tab.images && tab.images.length > 0 && (
                 <div className="flex gap-2 mt-2">
                   {tab.images.map((img, i) => (
-                    <img key={i} src={img} alt={`Tab ${idx + 1} Img ${i + 1}`} className="w-16 h-16 object-cover rounded border" />
+                    <img key={i} src={img} alt={`Tab ${idx + 1} Ảnh ${i + 1}`} className="w-16 h-16 object-cover rounded border" />
                   ))}
                 </div>
               )}

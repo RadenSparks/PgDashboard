@@ -53,7 +53,7 @@ const PostFormSidebar: React.FC<Props> = ({
     <div className="p-6 pb-2">
       <h4 className="font-bold mb-4 text-blue-700 text-lg flex items-center gap-2">
         <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" />
-        Live Preview
+        Xem trước trực tiếp
       </h4>
       <div className="rounded-2xl overflow-hidden border shadow bg-white transition-all" style={{ background: previewBgColor }}>
         <BlogPostPreview
@@ -81,11 +81,11 @@ const PostFormSidebar: React.FC<Props> = ({
     <div className="bg-white rounded-2xl shadow p-6 m-6 mt-4">
       <h5 className="font-semibold mb-4 text-gray-700 text-base flex items-center gap-2">
         <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" />
-        Preview Customization
+        Tùy chỉnh xem trước
       </h5>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs text-gray-500 mb-1 font-medium">Font Family</label>
+          <label className="block text-xs text-gray-500 mb-1 font-medium">Kiểu chữ</label>
           <select
             value={fontFamily}
             onChange={e => setFontFamily(e.target.value)}
@@ -97,7 +97,7 @@ const PostFormSidebar: React.FC<Props> = ({
           </select>
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1 font-medium">Font Size</label>
+          <label className="block text-xs text-gray-500 mb-1 font-medium">Cỡ chữ</label>
           <select
             value={fontSize}
             onChange={e => setFontSize(e.target.value)}
@@ -109,7 +109,7 @@ const PostFormSidebar: React.FC<Props> = ({
           </select>
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1 font-medium">Preview Text Color</label>
+          <label className="block text-xs text-gray-500 mb-1 font-medium">Màu chữ xem trước</label>
           <div className="flex gap-2 flex-wrap w-full">
             {COLORS.map(color => (
               <button
@@ -126,7 +126,7 @@ const PostFormSidebar: React.FC<Props> = ({
           </div>
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1 font-medium">Preview Background Color</label>
+          <label className="block text-xs text-gray-500 mb-1 font-medium">Màu nền xem trước</label>
           <div className="flex gap-2 flex-wrap w-full">
             {BG_COLORS.map(color => (
               <button

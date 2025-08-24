@@ -38,8 +38,8 @@ const CustomTooltip = ({
         minWidth: 120,
       }}>
         <div style={{ fontWeight: 700, marginBottom: 6, color: "#2563eb" }}>{label}</div>
-        <div>Sales: <b>{sales}</b></div>
-        <div>Share: <b>{percent}%</b></div>
+        <div>Doanh số: <b>{sales}</b></div>
+        <div>Tỷ lệ: <b>{percent}%</b></div>
       </div>
     );
   }
@@ -129,19 +129,19 @@ const TopProducts = ({ topProductsData }: TopProductsProps) => {
         }}
       >
         <div>
-          <b>Total Sales:</b> {totalSales}
+          <b>Tổng doanh số:</b> {totalSales}
         </div>
         <div>
-          <b>Best Seller:</b>{" "}
+          <b>Bán chạy nhất:</b>{" "}
           {topProductsData.length > 0
             ? topProductsData.reduce((max, item) =>
                 item.sales > max.sales ? item : max,
               topProductsData[0]
             ).name
-            : "N/A"}
+            : "Không có"}
         </div>
         <div>
-          <b>Average Sales per Product:</b>{" "}
+          <b>Doanh số trung bình mỗi sản phẩm:</b>{" "}
           {topProductsData.length > 0
             ? Math.round(totalSales / topProductsData.length)
             : 0}

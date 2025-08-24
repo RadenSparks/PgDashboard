@@ -32,12 +32,12 @@ const STATUS_LABELS: { [key: string]: string } = {
 };
 
 const PAYMENT_STATUS_LABELS: Record<string, string> = {
-    paid: "Paid",
-    pending: "Pending",
-    pending_on_delivery: "Pending On Delivery",
-    refunded: "Refunded",
-    success: "Success",
-    canceled: "Canceled",
+    paid: "Đã thanh toán",
+    pending: "Chờ thanh toán",
+    pending_on_delivery: "Chờ khi giao hàng",
+    refunded: "Đã hoàn tiền",
+    success: "Thành công",
+    canceled: "Đã hủy",
 };
 
 const PAYMENT_STATUS_COLORS: Record<string, string> = {
@@ -156,7 +156,7 @@ const OrdersPage = () => {
 
     // Handle invoice viewing (opens PDF in new tab)
     const handleViewInvoice = (orderId: number) => {
-        window.open(`${import.meta.env.VITE_BASE_API || "https://pengoo-back-end.vercel.app"}/invoices/${orderId}`, "_blank");
+        window.open(`${import.meta.env.VITE_BASE_API || "https://pengoo-back-end.vercel.app/"}/invoices/${orderId}`, "_blank");
     };
 
     // Handle order deletion
@@ -242,7 +242,7 @@ const OrdersPage = () => {
 
     return (
         <div className="p-8 bg-gray-50 min-h-screen">
-            <h2 className="text-3xl font-extrabold mb-8 text-blue-700 tracking-tight">Order Management</h2>
+            <h2 className="text-3xl font-extrabold mb-8 text-blue-700 tracking-tight">Quản lý đơn hàng</h2>
             <div className="bg-white rounded-2xl shadow-xl p-8">
                 {/* Oversold Controls */}
                 <div className="mb-4 flex flex-col sm:flex-row gap-4 items-center">
@@ -251,7 +251,7 @@ const OrdersPage = () => {
                         onClick={handleCancelOversold}
                         disabled={cancelingOversold}
                     >
-                        {cancelingOversold ? "Processing..." : "Cancel Oversold Orders"}
+                        {cancelingOversold ? "Đang xử lý..." : "Hủy đơn hàng vượt tồn kho"}
                     </Button>
                     <label className="flex items-center gap-2">
                         <input
@@ -259,7 +259,7 @@ const OrdersPage = () => {
                             checked={showOversoldOnly}
                             onChange={e => setShowOversoldOnly(e.target.checked)}
                         />
-                        Show only oversold orders
+                        Chỉ hiển thị đơn vượt tồn kho
                     </label>
                 </div>
                 {/* Search and Filter Controls */}
@@ -268,14 +268,13 @@ const OrdersPage = () => {
                         <input
                             type="text"
                             className="border rounded-lg px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-                            placeholder="Search by Order ID or Customer"
+                            placeholder="Tìm theo mã đơn hoặc khách hàng"
                             value={searchTerm}
                             onChange={e => {
                                 setSearchTerm(e.target.value);
                                 setCurrentPage(1);
                             }}
                         />
-
                     </div>
                     <select
                         className="border rounded-lg px-4 py-2 w-full sm:w-48 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
@@ -285,7 +284,7 @@ const OrdersPage = () => {
                             setCurrentPage(1);
                         }}
                     >
-                        <option value="">All Statuses</option>
+                        <option value="">Tất cả trạng thái</option>
                         {statusCycle.map(status => (
                             <option key={status} value={status}>
                                 {STATUS_LABELS[status]}
@@ -300,7 +299,7 @@ const OrdersPage = () => {
                             setCurrentPage(1);
                         }}
                     >
-                        <option value="">All Payment Statuses</option>
+                        <option value="">Tất cả trạng thái thanh toán</option>
                         {Object.entries(PAYMENT_STATUS_LABELS).map(([key, label]) => (
                             <option key={key} value={key}>
                                 {label}
@@ -311,10 +310,10 @@ const OrdersPage = () => {
 
                 <div className="mb-4 text-gray-500 text-sm">
                     <span className="font-semibold text-blue-700">
-                        Showing {(currentPage - 1) * PAGE_SIZE + 1}–
+                        Hiển thị {(currentPage - 1) * PAGE_SIZE + 1}–
                         {Math.min(currentPage * PAGE_SIZE, filteredOrders.length)}
                     </span>
-                    <span> of {filteredOrders.length} orders</span>
+                    <span> trên tổng số {filteredOrders.length} đơn hàng</span>
                 </div>
 
                 <div className="overflow-x-auto w-full rounded-lg border border-gray-200 shadow-sm">
@@ -322,31 +321,31 @@ const OrdersPage = () => {
                         <thead>
                             <tr className="text-left border-b bg-blue-50">
                                 <th className="py-3 px-3 cursor-pointer font-semibold text-blue-700" onClick={() => handleSort("id")}>
-                                    Order ID
+                                    Mã đơn hàng
                                     {sortField === "id" && (
                                         <span>{sortDirection === "asc" ? " ▲" : " ▼"}</span>
                                     )}
                                 </th>
-                                <th className="py-3 px-3 font-semibold text-blue-700">Customer</th>
+                                <th className="py-3 px-3 font-semibold text-blue-700">Khách hàng</th>
                                 <th className="py-3 px-3 cursor-pointer font-semibold text-blue-700" onClick={() => handleSort("order_date")}>
-                                    Date
+                                    Ngày đặt
                                     {sortField === "order_date" && (
                                         <span>{sortDirection === "asc" ? " ▲" : " ▼"}</span>
                                     )}
                                 </th>
-                                <th className="py-3 px-3 font-semibold text-blue-700">Items</th>
+                                <th className="py-3 px-3 font-semibold text-blue-700">Số lượng</th>
                                 <th className="py-3 px-3 cursor-pointer font-semibold text-blue-700" onClick={() => handleSort("total_price")}>
-                                    Total
+                                    Tổng tiền
                                     {sortField === "total_price" && (
                                         <span>{sortDirection === "asc" ? " ▲" : " ▼"}</span>
                                     )}
                                 </th>
-                                <th className="py-3 px-3 font-semibold text-blue-700">Payment</th>
-                                <th className="py-3 px-3 font-semibold text-blue-700">Delivery</th>
-                                <th className="py-3 px-3 font-semibold text-blue-700">Status</th>
-                                <th className="py-3 px-3 font-semibold text-blue-700">Payment Status</th>
-                                <th className="py-3 px-3 font-semibold text-blue-700">Actions</th>
-                                <th className="py-3 px-3 font-semibold text-blue-700">Oversold</th>
+                                <th className="py-3 px-3 font-semibold text-blue-700">Thanh toán</th>
+                                <th className="py-3 px-3 font-semibold text-blue-700">Giao hàng</th>
+                                <th className="py-3 px-3 font-semibold text-blue-700">Trạng thái</th>
+                                <th className="py-3 px-3 font-semibold text-blue-700">TT Thanh toán</th>
+                                <th className="py-3 px-3 font-semibold text-blue-700">Thao tác</th>
+                                <th className="py-3 px-3 font-semibold text-blue-700">Vượt tồn kho</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -400,7 +399,7 @@ const OrdersPage = () => {
                                                         onClick={() => handleMarkPaid(order)}
                                                         disabled={markingPaid}
                                                     >
-                                                        Mark as Paid
+                                                        Đánh dấu đã thanh toán
                                                     </Button>
                                                 )}
                                                 {order.payment_status !== "canceled" && (
@@ -410,7 +409,7 @@ const OrdersPage = () => {
                                                         onClick={() => handleCancel(order)}
                                                         disabled={canceling}
                                                     >
-                                                        Cancel
+                                                        Hủy đơn
                                                     </Button>
                                                 )}
                                             </div>
@@ -420,7 +419,7 @@ const OrdersPage = () => {
                                                 size="sm"
                                                 className="bg-green-100 text-green-800 border border-green-300 hover:bg-green-200 px-2 py-1 rounded transition"
                                                 onClick={() => handleViewInvoice(order.id)}
-                                                title="View Invoice"
+                                                title="Xem hóa đơn"
                                             >
                                                 <FaFileInvoice />
                                             </Button>
@@ -429,7 +428,7 @@ const OrdersPage = () => {
                                                 className="bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200 px-2 py-1 rounded transition"
                                                 onClick={() => handleToggleStatus(order.id)}
                                                 disabled={updatingStatus}
-                                                title="Update Status"
+                                                title="Cập nhật trạng thái"
                                             >
                                                 <FaExchangeAlt />
                                             </Button>
@@ -437,7 +436,7 @@ const OrdersPage = () => {
                                                 size="sm"
                                                 className="bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 px-2 py-1 rounded transition"
                                                 onClick={() => setEditOrder(order)}
-                                                title="Edit Order"
+                                                title="Chỉnh sửa đơn"
                                             >
                                                 <FaEdit />
                                             </Button>
@@ -445,7 +444,7 @@ const OrdersPage = () => {
                                                 size="sm"
                                                 className="bg-red-100 text-red-800 border border-red-300 hover:bg-red-200 px-2 py-1 rounded transition"
                                                 onClick={() => handleDeleteOrder(order.id)}
-                                                title="Delete Order"
+                                                title="Xóa đơn"
                                             >
                                                 &times;
                                             </Button>
@@ -453,7 +452,7 @@ const OrdersPage = () => {
                                         <td className="py-2 px-3">
                                             {oversold ? (
                                                 <span className="px-2 py-1 rounded text-xs font-semibold bg-red-200 text-red-700">
-                                                    Oversold
+                                                    Vượt tồn kho
                                                 </span>
                                             ) : (
                                                 <span className="px-2 py-1 rounded text-xs font-semibold bg-green-100 text-green-700">
@@ -467,7 +466,7 @@ const OrdersPage = () => {
                             {paginatedOrders.length === 0 && (
                                 <tr>
                                     <td colSpan={10} className="py-8 text-center text-gray-400 font-semibold">
-                                        No orders found.
+                                        Không tìm thấy đơn hàng nào.
                                     </td>
                                 </tr>
                             )}
@@ -482,7 +481,7 @@ const OrdersPage = () => {
                             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                             disabled={currentPage === 1}
                         >
-                            Prev
+                            Trước
                         </button>
                         {[...Array(totalPages)].map((_, i) => (
                             <button
@@ -502,7 +501,7 @@ const OrdersPage = () => {
                             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                             disabled={currentPage === totalPages}
                         >
-                            Next
+                            Sau
                         </button>
                     </div>
                 )}

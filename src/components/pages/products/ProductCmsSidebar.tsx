@@ -19,6 +19,8 @@ interface Props {
   BG_COLORS: string[];
 }
 
+const VIET_TITLES = ["Nội dung", "Cách chơi", "Tài liệu tham khảo"];
+
 const ProductCmsSidebar: React.FC<Props> = ({
   cmsContent, product,
   fontFamily, setFontFamily,
@@ -31,7 +33,7 @@ const ProductCmsSidebar: React.FC<Props> = ({
     <div className="p-6 pb-2">
       <h4 className="font-bold mb-4 text-blue-700 text-lg flex items-center gap-2">
         <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" />
-        Live Preview
+        Xem trước trực tiếp
       </h4>
       <div className="rounded-xl overflow-hidden border shadow bg-white transition-all" style={{ background: previewBgColor }}>
         <LiveProductMarkdownPreview
@@ -42,13 +44,12 @@ const ProductCmsSidebar: React.FC<Props> = ({
           textColor={previewTextColor}
           bgColor={previewBgColor}
         />
-        {/* --- CMS Modal Section Previews --- */}
         {/* HERO SECTION */}
         {(cmsContent.heroTitle || cmsContent.heroSubtitle || (cmsContent.heroImages && cmsContent.heroImages.length > 0)) && (
           <section className="mb-6 mt-6">
-            <h5 className="text-lg font-semibold mb-2" style={{ color: previewTextColor }}>Hero Section</h5>
+            <h5 className="text-lg font-semibold mb-2" style={{ color: previewTextColor }}>Phần ảnh chính</h5>
             {cmsContent.heroImages && cmsContent.heroImages.length > 0 && (
-              <img src={cmsContent.heroImages[0]} alt="Hero" className="w-32 h-32 object-cover rounded-lg border shadow mb-2" />
+              <img src={cmsContent.heroImages[0]} alt="Ảnh chính" className="w-32 h-32 object-cover rounded-lg border shadow mb-2" />
             )}
             <div className="font-bold text-xl mb-1" style={{ color: previewTextColor }}>{cmsContent.heroTitle}</div>
             <div className="text-gray-600" style={{ color: previewTextColor }}>{cmsContent.heroSubtitle}</div>
@@ -57,7 +58,7 @@ const ProductCmsSidebar: React.FC<Props> = ({
         {/* ABOUT SECTION */}
         {(cmsContent.aboutTitle || cmsContent.aboutText || (cmsContent.aboutImages && cmsContent.aboutImages.length > 0)) && (
           <section className="mb-6">
-            <h5 className="text-lg font-semibold mb-2" style={{ color: previewTextColor }}>About Section</h5>
+            <h5 className="text-lg font-semibold mb-2" style={{ color: previewTextColor }}>Phần giới thiệu</h5>
             <div className="font-bold mb-1" style={{ color: previewTextColor }}>{cmsContent.aboutTitle}</div>
             <div className="mb-2" style={{ color: previewTextColor }}>{cmsContent.aboutText}</div>
             <div className="flex gap-2 flex-wrap">
@@ -66,7 +67,7 @@ const ProductCmsSidebar: React.FC<Props> = ({
                   <img
                     key={idx}
                     src={img}
-                    alt={`About ${idx + 1}`}
+                    alt={`Ảnh giới thiệu ${idx + 1}`}
                     className="w-16 h-16 object-cover rounded border"
                   />
                 ) : null
@@ -77,14 +78,14 @@ const ProductCmsSidebar: React.FC<Props> = ({
         {/* SLIDER SECTION */}
         {cmsContent.sliderImages && cmsContent.sliderImages.length > 0 && (
           <section className="mb-6">
-            <h5 className="text-lg font-semibold mb-2" style={{ color: previewTextColor }}>Gallery</h5>
+            <h5 className="text-lg font-semibold mb-2" style={{ color: previewTextColor }}>Trình chiếu ảnh</h5>
             <div className="flex gap-2 flex-wrap">
               {cmsContent.sliderImages.map((img, idx) =>
                 img ? (
                   <img
                     key={idx}
                     src={img}
-                    alt={`Slider ${idx + 1}`}
+                    alt={`Trình chiếu ${idx + 1}`}
                     className="w-14 h-14 object-cover rounded border"
                   />
                 ) : null
@@ -95,18 +96,18 @@ const ProductCmsSidebar: React.FC<Props> = ({
         {/* DETAILS SECTION */}
         {(cmsContent.detailsTitle || cmsContent.detailsContent) && (
           <section className="mb-6">
-            <h5 className="text-lg font-semibold mb-2" style={{ color: previewTextColor }}>Product Details</h5>
+            <h5 className="text-lg font-semibold mb-2" style={{ color: previewTextColor }}>Chi tiết sản phẩm</h5>
             <div className="font-bold mb-1" style={{ color: previewTextColor }}>{cmsContent.detailsTitle}</div>
             <div className="prose max-w-none border rounded p-2 bg-gray-50" style={{ color: previewTextColor, fontFamily, fontSize }}>
               {cmsContent.detailsContent}
             </div>
           </section>
         )}
-        {/* TABS SECTION - Fixed Titles and Special Handling */}
+        {/* TABS SECTION - Vietnamese Titles */}
         {cmsContent.tabs && cmsContent.tabs.length > 0 && (
           <section className="mb-6">
-            <h5 className="text-lg font-semibold mb-2" style={{ color: previewTextColor }}>Product Tabs</h5>
-            {["Specifications", "How To Play", "About"].map((fixedTitle) => {
+            <h5 className="text-lg font-semibold mb-2" style={{ color: previewTextColor }}>Thông tin sản phẩm</h5>
+            {VIET_TITLES.map((fixedTitle) => {
               const tab = cmsContent.tabs?.find(
                 t => t.title.trim().toLowerCase() === fixedTitle.trim().toLowerCase()
               );
@@ -115,8 +116,8 @@ const ProductCmsSidebar: React.FC<Props> = ({
               return (
                 <div key={fixedTitle} className="mb-3">
                   <div className="font-bold" style={{ color: previewTextColor }}>{fixedTitle}</div>
-                  {/* Special handling for "How To Play" */}
-                  {fixedTitle === "How To Play" ? (
+                  {/* Special handling for "Cách chơi" */}
+                  {fixedTitle === "Cách chơi" ? (
                     <div className="mb-1" style={{ color: previewTextColor }}>
                       {tab.content && (
                         <a
@@ -139,7 +140,7 @@ const ProductCmsSidebar: React.FC<Props> = ({
                                 ? tab.content.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/")
                                 : tab.content
                             }
-                            title="How To Play Video"
+                            title="Video hướng dẫn chơi"
                             frameBorder={0}
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
@@ -147,18 +148,39 @@ const ProductCmsSidebar: React.FC<Props> = ({
                         </div>
                       )}
                     </div>
+                  ) : fixedTitle === "Tài liệu tham khảo" ? (
+                    <div className="mb-1" style={{ color: previewTextColor }}>
+                      {(tab.references || []).length > 0 ? (
+                        <ul className="list-disc pl-5">
+                          {tab.references?.map((ref, refIdx) => (
+                            <li key={refIdx}>
+                              <a
+                                href={ref.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 underline"
+                              >
+                                {ref.title || ref.link}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <span className="text-gray-400 italic">Chưa có tài liệu tham khảo.</span>
+                      )}
+                    </div>
                   ) : (
                     <div className="mb-1" style={{ color: previewTextColor }}>{tab.content}</div>
                   )}
-                  {/* Images only for non-"How To Play" tabs */}
-                  {fixedTitle !== "How To Play" && (
+                  {/* Images only for non-"Cách chơi" tabs */}
+                  {fixedTitle !== "Cách chơi" && tab.images && (
                     <div className="flex gap-2 flex-wrap">
                       {tab.images?.map((img, imgIdx) =>
                         img ? (
                           <img
                             key={imgIdx}
                             src={img}
-                            alt={`Tab ${fixedTitle} Image ${imgIdx + 1}`}
+                            alt={`Tab ${fixedTitle} Ảnh ${imgIdx + 1}`}
                             className="w-12 h-12 object-cover rounded border"
                           />
                         ) : null
@@ -173,7 +195,7 @@ const ProductCmsSidebar: React.FC<Props> = ({
         {/* FEATURED SECTION */}
         {cmsContent.featuredSections && cmsContent.featuredSections.length > 0 && (
           <section className="mb-6">
-            <h5 className="text-lg font-semibold mb-2" style={{ color: previewTextColor }}>Featured Section</h5>
+            <h5 className="text-lg font-semibold mb-2" style={{ color: previewTextColor }}>Phần nổi bật</h5>
             {cmsContent.featuredSections.map((block, idx) => (
               <div
                 key={idx}
@@ -200,7 +222,7 @@ const ProductCmsSidebar: React.FC<Props> = ({
                   >
                     <div className="font-bold text-base mb-1" style={{ color: previewTextColor }}>{block.title}</div>
                     <div className="mb-1 text-sm" style={{ color: previewTextColor }}>{block.description}</div>
-                    <div className="text-xs text-gray-400">Background: <span style={{ background: block.textBgColor, padding: "0 8px", borderRadius: 4 }}>{block.textBgColor}</span></div>
+                    <div className="text-xs text-gray-400">Nền: <span style={{ background: block.textBgColor, padding: "0 8px", borderRadius: 4 }}>{block.textBgColor}</span></div>
                   </div>
                 </div>
                 {/* Image Box */}
@@ -222,13 +244,13 @@ const ProductCmsSidebar: React.FC<Props> = ({
                   {block.imageSrc ? (
                     <img
                       src={block.imageSrc}
-                      alt={block.imageAlt || `Block ${idx + 1}`}
+                      alt={block.imageAlt || `Khối ${idx + 1}`}
                       className="object-cover w-32 h-32 md:w-48 md:h-48 rounded-none border"
                       style={{ background: "#f3f4f6" }}
                     />
                   ) : (
                     <div className="w-32 h-32 md:w-48 md:h-48 flex items-center justify-center text-gray-300 bg-gray-100 rounded-none border">
-                      No Image
+                      Không có ảnh
                     </div>
                   )}
                 </div>
@@ -241,11 +263,11 @@ const ProductCmsSidebar: React.FC<Props> = ({
     <div className="bg-white rounded-xl shadow p-6 m-6 mt-4">
       <h5 className="font-semibold mb-4 text-gray-700 text-base flex items-center gap-2">
         <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" />
-        Preview Customization
+        Tùy chỉnh xem trước
       </h5>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs text-gray-500 mb-1 font-medium">Font Family</label>
+          <label className="block text-xs text-gray-500 mb-1 font-medium">Kiểu chữ</label>
           <select
             value={fontFamily}
             onChange={e => setFontFamily(e.target.value)}
@@ -257,7 +279,7 @@ const ProductCmsSidebar: React.FC<Props> = ({
           </select>
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1 font-medium">Font Size</label>
+          <label className="block text-xs text-gray-500 mb-1 font-medium">Cỡ chữ</label>
           <select
             value={fontSize}
             onChange={e => setFontSize(e.target.value)}
@@ -269,7 +291,7 @@ const ProductCmsSidebar: React.FC<Props> = ({
           </select>
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1 font-medium">Preview Text Color</label>
+          <label className="block text-xs text-gray-500 mb-1 font-medium">Màu chữ xem trước</label>
           <div className="flex gap-2 flex-wrap w-full">
             {COLORS.map(color => (
               <button
@@ -286,7 +308,7 @@ const ProductCmsSidebar: React.FC<Props> = ({
           </div>
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1 font-medium">Preview Background Color</label>
+          <label className="block text-xs text-gray-500 mb-1 font-medium">Màu nền xem trước</label>
           <div className="flex gap-2 flex-wrap w-full">
             {BG_COLORS.map(color => (
               <button

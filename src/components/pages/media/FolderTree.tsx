@@ -82,7 +82,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
               </span>
               <span className="truncate">{folder}</span>
               <span className="ml-auto text-xs text-gray-400 group-hover:text-blue-400">
-                {node.children[folder].items?.length || 0}
+                {node.children[folder].items?.length
+                  ? `${node.children[folder].items.length} ảnh`
+                  : "0 ảnh"}
               </span>
             </div>
             {hasChildren && isExpanded && (

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "../../widgets/button";
-import { FaPlus, FaTrash, FaEdit, FaSave, FaTimes, FaTags, FaUsers, FaClock, FaChild } from "react-icons/fa";
-import { useAddTagMutation, useDeleteTagMutation, useGetTagsQuery, useUpdateTagMutation } from "../../../redux/api/tagsApi";
+import { FaPlus, FaTrash, FaEdit, FaSave, FaTimes, FaTags, FaUsers, FaClock, FaChild, FaRecycle } from "react-icons/fa";
+import { useAddTagMutation, useDeleteTagMutation, useGetTagsQuery, useUpdateTagMutation, useGetDeletedTagsQuery, useRestoreTagMutation } from "../../../redux/api/tagsApi";
 import Loading from "../../../components/widgets/loading";
 
 type DurationTag = { duration: "Short" | "Average" | "Long" };
@@ -12,10 +12,12 @@ const iconStyles = "inline-block mr-2 text-blue-500 text-xl";
 
 const TagsPage = () => {
   //RTK Query
-  const { data: tags, isLoading } = useGetTagsQuery()
+  const { data: tags, isLoading, refetch } = useGetTagsQuery()
   const [addTag] = useAddTagMutation();
   const [updateTag] = useUpdateTagMutation();
   const [deleteTag] = useDeleteTagMutation();
+  const { data: deletedTags = [], isLoading: loadingDeleted, refetch: refetchDeleted } = useGetDeletedTagsQuery();
+  const [restoreTag] = useRestoreTagMutation();
 
   // Filter tags by type
   const genreTags = tags?.filter(c => c.type === 'genre') ?? [];
@@ -50,7 +52,11 @@ const TagsPage = () => {
     addTag({ name: newGenre.trim(), type: "genre" });
     setNewGenre("");
   };
-  const handleDeleteGenre = (id: number) => deleteTag(id)
+  const handleDeleteGenre = async (id: number) => {
+    await deleteTag(id);
+    await refetch();
+    await refetchDeleted();
+  }
   const handleEditGenre = (tag: Tag) => {
     setEditingGenreId(tag.id);
     setEditGenre(tag.name);
@@ -68,7 +74,11 @@ const TagsPage = () => {
     setEditingPlayerId(0);
     setNewPlayers("");
   };
-  const handleDeletePlayers = (id: number) => deleteTag(id)
+  const handleDeletePlayers = async (id: number) => {
+    await deleteTag(id);
+    await refetch();
+    await refetchDeleted();
+  }
   const handleEditPlayers = (tag: Tag) => {
     setEditingPlayerId(tag.id);
     setEditPlayers(tag.name);
@@ -84,7 +94,11 @@ const TagsPage = () => {
     addTag({ name: newDuration.trim(), type: "duration" });
     setNewDuration("");
   };
-  const handleDeleteDuration = (id: number) => deleteTag(id);
+  const handleDeleteDuration = async (id: number) => {
+    await deleteTag(id);
+    await refetch();
+    await refetchDeleted();
+  }
   const handleEditDuration = (tag: Tag) => {
     setEditingDurationId(tag.id);
     setEditDuration(tag.name);
@@ -101,7 +115,11 @@ const TagsPage = () => {
     addTag({ name: newAge.trim(), type: "age" });
     setNewAge("");
   };
-  const handleDeleteAge = (id: number) => deleteTag(id);
+  const handleDeleteAge = async (id: number) => {
+    await deleteTag(id);
+    await refetch();
+    await refetchDeleted();
+  }
   const handleEditAge = (tag: Tag) => {
     setEditingAgeId(tag.id);
     setEditAge(tag.name);
@@ -359,6 +377,76 @@ const TagsPage = () => {
             </table>
           </div>
         </section>
+      </div>
+
+      <div className="mt-12">
+        <h3 className="text-xl font-bold mb-4 text-red-700 flex items-center gap-3">
+          <FaRecycle className="text-green-500" /> Recover Deleted Tags
+        </h3>
+        {loadingDeleted ? (
+          <Loading />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm rounded-xl overflow-hidden shadow border border-red-100 bg-white">
+              <thead>
+                <tr className="bg-gradient-to-r from-red-100 via-red-50 to-green-50 text-red-700">
+                  <th className="py-3 px-4 font-semibold text-left">Name</th>
+                  <th className="py-3 px-4 font-semibold text-left">Type</th>
+                  <th className="py-3 px-4 font-semibold text-left">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {deletedTags.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="py-8 text-center text-gray-400 font-semibold">
+                      <FaTrash className="inline-block mr-2 text-xl text-gray-300" />
+                      No deleted tags found.
+                    </td>
+                  </tr>
+                ) : (
+                  deletedTags.map(tag => (
+                    <tr
+                      key={tag.id}
+                      className="whitespace-nowrap transition hover:bg-green-50"
+                    >
+                      <td className="pr-2 py-2 font-medium text-red-700">{tag.name}</td>
+                      <td className="pr-2 py-2">
+                        <span className={`px-2 py-1 rounded text-xs font-semibold
+                          ${tag.type === "genre" ? "bg-blue-50 text-blue-700"
+                            : tag.type === "players" ? "bg-yellow-50 text-yellow-700"
+                            : tag.type === "duration" ? "bg-purple-50 text-purple-700"
+                            : tag.type === "age" ? "bg-pink-50 text-pink-700"
+                            : "bg-gray-100 text-gray-700"
+                          }`}>
+                          {tag.type.charAt(0).toUpperCase() + tag.type.slice(1)}
+                        </span>
+                      </td>
+                      <td>
+                        <Button
+                          size="sm"
+                          className="bg-gradient-to-r from-green-100 to-green-200 text-green-700 border border-green-200 hover:from-green-200 hover:to-green-300 px-4 py-1 rounded-lg shadow transition flex items-center gap-2"
+                          onClick={async () => {
+                            await restoreTag(tag.id);
+                            await refetchDeleted();
+                            await refetch();
+                          }}
+                        >
+                          <FaRecycle className="mr-1" /> Restore
+                        </Button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+            {deletedTags.length > 0 && (
+              <div className="mt-4 flex items-center gap-2 text-green-700 text-sm">
+                <FaRecycle className="text-green-500" />
+                Click <span className="font-semibold">Restore</span> to recover a deleted tag.
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="mt-8 text-gray-500 text-sm text-center">

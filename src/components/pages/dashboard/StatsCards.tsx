@@ -22,11 +22,11 @@ type StatsCardsProps = {
 };
 
 const STAT_TITLE_COLORS: Record<string, string> = {
-  Revenue: "text-amber-600",
-  Orders: "text-blue-600",
-  Customers: "text-green-600",
-  Products: "text-purple-600",
-  "New Users": "text-pink-600",
+  "Doanh thu": "text-amber-600",
+  "Đơn hàng": "text-blue-600",
+  "Khách hàng": "text-green-600",
+  "Sản phẩm": "text-purple-600",
+  "Người dùng mới": "text-pink-600",
 };
 
 const StatCard = ({
@@ -45,9 +45,9 @@ const StatCard = ({
   const isUp = change >= 0;
   const absChange = Math.abs(change);
 
-  // Format revenue as VND if label is "Revenue"
+  // Format revenue as VND if label is "Doanh thu"
   const displayValue =
-    label === "Revenue"
+    label === "Doanh thu"
       ? value.toLocaleString("vi-VN", { style: "currency", currency: "VND" })
       : `${suffix}${value.toLocaleString()}`;
 
@@ -66,7 +66,7 @@ const StatCard = ({
         }`}
       >
         {isUp ? <FaArrowUp /> : <FaArrowDown />}
-        {absChange.toFixed(1)}% {isUp ? "up" : "down"} from last month
+        {absChange.toFixed(1)}% {isUp ? "tăng" : "giảm"} so với tháng trước
       </span>
     </div>
   );
@@ -87,32 +87,32 @@ const StatsCards = ({
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 md:gap-6">
     <StatCard
       icon={<FaDollarSign size={24} />}
-      label="Revenue"
+      label="Doanh thu"
       value={totalRevenue}
       change={revenueChange}
-      suffix="$"
+      suffix=""
     />
     <StatCard
       icon={<FaShoppingCart size={24} />}
-      label="Orders"
+      label="Đơn hàng"
       value={totalOrders}
       change={ordersChange}
     />
     <StatCard
       icon={<FaUsers size={24} />}
-      label="Customers"
+      label="Khách hàng"
       value={totalCustomers}
       change={customersChange}
     />
     <StatCard
       icon={<FaBoxOpen size={24} />}
-      label="Products"
+      label="Sản phẩm"
       value={totalProducts}
       change={productsChange}
     />
     <StatCard
       icon={<FaUserPlus size={24} />}
-      label="New Users"
+      label="Người dùng mới"
       value={newUsersCount}
       change={newUsersChange}
     />

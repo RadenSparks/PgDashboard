@@ -24,7 +24,7 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ collection, onEdit, onD
         </div>
         <div className="flex gap-2">
           <IconButton
-            aria-label="Edit collection"
+            aria-label="Chỉnh sửa bộ sưu tập"
             icon={<Edit size={16} />}
             size="sm"
             colorScheme="blue"
@@ -32,7 +32,7 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ collection, onEdit, onD
             onClick={() => onEdit(collection)}
           />
           <IconButton
-            aria-label="Delete collection"
+            aria-label="Xóa bộ sưu tập"
             icon={<Trash2 size={16} />}
             size="sm"
             colorScheme="red"
@@ -48,7 +48,7 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ collection, onEdit, onD
           src={collection.image_url}
           alt={collection.name}
           className="w-full h-48 object-cover rounded-xl border border-gray-200"
-          fallbackSrc="https://via.placeholder.com/400x300?text=No+Image"
+          fallbackSrc="https://via.placeholder.com/400x300?text=Không+có+ảnh"
         />
       </div>
       <Text className="text-gray-700 mb-4 line-clamp-3">{collection.description}</Text>
@@ -72,7 +72,7 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ collection, onEdit, onD
             ))}
             {collection.products.length > 3 && (
               <Badge colorScheme="gray" variant="subtle" className="rounded-lg px-2 py-1 text-xs">
-                +{collection.products.length - 3} khác
+                +{collection.products.length - 3} sản phẩm khác
               </Badge>
             )}
           </div>

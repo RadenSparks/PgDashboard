@@ -34,9 +34,9 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
   <table className="min-w-full text-sm rounded-xl overflow-hidden shadow border border-blue-100">
     <thead>
       <tr className="text-left border-b bg-blue-50">
-        <th className="py-3 px-4 font-semibold text-gray-700">Name</th>
-        <th className="py-3 px-4 font-semibold text-gray-700">Description</th>
-        <th className="py-3 px-4 font-semibold text-gray-700">Actions</th>
+        <th className="py-3 px-4 font-semibold text-gray-700">Tên danh mục</th>
+        <th className="py-3 px-4 font-semibold text-gray-700">Mô tả</th>
+        <th className="py-3 px-4 font-semibold text-gray-700">Thao tác</th>
       </tr>
     </thead>
     <tbody>
@@ -65,7 +65,7 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
                 value={editDescription}
                 onChange={e => setEditDescription(e.target.value)}
                 size="sm"
-                placeholder="Description"
+                placeholder="Mô tả"
                 onKeyDown={e => {
                   if (e.key === "Enter") handleEditSave(cat.id);
                 }}
@@ -84,7 +84,7 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
               type="button"
             >
               <FaEdit style={{ marginRight: 6 }} />
-              Edit
+              Sửa
             </Button>
             <Button
               size="sm"
@@ -93,7 +93,7 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
               type="button"
             >
               <FaTrash style={{ marginRight: 6 }} />
-              Delete
+              Xóa
             </Button>
             {editId === cat.id && (
               <Button
@@ -102,7 +102,7 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
                 onClick={() => handleEditSave(cat.id)}
                 type="button"
               >
-                Save
+                Lưu
               </Button>
             )}
           </td>
@@ -111,7 +111,7 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
       {categories.length === 0 && (
         <tr>
           <td colSpan={3} className="py-8 text-center text-gray-400">
-            No categories found.
+            Không tìm thấy danh mục nào.
           </td>
         </tr>
       )}
