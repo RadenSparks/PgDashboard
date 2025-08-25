@@ -13,6 +13,7 @@ import { useGetAllReviewsQuery } from "../../../redux/api/reviewsApi";
 import { useGetOrdersQuery } from "../../../redux/api/ordersApi";
 import { useGetProductsQuery } from "../../../redux/api/productsApi";
 import { saveAs } from "file-saver";
+import EmailSender from "./EmailSender";
 
 // --- Type helpers for stricter typing ---
 import type { Order } from "../../../redux/api/ordersApi";
@@ -348,6 +349,20 @@ const DashboardContent = () => {
                   <div className="text-gray-400 text-center py-12">Không có dữ liệu sản phẩm.</div>
                 )}
               </div>
+            </div>
+
+            {/* Email Marketing Section */}
+            <div className="bg-white rounded-2xl shadow-lg p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                  <span className="text-white text-xl">📧</span>
+                </div>
+                <div>
+                  <h3 className="font-bold text-xl text-blue-700">Email Marketing</h3>
+                  <p className="text-gray-600 text-sm">Tạo và gửi chiến dịch email cho khách hàng</p>
+                </div>
+              </div>
+              <EmailSender />
             </div>
 
             {/* Info Panels: Recent Comments & New Users */}
