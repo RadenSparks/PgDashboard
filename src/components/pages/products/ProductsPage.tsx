@@ -123,6 +123,18 @@ const ProductsPage = () => {
         return () => document.removeEventListener("mousedown", handleClick);
     }, [showAddModal, editProduct]);
 
+    // Helper to get correct status based on quantity_stock, but keep "Coming Soon" and "Discontinued"
+    function getAutoStatus(product: Product): string {
+        if (
+            product.status === "Sắp ra mắt" ||
+            product.status === "Ngừng kinh doanh"
+        ) {
+            return product.status;
+        }
+        if (product.quantity_stock > 0) return "Cỏn hàng";
+        return "Hêt Hàng";
+    }
+
     // CREATE
     const handleAddProduct = () => {
         setEditProduct({
@@ -156,6 +168,9 @@ const ProductsPage = () => {
                     ? editProduct.publisherID.id
                     : editProduct.publisherID;
 
+                // Auto-update status except for Coming Soon/Discontinued
+                const autoStatus = getAutoStatus(editProduct);
+
                 formData.append("product_name", editProduct.product_name);
                 formData.append("product_price", editProduct.product_price.toString());
                 formData.append("description", editProduct.description);
@@ -165,7 +180,7 @@ const ProductsPage = () => {
                 formData.append("meta_description", editProduct.meta_description);
                 formData.append("quantity_sold", editProduct.quantity_sold.toString());
                 formData.append("quantity_stock", editProduct.quantity_stock.toString());
-                formData.append("status", editProduct.status);
+                formData.append("status", autoStatus);
                 formData.append("category_ID", editProduct.category_ID.id.toString());
                 formData.append("publisherID", publisherId?.toString() || "");
                 formData.append(
@@ -230,6 +245,9 @@ const ProductsPage = () => {
                     ? editProduct.publisherID.id
                     : editProduct.publisherID;
 
+                // Auto-update status except for Coming Soon/Discontinued
+                const autoStatus = getAutoStatus(editProduct);
+
                 formData.append("id", editProduct.id.toString());
                 formData.append("product_name", editProduct.product_name);
                 formData.append("product_price", editProduct.product_price.toString());
@@ -240,7 +258,7 @@ const ProductsPage = () => {
                 formData.append("meta_description", editProduct.meta_description);
                 formData.append("quantity_sold", editProduct.quantity_sold.toString());
                 formData.append("quantity_stock", editProduct.quantity_stock.toString());
-                formData.append("status", editProduct.status);
+                formData.append("status", autoStatus);
                 formData.append("category_ID", editProduct.category_ID.id.toString());
                 formData.append("publisherID", publisherId?.toString() || "");
                 formData.append(
