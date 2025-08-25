@@ -98,8 +98,8 @@ const UsersPage: React.FC = () => {
       setFadingUserId(null);
       refetch();
       toast({
-        title: "User deleted",
-        description: `User "${pendingDelete.user.full_name}" has been deleted.`,
+        title: "Đã xóa người dùng",
+        description: `Người dùng "${pendingDelete.user.full_name}" đã bị xóa.`,
         status: "success",
         duration: 3000,
         isClosable: true,
@@ -130,16 +130,16 @@ const UsersPage: React.FC = () => {
       setNewUser({ ...emptyUser });
       refetch();
       toast({
-        title: "User added",
-        description: "The user was added successfully.",
+        title: "Đã thêm người dùng",
+        description: "Người dùng đã được thêm thành công.",
         status: "success",
         duration: 3000,
         isClosable: true,
       });
     } catch {
       toast({
-        title: "Failed to add user",
-        description: "Please check your input or try again.",
+        title: "Thêm người dùng thất bại",
+        description: "Vui lòng kiểm tra thông tin đầu vào hoặc thử lại.",
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -173,14 +173,14 @@ const UsersPage: React.FC = () => {
     <div className="p-8 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-3xl font-extrabold text-blue-700 tracking-tight">
-          {filterNew ? "Newly Joined Users" : "User Management"}
+          {filterNew ? "Người dùng mới đăng ký" : "Quản lý người dùng"}
         </h2>
         <Button
           className="bg-blue-600 text-white hover:bg-blue-700 px-5 py-2 rounded-lg flex items-center gap-2 shadow"
           onClick={handleAddUser}
         >
           <FaPlus />
-          Add User
+          Thêm người dùng
         </Button>
       </div>
 
@@ -190,7 +190,7 @@ const UsersPage: React.FC = () => {
           <input
             type="text"
             className="border rounded-lg px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-            placeholder="Search by name, username, or email"
+            placeholder="Tìm theo tên, tên đăng nhập hoặc email"
             value={searchTerm}
             onChange={e => {
               setSearchTerm(e.target.value);
@@ -208,7 +208,7 @@ const UsersPage: React.FC = () => {
             }`}
             onClick={() => setStatusFilter("all")}
           >
-            All
+            Tất cả
           </button>
           <button
             className={`px-4 py-2 rounded-lg font-semibold transition ${
@@ -218,7 +218,7 @@ const UsersPage: React.FC = () => {
             }`}
             onClick={() => setStatusFilter("active")}
           >
-            Active
+            Hoạt động
           </button>
           <button
             className={`px-4 py-2 rounded-lg font-semibold transition ${
@@ -228,7 +228,7 @@ const UsersPage: React.FC = () => {
             }`}
             onClick={() => setStatusFilter("suspended")}
           >
-            Suspended
+            Tạm khóa
           </button>
         </div>
       </div>
@@ -247,7 +247,7 @@ const UsersPage: React.FC = () => {
             onClick={() => navigate("/users")}
           >
             <FaArrowLeft />
-            Back to All Users
+            Quay lại tất cả người dùng
           </Button>
         </div>
       )}
@@ -268,7 +268,7 @@ const UsersPage: React.FC = () => {
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
           >
-            Prev
+            Trước
           </button>
           {[...Array(totalPages)].map((_, i) => (
             <button
@@ -288,7 +288,7 @@ const UsersPage: React.FC = () => {
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
           >
-            Next
+            Sau
           </button>
         </div>
       )}
@@ -321,7 +321,7 @@ const UsersPage: React.FC = () => {
       />
 
       <div className="mt-8 text-gray-500 text-sm bg-white rounded-xl shadow p-6">
-        <strong>Note:</strong> User information is managed and updated from the main site. You cannot edit user info here. Any changes will be reflected automatically when updated on the main site.
+        <strong>Lưu ý:</strong> Thông tin người dùng được quản lý và cập nhật từ trang chính. Bạn không thể chỉnh sửa thông tin người dùng tại đây. Mọi thay đổi sẽ được cập nhật tự động khi chỉnh sửa trên trang chính.
       </div>
     </div>
   );

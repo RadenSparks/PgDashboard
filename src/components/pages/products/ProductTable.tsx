@@ -29,20 +29,20 @@ const ProductTable = ({
                 <table className="min-w-[1400px] text-sm align-middle">
                     <thead>
                         <tr className="text-left border-b bg-blue-50">
-                            <th className="py-4 px-3 font-semibold text-gray-700">Image</th>
-                            <th className="py-4 px-3 font-semibold text-gray-700">Name</th>
-                            <th className="py-4 px-3 font-semibold text-gray-700">Description</th>
-                            <th className="py-4 px-3 font-semibold text-gray-700">Category</th>
-                            <th className="py-4 px-3 font-semibold text-gray-700">Genres</th>
-                            <th className="py-4 px-3 font-semibold text-gray-700">Players</th>
-                            <th className="py-4 px-3 font-semibold text-gray-700">Duration</th>
-                            <th className="py-4 px-3 font-semibold text-gray-700">Age</th>
-                            <th className="py-4 px-3 font-semibold text-gray-700">Price</th>
-                            <th className="py-4 px-3 font-semibold text-gray-700">Discount</th>
-                            <th className="py-4 px-3 font-semibold text-gray-700">Stock</th>
-                            <th className="py-4 px-3 font-semibold text-gray-700">Sold</th>
-                            <th className="py-4 px-3 font-semibold text-gray-700">Status</th>
-                            <th className="py-4 px-3 font-semibold text-gray-700">Actions</th>
+                            <th className="py-4 px-3 font-semibold text-gray-700">Ảnh</th>
+                            <th className="py-4 px-3 font-semibold text-gray-700">Tên sản phẩm</th>
+                            <th className="py-4 px-3 font-semibold text-gray-700">Mô tả</th>
+                            <th className="py-4 px-3 font-semibold text-gray-700">Danh mục</th>
+                            <th className="py-4 px-3 font-semibold text-gray-700">Thể loại</th>
+                            <th className="py-4 px-3 font-semibold text-gray-700">Số người chơi</th>
+                            <th className="py-4 px-3 font-semibold text-gray-700">Thời lượng</th>
+                            <th className="py-4 px-3 font-semibold text-gray-700">Độ tuổi</th>
+                            <th className="py-4 px-3 font-semibold text-gray-700">Giá</th>
+                            <th className="py-4 px-3 font-semibold text-gray-700">Giảm giá</th>
+                            <th className="py-4 px-3 font-semibold text-gray-700">Tồn kho</th>
+                            <th className="py-4 px-3 font-semibold text-gray-700">Đã bán</th>
+                            <th className="py-4 px-3 font-semibold text-gray-700">Trạng thái</th>
+                            <th className="py-4 px-3 font-semibold text-gray-700">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -122,7 +122,7 @@ const ProductTable = ({
                                     <td className="py-4 px-3 align-middle">
                                         {prod.discount > 0 ? (
                                             <span className="text-green-600 font-semibold">
-                                                {prod.discount}% OFF
+                                                {prod.discount}% GIẢM
                                             </span>
                                         ) : (
                                             <span className="text-gray-400">-</span>
@@ -138,7 +138,15 @@ const ProductTable = ({
                                                     : "text-red-500 font-semibold"
                                             }
                                         >
-                                            {prod.status}
+                                            {prod.status === "Available"
+                                                ? "Còn hàng"
+                                                : prod.status === "Unavailable"
+                                                ? "Hết hàng"
+                                                : prod.status === "Coming Soon"
+                                                ? "Sắp ra mắt"
+                                                : prod.status === "Discontinued"
+                                                ? "Ngừng kinh doanh"
+                                                : prod.status}
                                         </span>
                                     </td>
                                     <td className="py-4 px-3 align-middle">
@@ -148,14 +156,14 @@ const ProductTable = ({
                                                 className="bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 px-3 py-1 rounded-lg font-semibold"
                                                 onClick={() => onShowDetails(prod)}
                                             >
-                                                Details
+                                                Chi tiết
                                             </Button>
                                             <Button
                                                 size="sm"
                                                 className="bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200 px-3 py-1 rounded-lg font-semibold"
                                                 onClick={() => onEdit(prod)}
                                             >
-                                                Edit
+                                                Sửa
                                             </Button>
                                             <Button
                                                 size="sm"
@@ -169,7 +177,7 @@ const ProductTable = ({
                                                 className="bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 px-3 py-1 rounded-lg font-semibold"
                                                 onClick={() => onDelete(prod.id)}
                                             >
-                                                Delete
+                                                Xóa
                                             </Button>
                                         </div>
                                     </td>
@@ -179,7 +187,7 @@ const ProductTable = ({
                         {products.length === 0 && (
                             <tr>
                                 <td colSpan={14} className="py-8 text-center text-gray-400">
-                                    No products found.
+                                    Không tìm thấy sản phẩm nào.
                                 </td>
                             </tr>
                         )}

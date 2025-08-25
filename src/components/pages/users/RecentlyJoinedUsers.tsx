@@ -16,14 +16,14 @@ const RecentlyJoinedUsers: React.FC<RecentlyJoinedUsersProps> = ({
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-2">
         <FaUserPlus className="text-pink-500" size={22} />
-        <span className="font-semibold text-lg">Recently Joined Users</span>
+        <span className="font-semibold text-lg">Người dùng mới đăng ký</span>
       </div>
       <Button
         className="flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-700 border border-blue-200 rounded text-sm hover:bg-blue-200 transition"
         onClick={onShowOnlyNew}
       >
         <FaFilter />
-        Show Only New Users
+        Chỉ hiển thị người dùng mới
       </Button>
     </div>
     <ul className="flex flex-wrap gap-8">

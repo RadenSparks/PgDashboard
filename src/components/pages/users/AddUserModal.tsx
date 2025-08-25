@@ -24,11 +24,11 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
         <button
           className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 dark:hover:text-white text-2xl"
           onClick={onClose}
-          aria-label="Close"
+          aria-label="Đóng"
         >
           &times;
         </button>
-        <h3 className="text-2xl font-bold mb-6 text-blue-700">Add User</h3>
+        <h3 className="text-2xl font-bold mb-6 text-blue-700">Thêm người dùng</h3>
         <form
           onSubmit={e => {
             e.preventDefault();
@@ -38,7 +38,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
         >
         {/* Left Column */}
         <div className="col-span-1">
-          <label className="block text-sm font-medium mb-1">Full Name</label>
+          <label className="block text-sm font-medium mb-1">Họ và tên</label>
           <input
             className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
             value={newUser.full_name}
@@ -48,7 +48,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
         </div>
 
         <div className="col-span-1">
-          <label className="block text-sm font-medium mb-1">Username</label>
+          <label className="block text-sm font-medium mb-1">Tên đăng nhập</label>
           <input
             className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
             value={newUser.username}
@@ -58,7 +58,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
         </div>
 
         <div className="col-span-1">
-            <label className="block text-sm font-medium mb-1">Password</label>
+            <label className="block text-sm font-medium mb-1">Mật khẩu</label>
             <input
               className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
               type="password"
@@ -69,7 +69,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
           </div>
 
         <div className="col-span-1">
-          <label className="block text-sm font-medium mb-1">Phone Number</label>
+          <label className="block text-sm font-medium mb-1">Số điện thoại</label>
           <input
             className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
             value={newUser.phone_number ?? ""}
@@ -78,7 +78,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
         </div>
 
         <div className="col-span-1 md:col-span-2">
-          <label className="block text-sm font-medium mb-1">Address</label>
+          <label className="block text-sm font-medium mb-1">Địa chỉ</label>
           <input
             className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
             value={newUser.address ?? ""}
@@ -87,7 +87,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
         </div>
 
         <div className="col-span-1 md:col-span-2">
-          <label className="block text-sm font-medium mb-1">Avatar URL</label>
+          <label className="block text-sm font-medium mb-1">Ảnh đại diện (URL)</label>
           <input
             className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
             value={newUser.avatar_url ?? ""}
@@ -107,7 +107,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
           </div>
 
           <div className="col-span-1">
-            <label className="block text-sm font-medium mb-1">Role</label>
+            <label className="block text-sm font-medium mb-1">Vai trò</label>
             <input
               className="w-full border rounded-lg px-3 py-2 bg-gray-100 text-gray-500"
               value="user"
@@ -117,14 +117,14 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
           </div>
           
           <div className="col-span-1 md:col-span-2">
-            <label className="block text-sm font-medium mb-1">Status</label>
+            <label className="block text-sm font-medium mb-1">Trạng thái</label>
             <select
               className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
               value={newUser.status ? "Active" : "Suspended"}
               onChange={e => onChange("status", e.target.value === "Active")}
             >
-              <option value="Active">Active</option>
-              <option value="Suspended">Suspended</option>
+              <option value="Active">Hoạt động</option>
+              <option value="Suspended">Tạm khóa</option>
             </select>
           </div>
 
@@ -133,14 +133,14 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
               className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
               type="submit"
             >
-              Save
+              Lưu
             </Button>
             <Button
               className="bg-gray-200 px-6 py-2 rounded-lg"
               type="button"
               onClick={onClose}
             >
-              Cancel
+              Hủy
             </Button>
           </div>
         </form>

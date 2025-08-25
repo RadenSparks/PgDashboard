@@ -149,7 +149,7 @@ const CollectionsPage: React.FC = () => {
                 await updateCollection({ id: editingId, ...payload }).unwrap();
                 toast({
                     title: 'Thành công',
-                    description: 'Cập nhật collection thành công',
+                    description: 'Cập nhật bộ sưu tập thành công',
                     status: 'success',
                     duration: 3000,
                     isClosable: true,
@@ -158,7 +158,7 @@ const CollectionsPage: React.FC = () => {
                 await addCollection(payload).unwrap();
                 toast({
                     title: 'Thành công',
-                    description: 'Tạo collection thành công',
+                    description: 'Tạo bộ sưu tập thành công',
                     status: 'success',
                     duration: 3000,
                     isClosable: true,

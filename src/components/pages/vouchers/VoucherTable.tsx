@@ -30,16 +30,16 @@ const VoucherTable: React.FC<VoucherTableProps> = ({
       <table className="min-w-full text-sm rounded-xl overflow-hidden shadow border border-blue-100">
         <thead>
           <tr className="text-left border-b bg-blue-50">
-            <th className="py-2 px-2">Code</th>
-            <th className="py-2 px-2">Discount (%)</th>
-            <th className="py-2 px-2">Min Order</th>
-            <th className="py-2 px-2">Max Order</th>
-            <th className="py-2 px-2">Usage Limit</th>
-            <th className="py-2 px-2">Start</th>
-            <th className="py-2 px-2">End</th>
-            <th className="py-2 px-2">Status</th>
-            <th className="py-2 px-2">Milestone Points</th>
-            <th className="py-2 px-2">Actions</th>
+            <th className="py-2 px-2">Mã voucher</th>
+            <th className="py-2 px-2">% Giảm giá</th>
+            <th className="py-2 px-2">Đơn tối thiểu</th>
+            <th className="py-2 px-2">Đơn tối đa</th>
+            <th className="py-2 px-2">Số lượt dùng</th>
+            <th className="py-2 px-2">Bắt đầu</th>
+            <th className="py-2 px-2">Kết thúc</th>
+            <th className="py-2 px-2">Trạng thái</th>
+            <th className="py-2 px-2">Điểm mốc</th>
+            <th className="py-2 px-2">Thao tác</th>
           </tr>
         </thead>
         <tbody>
@@ -67,7 +67,11 @@ const VoucherTable: React.FC<VoucherTableProps> = ({
                       : "bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-semibold"
                   }
                 >
-                  {voucher.status}
+                  {voucher.status === "active"
+                    ? "Đang hoạt động"
+                    : voucher.status === "inactive"
+                    ? "Tạm ngưng"
+                    : "Đã hủy"}
                 </span>
               </td>
               <td className="py-2 px-2">{voucher.milestonePoints ?? "-"}</td>
@@ -78,7 +82,7 @@ const VoucherTable: React.FC<VoucherTableProps> = ({
                   onClick={() => onEdit(voucher.id)}
                 >
                   <FaEdit className="inline mr-1" />
-                  Edit
+                  Sửa
                 </Button>
                 <Button
                   size="sm"
@@ -86,7 +90,7 @@ const VoucherTable: React.FC<VoucherTableProps> = ({
                   onClick={() => onDelete(voucher.id)}
                 >
                   <FaTrash className="inline mr-1" />
-                  Delete
+                  Xóa
                 </Button>
                 <Button
                   size="sm"
@@ -97,7 +101,7 @@ const VoucherTable: React.FC<VoucherTableProps> = ({
                   }
                   onClick={() => onStatusToggle(voucher.id)}
                 >
-                  {voucher.status === "active" ? "Set Inactive" : "Set Active"}
+                  {voucher.status === "active" ? "Chuyển tạm ngưng" : "Chuyển hoạt động"}
                 </Button>
               </td>
             </tr>
@@ -105,7 +109,7 @@ const VoucherTable: React.FC<VoucherTableProps> = ({
           {paginatedVouchers.length === 0 && (
             <tr>
               <td colSpan={10} className="py-6 text-center text-gray-400">
-                No vouchers found.
+                Không tìm thấy voucher nào.
               </td>
             </tr>
           )}
@@ -119,7 +123,7 @@ const VoucherTable: React.FC<VoucherTableProps> = ({
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
           >
-            Prev
+            Trước
           </button>
           {[...Array(totalPages)].map((_, i) => (
             <button
@@ -139,7 +143,7 @@ const VoucherTable: React.FC<VoucherTableProps> = ({
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
           >
-            Next
+            Sau
           </button>
         </div>
       )}

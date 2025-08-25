@@ -209,14 +209,14 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
     try {
       if (form.id) {
         await updatePost({ id: form.id, body: payload });
-        toast({ title: "Post updated!", status: "success", duration: 3000, isClosable: true });
+        toast({ title: "Bài viết đã được cập nhật!", status: "success", duration: 3000, isClosable: true });
       } else {
         await createPost(payload);
-        toast({ title: "Post created!", status: "success", duration: 3000, isClosable: true });
+        toast({ title: "Bài viết đã được tạo!", status: "success", duration: 3000, isClosable: true });
       }
       if (onSuccess) onSuccess();
     } catch {
-      toast({ title: "Error saving post", status: "error", duration: 4000, isClosable: true });
+      toast({ title: "Có lỗi khi lưu bài viết", status: "error", duration: 4000, isClosable: true });
     }
   };
 

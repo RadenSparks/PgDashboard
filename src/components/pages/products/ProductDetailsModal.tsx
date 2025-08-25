@@ -39,7 +39,7 @@ const ProductDetailsModal = ({ product, onClose }: ProductDetailsModalProps) => 
                 <button
                     className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl"
                     onClick={onClose}
-                    aria-label="Close details"
+                    aria-label="Đóng chi tiết"
                 >
                     &times;
                 </button>
@@ -49,7 +49,7 @@ const ProductDetailsModal = ({ product, onClose }: ProductDetailsModalProps) => 
                     <div className="w-full">
                         <div className="bg-white rounded-xl shadow border border-blue-100 p-4">
                             <div className="text-sm font-semibold text-blue-700 mb-2 text-center">
-                                Gallery
+                                Bộ sưu tập ảnh
                             </div>
                             <GallerySlider
                                 images={images.map(imgObj => imgObj.url).filter(Boolean)}
@@ -64,11 +64,11 @@ const ProductDetailsModal = ({ product, onClose }: ProductDetailsModalProps) => 
                         <div className="mb-4 text-gray-700 text-base">{product.description}</div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                             <div>
-                                <div className="font-semibold text-gray-600 mb-1">Category</div>
+                                <div className="font-semibold text-gray-600 mb-1">Danh mục</div>
                                 <div className="text-blue-700 font-medium">{product.category_ID?.name || "-"}</div>
                             </div>
                             <div>
-                                <div className="font-semibold text-gray-600 mb-1">Publisher</div>
+                                <div className="font-semibold text-gray-600 mb-1">Nhà phát hành</div>
                                 <div className="text-blue-700 font-medium">{product.publisherID?.name || "-"}</div>
                             </div>
                             <div>
@@ -76,7 +76,7 @@ const ProductDetailsModal = ({ product, onClose }: ProductDetailsModalProps) => 
                                 <div className="text-gray-700">{product.slug}</div>
                             </div>
                             <div>
-                                <div className="font-semibold text-gray-600 mb-1">Status</div>
+                                <div className="font-semibold text-gray-600 mb-1">Trạng thái</div>
                                 <span
                                     className={
                                         product.status === "Available"
@@ -84,41 +84,45 @@ const ProductDetailsModal = ({ product, onClose }: ProductDetailsModalProps) => 
                                             : "text-red-500 font-semibold"
                                     }
                                 >
-                                    {product.status}
+                                    {product.status === "Available"
+                                        ? "Còn hàng"
+                                        : product.status === "Unavailable"
+                                        ? "Hết hàng"
+                                        : product.status}
                                 </span>
                             </div>
                         </div>
                         <div className="mb-6">
-                            <div className="font-semibold text-gray-600 mb-1">Tags</div>
+                            <div className="font-semibold text-gray-600 mb-1">Thẻ</div>
                             <div className="flex flex-wrap gap-2">
                                 <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold">
-                                    Genre: {genres.length > 0 ? genres.map(g => g.name).join(", ") : "-"}
+                                    Thể loại: {genres.length > 0 ? genres.map(g => g.name).join(", ") : "-"}
                                 </span>
                                 <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">
-                                    Players: {players?.name || "-"}
+                                    Số người chơi: {players?.name || "-"}
                                 </span>
                                 <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-semibold">
-                                    Duration: {duration?.name || "-"}
+                                    Thời lượng: {duration?.name || "-"}
                                 </span>
                                 <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-semibold">
-                                    Age: {age?.name || "-"}
+                                    Độ tuổi: {age?.name || "-"}
                                 </span>
                             </div>
                         </div>
                         <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <div className="font-semibold text-gray-600 mb-1">Price</div>
+                                <div className="font-semibold text-gray-600 mb-1">Giá</div>
                                 <span className="text-blue-700 font-bold text-lg">{formatCurrencyVND(product.product_price)}</span>
                                 {product.discount > 0 && (
                                     <span className="ml-2 text-green-600 font-semibold">
-                                        {product.discount}% OFF
+                                        Giảm {product.discount}%
                                     </span>
                                 )}
                             </div>
                             <div>
-                                <div className="font-semibold text-gray-600 mb-1">Stock / Sold</div>
+                                <div className="font-semibold text-gray-600 mb-1">Tồn kho / Đã bán</div>
                                 <span className="text-gray-700 font-medium">
-                                    Stock: {product.quantity_stock} &nbsp;|&nbsp; Sold: {product.quantity_sold}
+                                    Tồn kho: {product.quantity_stock} &nbsp;|&nbsp; Đã bán: {product.quantity_sold}
                                 </span>
                             </div>
                         </div>

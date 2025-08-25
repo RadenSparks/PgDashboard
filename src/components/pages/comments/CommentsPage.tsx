@@ -70,8 +70,8 @@ const CommentsPage = () => {
     try {
       await api.delete(`/reviews/${deleteId}`);
       toast({
-        title: "Deleted",
-        description: "Review deleted successfully.",
+        title: "Đã xóa",
+        description: "Đánh giá đã được xóa thành công.",
         status: "success",
         duration: 3000,
         isClosable: true,
@@ -80,14 +80,14 @@ const CommentsPage = () => {
       setDeleteId(null);
       refetch();
     } catch (error: unknown) {
-      let message = "Unknown error";
+      let message = "Lỗi không xác định";
       if (isAxiosError(error)) {
         message = error.response?.data?.message ?? message;
       } else if (isErrorWithMessage(error)) {
         message = String(error.message);
       }
       toast({
-        title: "Delete failed",
+        title: "Xóa thất bại",
         description: message,
         status: "error",
         duration: 4000,
@@ -109,7 +109,7 @@ const CommentsPage = () => {
       const newStatus = review.status === "Visible" ? "Hidden" : "Visible";
       await api.patch(`/reviews/${id}/status`, { status: newStatus });
       toast({
-        title: `Review ${newStatus === "Visible" ? "shown" : "hidden"}`,
+        title: `Đánh giá ${newStatus === "Visible" ? "hiện" : "ẩn"}`,
         status: "success",
         duration: 2500,
         isClosable: true,
@@ -124,7 +124,7 @@ const CommentsPage = () => {
         message = String(error.message);
       }
       toast({
-        title: "Status update failed",
+        title: "Trạng thái đã được cập nhật",
         description: message,
         status: "error",
         duration: 4000,

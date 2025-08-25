@@ -134,8 +134,8 @@ const MediaManager: React.FC = () => {
         return new Promise<void>((resolve, reject) => {
           if (file.size > 10 * 1024 * 1024) {
             toast({
-              title: "File too large",
-              description: "Max file size is 10MB.",
+              title: "File quá lớn",
+              description: "Kích thước tối đa là 10MB.",
               status: "error",
               duration: 4000,
               isClosable: true,
@@ -188,7 +188,7 @@ const MediaManager: React.FC = () => {
       await Promise.all(uploads);
       setUploadProgress(100);
       toast({
-        title: "Upload successful",
+        title: "Upload thành công",
         status: "success",
         duration: 3000,
         isClosable: true,
@@ -196,8 +196,8 @@ const MediaManager: React.FC = () => {
       refetch();
     } catch (err: unknown) {
       toast({
-        title: "Upload failed",
-        description: err && typeof err === "object" && "message" in err ? (err as { message?: string }).message : "Unknown error",
+        title: "Upload thất bại",
+        description: err && typeof err === "object" && "message" in err ? (err as { message?: string }).message : "Lỗi không xác định",
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -214,8 +214,8 @@ const MediaManager: React.FC = () => {
   const handleCopy = async (url: string) => {
     await navigator.clipboard.writeText(url);
     toast({
-      title: "Copied!",
-      description: "Image URL copied to clipboard.",
+      title: "Đã sao chép!",
+      description: "URL hình ảnh đã được sao chép vào clipboard.",
       status: "success",
       duration: 2000,
       isClosable: true,
@@ -225,8 +225,8 @@ const MediaManager: React.FC = () => {
   const handleDelete = async (item: MediaItem, refetchAfter = true) => {
     if (!item.id || isNaN(Number(item.id))) {
       toast({
-        title: "Delete failed",
-        description: "Invalid image ID.",
+        title: "Xóa thất bại",
+        description: "ID hình ảnh không hợp lệ.",
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -253,8 +253,8 @@ const MediaManager: React.FC = () => {
       }
       await deleteMedia(item.id).unwrap();
       toast({
-        title: "Deleted",
-        description: "Media deleted.",
+        title: "Đã xóa",
+        description: "Media đã được xóa.",
         status: "info",
         duration: 2000,
         isClosable: true,
@@ -263,8 +263,8 @@ const MediaManager: React.FC = () => {
       if (refetchAfter) refetch();
     } catch (err: unknown) {
       toast({
-        title: "Delete failed",
-        description: err && typeof err === "object" && "message" in err ? (err as { message?: string }).message : "Unknown error",
+        title: "Xóa thất bại",
+        description: err && typeof err === "object" && "message" in err ? (err as { message?: string }).message : "Lỗi không xác định",
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -293,7 +293,7 @@ const MediaManager: React.FC = () => {
     setDeleting(true);
     try {
       const node = getCurrentNode(folderTree, folderPath);
-      if (!node) throw new Error("Folder not found");
+      if (!node) throw new Error("Không tìm thấy thư mục");
       const imagesToDelete = getAllImagesInFolder(node).filter(img => img.id && !isNaN(Number(img.id)));
       for (const img of imagesToDelete) {
         await handleDelete(img, false);
@@ -306,8 +306,8 @@ const MediaManager: React.FC = () => {
           prev.filter(arr => arr.join("/") !== folderPath.join("/"))
         );
         toast({
-          title: "Folder deleted",
-          description: "Empty folder removed.",
+          title: "Thư mục đã được xóa",
+          description: "Thư mục rỗng đã được gỡ bỏ.",
           status: "info",
           duration: 2000,
           isClosable: true,
@@ -322,8 +322,8 @@ const MediaManager: React.FC = () => {
         prev.filter(arr => arr.join("/") !== folderPath.join("/"))
       );
       toast({
-        title: "Folder deleted",
-        description: "All images in this folder have been deleted.",
+        title: "Thư mục đã được xóa",
+        description: "Tất cả hình ảnh trong thư mục này đã được xóa.",
         status: "info",
         duration: 2000,
         isClosable: true,
@@ -337,8 +337,8 @@ const MediaManager: React.FC = () => {
         prev.filter(arr => arr.join("/") !== folderPath.join("/"))
       );
       toast({
-        title: "Folder deleted",
-        description: "Empty folder removed.",
+        title: "Thư mục đã được xóa",
+        description: "Thư mục rỗng đã được gỡ bỏ.",
         status: "info",
         duration: 2000,
         isClosable: true,
@@ -358,8 +358,8 @@ const MediaManager: React.FC = () => {
         await updateMedia({ id, data: { folder: moveTargetFolder } }).unwrap();
       }
       toast({
-        title: "Images moved",
-        description: "Selected images have been moved.",
+        title: "Hình ảnh đã được di chuyển.",
+        description: "Các hình ảnh đã được di chuyển.",
         status: "success",
         duration: 2000,
         isClosable: true,
@@ -369,8 +369,8 @@ const MediaManager: React.FC = () => {
       refetch();
     } catch (err: unknown) {
       toast({
-        title: "Move failed",
-        description: err && typeof err === "object" && "message" in err ? (err as { message?: string }).message : "Unknown error",
+        title: "Di chuyển thất bại",
+        description: err && typeof err === "object" && "message" in err ? (err as { message?: string }).message : "Lỗi không xác định",
         status: "error",
         duration: 4000,
         isClosable: true,

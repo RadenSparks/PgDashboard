@@ -30,18 +30,18 @@ const VoucherModal: React.FC<VoucherModalProps> = ({
         <button
           className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl"
           onClick={onClose}
-          aria-label="Close"
+          aria-label="Đóng"
         >
           &times;
         </button>
         <div className="p-6 pb-0">
           <h3 className="text-2xl font-bold text-blue-700 mb-1">
-            {editVoucher.id ? "Edit Voucher" : "Add Voucher"}
+            {editVoucher.id ? "Chỉnh sửa voucher" : "Thêm voucher"}
           </h3>
           <div className="text-gray-500 mb-4 text-sm">
             {editVoucher.id
-              ? "Update the details of your voucher below."
-              : "Fill in the details to create a new voucher."}
+              ? "Cập nhật thông tin voucher bên dưới."
+              : "Điền thông tin để tạo voucher mới."}
           </div>
         </div>
         <hr className="border-blue-50" />
@@ -53,7 +53,7 @@ const VoucherModal: React.FC<VoucherModalProps> = ({
           className="space-y-4 p-6 pt-4"
         >
           <label className="block text-sm font-medium mb-1">
-            Code
+            Mã voucher
             <input
               className="w-full border rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
               value={editVoucher.code ?? ""}
@@ -63,7 +63,7 @@ const VoucherModal: React.FC<VoucherModalProps> = ({
           </label>
           <div className="flex gap-4">
             <label className="block text-sm font-medium mb-1 flex-1">
-              Start Date
+              Ngày bắt đầu
               <input
                 type="date"
                 className="w-full border rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
@@ -73,7 +73,7 @@ const VoucherModal: React.FC<VoucherModalProps> = ({
               />
             </label>
             <label className="block text-sm font-medium mb-1 flex-1">
-              End Date
+              Ngày kết thúc
               <input
                 type="date"
                 className="w-full border rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
@@ -85,7 +85,7 @@ const VoucherModal: React.FC<VoucherModalProps> = ({
           </div>
           <div className="flex gap-4">
             <label className="block text-sm font-medium mb-1 flex-1">
-              Max Order Value
+              Giá trị đơn tối đa
               <input
                 type="number"
                 className="w-full border rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
@@ -95,7 +95,7 @@ const VoucherModal: React.FC<VoucherModalProps> = ({
               />
             </label>
             <label className="block text-sm font-medium mb-1 flex-1">
-              Min Order Value
+              Giá trị đơn tối thiểu
               <input
                 type="number"
                 className="w-full border rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
@@ -107,7 +107,7 @@ const VoucherModal: React.FC<VoucherModalProps> = ({
           </div>
           <div className="flex gap-4">
             <label className="block text-sm font-medium mb-1 flex-1">
-              Usage Limit
+              Số lượt sử dụng
               <input
                 type="number"
                 className="w-full border rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
@@ -117,7 +117,7 @@ const VoucherModal: React.FC<VoucherModalProps> = ({
               />
             </label>
             <label className="block text-sm font-medium mb-1 flex-1">
-              Discount Percent
+              % Giảm giá
               <input
                 type="number"
                 className="w-full border rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
@@ -128,20 +128,20 @@ const VoucherModal: React.FC<VoucherModalProps> = ({
             </label>
           </div>
           <label className="block text-sm font-medium mb-1">
-            Status
+            Trạng thái
             <select
               className="w-full border rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
               value={editVoucher.status ?? "active"}
               onChange={e => onChange("status", e.target.value as Voucher["status"])}
               required
             >
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="expired">Expired</option>
+              <option value="active">Đang hoạt động</option>
+              <option value="inactive">Tạm ngưng</option>
+              <option value="expired">Đã hủy</option>
             </select>
           </label>
           <label className="block text-sm font-medium mb-1">
-            Milestone Points (optional)
+            Điểm mốc (không bắt buộc)
             <input
               type="number"
               className="w-full border rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
@@ -150,7 +150,7 @@ const VoucherModal: React.FC<VoucherModalProps> = ({
             />
           </label>
           <label className="block text-sm font-medium mb-1">
-            Description (optional)
+            Mô tả (không bắt buộc)
             <input
               className="w-full border rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
               value={editVoucher.description ?? ""}
@@ -163,13 +163,13 @@ const VoucherModal: React.FC<VoucherModalProps> = ({
               className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
               onClick={onClose}
             >
-              Cancel
+              Hủy
             </Button>
             <Button
               type="submit"
               className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 shadow"
             >
-              {editVoucher.id ? "Update" : "Create"}
+              {editVoucher.id ? "Cập nhật" : "Tạo mới"}
             </Button>
           </div>
         </form>

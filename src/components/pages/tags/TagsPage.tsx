@@ -135,18 +135,18 @@ const TagsPage = () => {
   return (
     <div className="p-4 sm:p-8 bg-gradient-to-br from-blue-50 to-white min-h-screen">
       <h2 className="text-3xl font-bold mb-8 text-blue-800 flex items-center gap-3">
-        <FaTags className="text-blue-500" /> Tag Categories Management
+        <FaTags className="text-blue-500" /> Quản lý danh mục thẻ
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
         {/* Genre Tags */}
         <section className={sectionStyles}>
           <h3 className="text-lg font-semibold mb-4 flex items-center text-blue-700">
-            <FaTags className={iconStyles} /> Genres
+            <FaTags className={iconStyles} /> Thể loại
           </h3>
           <div className="flex flex-col sm:flex-row gap-2 mb-4">
             <input
               className="border border-blue-200 rounded-lg px-3 py-2 text-sm flex-1 focus:ring-2 focus:ring-blue-100"
-              placeholder="Add genre"
+              placeholder="Thêm thể loại"
               value={newGenre}
               onChange={(e) => setNewGenre(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAddGenre()}
@@ -190,7 +190,7 @@ const TagsPage = () => {
                 )}
                 {genreTags.length === 0 && (
                   <tr>
-                    <td colSpan={2} className="py-4 text-center text-gray-400">No genres found.</td>
+                    <td colSpan={2} className="py-4 text-center text-gray-400">Không có thể loại nào.</td>
                   </tr>
                 )}
               </tbody>
@@ -201,12 +201,12 @@ const TagsPage = () => {
         {/* Player Tags */}
         <section className={sectionStyles}>
           <h3 className="text-lg font-semibold mb-4 flex items-center text-blue-700">
-            <FaUsers className={iconStyles} /> Number of Players
+            <FaUsers className={iconStyles} /> Số người chơi
           </h3>
           <div className="flex flex-col sm:flex-row gap-2 mb-4">
             <input
               className="border border-blue-200 rounded-lg px-3 py-2 text-sm flex-1 focus:ring-2 focus:ring-blue-100"
-              placeholder="Add player count (e.g. 2-4, 1-8, Solo)"
+              placeholder="Thêm số người chơi (VD: 2-4, 1-8, Solo)"
               value={newPlayers}
               onChange={(e) => setNewPlayers(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAddPlayers()}
@@ -250,7 +250,7 @@ const TagsPage = () => {
                 )}
                 {playerTags.length === 0 && (
                   <tr>
-                    <td colSpan={2} className="py-4 text-center text-gray-400">No player numbers found.</td>
+                    <td colSpan={2} className="py-4 text-center text-gray-400">Không có số người chơi nào.</td>
                   </tr>
                 )}
               </tbody>
@@ -261,12 +261,12 @@ const TagsPage = () => {
         {/* Duration Tags */}
         <section className={sectionStyles}>
           <h3 className="text-lg font-semibold mb-4 flex items-center text-blue-700">
-            <FaClock className={iconStyles} /> Game Duration
+            <FaClock className={iconStyles} /> Thời lượng chơi
           </h3>
           <div className="flex flex-col sm:flex-row gap-2 mb-4">
             <input
               className="border border-blue-200 rounded-lg px-3 py-2 text-sm flex-1 focus:ring-2 focus:ring-blue-100"
-              placeholder="Add duration (e.g. Short, 30-60 min, Long)"
+              placeholder="Thêm thời lượng (VD: Ngắn, 30-60 phút, Dài)"
               value={newDuration}
               onChange={(e) => setNewDuration(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAddDuration()}
@@ -310,7 +310,7 @@ const TagsPage = () => {
                 )}
                 {durationTags.length === 0 && (
                   <tr>
-                    <td colSpan={2} className="py-4 text-center text-gray-400">No durations found.</td>
+                    <td colSpan={2} className="py-4 text-center text-gray-400">Không có thời lượng nào.</td>
                   </tr>
                 )}
               </tbody>
@@ -321,12 +321,12 @@ const TagsPage = () => {
         {/* Age Tags */}
         <section className={sectionStyles}>
           <h3 className="text-lg font-semibold mb-4 flex items-center text-blue-700">
-            <FaChild className={iconStyles} /> Age Tags
+            <FaChild className={iconStyles} /> Độ tuổi
           </h3>
           <div className="flex flex-col sm:flex-row gap-2 mb-4">
             <input
               className="border border-blue-200 rounded-lg px-3 py-2 text-sm flex-1 focus:ring-2 focus:ring-blue-100"
-              placeholder="Add age tag (e.g. 8+, 12+, All Ages)"
+              placeholder="Thêm độ tuổi (VD: 8+, 12+, Mọi lứa tuổi)"
               value={newAge}
               onChange={(e) => setNewAge(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAddAge()}
@@ -370,7 +370,7 @@ const TagsPage = () => {
                 )}
                 {ageTags.length === 0 && (
                   <tr>
-                    <td colSpan={2} className="py-4 text-center text-gray-400">No age tags found.</td>
+                    <td colSpan={2} className="py-4 text-center text-gray-400">Không có độ tuổi nào.</td>
                   </tr>
                 )}
               </tbody>
@@ -381,7 +381,7 @@ const TagsPage = () => {
 
       <div className="mt-12">
         <h3 className="text-xl font-bold mb-4 text-red-700 flex items-center gap-3">
-          <FaRecycle className="text-green-500" /> Recover Deleted Tags
+          <FaRecycle className="text-green-500" /> Khôi phục thẻ đã xóa
         </h3>
         {loadingDeleted ? (
           <Loading />
@@ -390,9 +390,9 @@ const TagsPage = () => {
             <table className="min-w-full text-sm rounded-xl overflow-hidden shadow border border-red-100 bg-white">
               <thead>
                 <tr className="bg-gradient-to-r from-red-100 via-red-50 to-green-50 text-red-700">
-                  <th className="py-3 px-4 font-semibold text-left">Name</th>
-                  <th className="py-3 px-4 font-semibold text-left">Type</th>
-                  <th className="py-3 px-4 font-semibold text-left">Actions</th>
+                  <th className="py-3 px-4 font-semibold text-left">Tên thẻ</th>
+                  <th className="py-3 px-4 font-semibold text-left">Loại</th>
+                  <th className="py-3 px-4 font-semibold text-left">Thao tác</th>
                 </tr>
               </thead>
               <tbody>
@@ -400,7 +400,7 @@ const TagsPage = () => {
                   <tr>
                     <td colSpan={3} className="py-8 text-center text-gray-400 font-semibold">
                       <FaTrash className="inline-block mr-2 text-xl text-gray-300" />
-                      No deleted tags found.
+                      Không có thẻ đã xóa.
                     </td>
                   </tr>
                 ) : (
@@ -418,7 +418,11 @@ const TagsPage = () => {
                             : tag.type === "age" ? "bg-pink-50 text-pink-700"
                             : "bg-gray-100 text-gray-700"
                           }`}>
-                          {tag.type.charAt(0).toUpperCase() + tag.type.slice(1)}
+                          {tag.type === "genre" ? "Thể loại"
+                            : tag.type === "players" ? "Số người chơi"
+                            : tag.type === "duration" ? "Thời lượng"
+                            : tag.type === "age" ? "Độ tuổi"
+                            : tag.type}
                         </span>
                       </td>
                       <td>
@@ -431,7 +435,7 @@ const TagsPage = () => {
                             await refetch();
                           }}
                         >
-                          <FaRecycle className="mr-1" /> Restore
+                          <FaRecycle className="mr-1" /> Khôi phục
                         </Button>
                       </td>
                     </tr>
@@ -442,7 +446,7 @@ const TagsPage = () => {
             {deletedTags.length > 0 && (
               <div className="mt-4 flex items-center gap-2 text-green-700 text-sm">
                 <FaRecycle className="text-green-500" />
-                Click <span className="font-semibold">Restore</span> to recover a deleted tag.
+                Nhấn <span className="font-semibold">Khôi phục</span> để phục hồi thẻ đã xóa.
               </div>
             )}
           </div>
@@ -450,7 +454,7 @@ const TagsPage = () => {
       </div>
 
       <div className="mt-8 text-gray-500 text-sm text-center">
-        <strong>Tip:</strong> Manage genres, player numbers, durations, and ages separately. These tags will be available for assignment to boardgames in the Products page.
+        <strong>Mẹo:</strong> Quản lý thể loại, số người chơi, thời lượng và độ tuổi riêng biệt. Các thẻ này sẽ được dùng để gán cho boardgame ở trang Sản phẩm.
       </div>
     </div>
   );

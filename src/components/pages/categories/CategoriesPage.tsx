@@ -28,17 +28,27 @@ const CategoriesPage = () => {
 
   const handleAdd = async () => {
     if (newCategory.trim()) {
-      await addCategory({ name: newCategory.trim(), description: newDescription.trim() }).unwrap();
-      toast({
-        title: "Đã tạo danh mục.",
-        status: "success",
-        duration: 2000,
-        isClosable: true,
-        position: "bottom",
-      });
-      setNewCategory("");
-      setNewDescription("");
-      onClose();
+      try {
+        await addCategory({ name: newCategory.trim(), description: newDescription.trim() }).unwrap();
+        toast({
+          title: "Đã tạo danh mục.",
+          status: "success",
+          duration: 2000,
+          isClosable: true,
+          position: "bottom",
+        });
+        setNewCategory("");
+        setNewDescription("");
+        onClose();
+      } catch {
+        toast({
+          title: "Có lỗi khi tạo danh mục.",
+          status: "error",
+          duration: 2000,
+          isClosable: true,
+          position: "bottom",
+        });
+      }
     } else {
       toast({
         title: "Tên danh mục là bắt buộc.",
@@ -57,28 +67,48 @@ const CategoriesPage = () => {
   };
 
   const handleEditSave = async (id: number) => {
-    await updateCategory({ id, name: editValue.trim(), description: editDescription.trim() }).unwrap();
-    setEditId(null);
-    setEditValue("");
-    setEditDescription("");
-    toast({
-      title: "Đã cập nhật danh mục.",
-      status: "success",
-      duration: 2000,
-      isClosable: true,
-      position: "bottom",
-    });
+    try {
+      await updateCategory({ id, name: editValue.trim(), description: editDescription.trim() }).unwrap();
+      setEditId(null);
+      setEditValue("");
+      setEditDescription("");
+      toast({
+        title: "Đã cập nhật danh mục.",
+        status: "success",
+        duration: 2000,
+        isClosable: true,
+        position: "bottom",
+      });
+    } catch {
+      toast({
+        title: "Có lỗi khi cập nhật danh mục.",
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+        position: "bottom",
+      });
+    }
   };
 
   const handleDelete = async (id: number) => {
-    await deleteCategory(id);
-    toast({
-      title: "Đã xóa danh mục.",
-      status: "info",
-      duration: 2000,
-      isClosable: true,
-      position: "bottom",
-    });
+    try {
+      await deleteCategory(id).unwrap();
+      toast({
+        title: "Đã xóa danh mục.",
+        status: "info",
+        duration: 2000,
+        isClosable: true,
+        position: "bottom",
+      });
+    } catch {
+      toast({
+        title: "Có lỗi khi xóa danh mục.",
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+        position: "bottom",
+      });
+    }
   };
 
   if (isLoading) return <Loading />;

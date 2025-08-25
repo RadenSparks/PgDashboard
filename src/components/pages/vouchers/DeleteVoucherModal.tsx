@@ -19,12 +19,12 @@ const DeleteVoucherModal: React.FC<DeleteVoucherModalProps> = ({
       <div className="bg-white rounded-xl shadow-lg max-w-sm w-full p-8 relative">
         <div className="flex items-center gap-3 mb-4">
           <FaExclamationTriangle className="text-red-500 text-2xl" />
-          <h3 className="text-lg font-bold text-red-600">Delete Voucher</h3>
+          <h3 className="text-lg font-bold text-red-600">Xóa Voucher</h3>
         </div>
         <p className="mb-4">
-          Are you sure you want to delete this voucher?
+          Bạn có chắc chắn muốn xóa voucher này không?
           <br />
-          <span className="text-sm text-gray-500">This action cannot be undone.</span>
+          <span className="text-sm text-gray-500">Hành động này không thể hoàn tác.</span>
         </p>
         <div className="flex justify-end gap-2">
           <Button

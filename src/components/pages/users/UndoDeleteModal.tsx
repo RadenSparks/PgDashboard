@@ -22,8 +22,8 @@ const UndoDeleteModal: React.FC<UndoDeleteModalProps> = ({
   const handleUndo = () => {
     onUndo();
     onToast?.({
-      title: "Undo Delete",
-      description: `User "${pendingDelete.user.full_name}" was not deleted.`,
+      title: "Hoàn tác xóa",
+      description: `Người dùng "${pendingDelete.user.full_name}" đã không bị xóa.`,
       status: "info",
     });
   };

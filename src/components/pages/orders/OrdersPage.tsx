@@ -98,7 +98,7 @@ const OrdersPage = () => {
         try {
             await markOrderAsPaid({ orderId: order.id, userId, userRole }).unwrap();
             toast({
-                title: "Order marked as paid.",
+                title: "Đơn hàng đã được thanh toán.",
                 status: "success",
                 duration: 3000,
                 isClosable: true,
@@ -108,7 +108,7 @@ const OrdersPage = () => {
             const errorMessage =
                 typeof err === "object" && err !== null && "data" in err && typeof (err as { data?: { message?: unknown } }).data?.message === "string"
                     ? (err as { data: { message: string } }).data.message
-                    : "Failed to mark as paid.";
+                    : "Có lỗi khi đánh dấu là đã thanh toán.";
             toast({
                 title: errorMessage,
                 status: "error",
@@ -121,17 +121,17 @@ const OrdersPage = () => {
     const handleCancel = async (order: Order) => {
         if (order.payment_type?.toLowerCase() === "cash on delivery" || order.payment_type?.toLowerCase() === "on_delivery") {
             toast({
-                title: "Canceling COD orders will not trigger a refund.",
+                title: "Hủy đơn hàng COD sẽ không kích hoạt hoàn tiền.",
                 status: "info",
                 duration: 4000,
                 isClosable: true,
             });
         }
-        if (!window.confirm("Are you sure you want to cancel this order?")) return;
+        if (!window.confirm("Bạn có chắc chắn muốn hủy đơn hàng này?")) return;
         try {
             await cancelOrder({ orderId: order.id, userId, userRole }).unwrap();
             toast({
-                title: "Order cancelled.",
+                title: "Đơn hàng đã được hủy.",
                 status: "success",
                 duration: 3000,
                 isClosable: true,
@@ -144,7 +144,7 @@ const OrdersPage = () => {
                 "data" in err &&
                 typeof (err as { data?: { message?: unknown } }).data?.message === "string"
                     ? (err as { data: { message: string } }).data.message
-                    : "Cancel failed.";
+                    : "Có lỗi khi hủy đơn hàng.";
             toast({
                 title: errorMessage,
                 status: "error",
@@ -161,7 +161,7 @@ const OrdersPage = () => {
 
     // Handle order deletion
     const handleDeleteOrder = async (orderId: number) => {
-        if (window.confirm("Are you sure you want to delete this order?")) {
+        if (window.confirm("Bạn có chắc chắn muốn xóa đơn hàng này?")) {
             await deleteOrder(orderId);
         }
     };
@@ -215,12 +215,12 @@ const OrdersPage = () => {
 
     // Handler for canceling oversold orders
     const handleCancelOversold = async () => {
-        if (!window.confirm("Are you sure you want to cancel all oversold orders?")) return;
+        if (!window.confirm("Bạn có chắc chắn muốn hủy tất cả đơn hàng vượt tồn kho ?")) return;
         try {
             await cancelOversoldOrders().unwrap();
             toast({
-                title: "Oversold orders cancelled.",
-                description: "All orders that cannot be fulfilled due to insufficient stock have been cancelled and customers notified.",
+                title: "Đơn hàng vượt tồn kho đã được hủy.",
+                description: "Tất cả các đơn hàng không thể thực hiện do thiếu hàng tồn kho đã được hủy và khách hàng đã được thông báo.",
                 status: "success",
                 duration: 4000,
                 isClosable: true,
@@ -228,7 +228,7 @@ const OrdersPage = () => {
             refetch();
         } catch {
             toast({
-                title: "Failed to cancel oversold orders.",
+                title: "Có lỗi khi hủy đơn hàng vượt tồn kho.",
                 status: "error",
                 duration: 4000,
                 isClosable: true,

@@ -104,7 +104,7 @@ const VoucherPage = () => {
       if (editVoucher.id) {
         await updateVoucher(payload);
         toast({
-          title: "Voucher updated",
+          title: "Đã cập nhật voucher",
           status: "success",
           duration: 3000,
           isClosable: true,
@@ -114,7 +114,7 @@ const VoucherPage = () => {
         const { id, ...createPayload } = payload;
         await addVoucher(createPayload as Omit<Voucher, "id">);
         toast({
-          title: "Voucher created",
+          title: "Đã tạo voucher",
           status: "success",
           duration: 3000,
           isClosable: true,
@@ -125,7 +125,7 @@ const VoucherPage = () => {
       refetch();
     } catch {
       toast({
-        title: "Failed to save voucher",
+        title: "Có lỗi khi lưu voucher",
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -184,10 +184,10 @@ const VoucherPage = () => {
           <div>
             <div className="flex items-center gap-3 mb-1">
               <FaTicketAlt className="text-blue-600 text-3xl" />
-              <h2 className="text-3xl font-bold text-blue-800">Voucher Management</h2>
+              <h2 className="text-3xl font-bold text-blue-800">Quản lý Voucher</h2>
             </div>
             <div className="text-gray-500 text-sm ml-1">
-              Create, edit, and manage your discount vouchers.
+              Tạo, chỉnh sửa và quản lý các mã giảm giá của bạn.
             </div>
           </div>
           <Button
@@ -195,12 +195,12 @@ const VoucherPage = () => {
             onClick={handleAdd}
           >
             <FaPlus />
-            Add Voucher
+            Thêm voucher
           </Button>
         </div>
         <div className="bg-white rounded-2xl shadow-xl p-6 border border-blue-100">
           <h3 className="text-xl font-semibold text-blue-700 mb-4 border-b border-blue-50 pb-2">
-            All Vouchers
+            Danh sách voucher
           </h3>
           <VoucherTable
             vouchers={vouchers}

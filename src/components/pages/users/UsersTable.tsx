@@ -24,15 +24,15 @@ const UsersTable: React.FC<UsersTableProps> = ({
       <table className="min-w-full text-sm">
         <thead>
           <tr className="text-left border-b">
-            <th className="py-2 px-2">Avatar</th>
-            <th className="py-2 px-2">Full Name</th>
-            <th className="py-2 px-2">Username</th>
+            <th className="py-2 px-2">Ảnh đại diện</th>
+            <th className="py-2 px-2">Họ và tên</th>
+            <th className="py-2 px-2">Tên đăng nhập</th>
             <th className="py-2 px-2">Email</th>
-            <th className="py-2 px-2">Phone</th>
-            <th className="py-2 px-2">Address</th>
-            <th className="py-2 px-2">Role</th>
-            <th className="py-2 px-2">Status</th>
-            <th className="py-2 px-2">Actions</th>
+            <th className="py-2 px-2">Số điện thoại</th>
+            <th className="py-2 px-2">Địa chỉ</th>
+            <th className="py-2 px-2">Vai trò</th>
+            <th className="py-2 px-2">Trạng thái</th>
+            <th className="py-2 px-2">Thao tác</th>
           </tr>
         </thead>
         <tbody>
@@ -78,7 +78,7 @@ const UsersTable: React.FC<UsersTableProps> = ({
                         : "text-red-600 font-semibold"
                     }
                   >
-                    {user.status ? "Active" : "Suspended"}
+                    {user.status ? "Hoạt động" : "Tạm khóa"}
                   </span>
                 </td>
                 <td className="py-2 px-2 flex gap-2">
@@ -92,17 +92,17 @@ const UsersTable: React.FC<UsersTableProps> = ({
                     onClick={() => onToggleStatus(user.id)}
                     disabled={!!pendingDelete}
                   >
-                    {user.status ? "Set Suspended" : "Set Active"}
+                    {user.status ? "Chuyển tạm khóa" : "Chuyển hoạt động"}
                   </Button>
                   <Button
                     size="sm"
                     className="bg-red-100 text-red-700 border border-red-300 hover:bg-red-200"
                     onClick={() => onDelete(user.id)}
                     disabled={!!pendingDelete || user.role === "Admin"}
-                    title={user.role === "Admin" ? "Cannot delete Admin users" : "Delete"}
+                    title={user.role === "Admin" ? "Không thể xóa tài khoản Admin" : "Xóa"}
                   >
                     <FaTrash className="inline mr-1" />
-                    Delete
+                    Xóa
                   </Button>
                 </td>
               </tr>
@@ -111,7 +111,7 @@ const UsersTable: React.FC<UsersTableProps> = ({
           {users.length === 0 && (
             <tr>
               <td colSpan={9} className="py-6 text-center text-gray-400">
-                No users found.
+                Không tìm thấy người dùng nào.
               </td>
             </tr>
           )}

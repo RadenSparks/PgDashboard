@@ -37,8 +37,8 @@ const SignIn = () => {
         event.preventDefault();
         if (!email || !password) {
             toast({
-                title: 'Missing fields',
-                description: 'Please enter both email and password.',
+                title: 'Thiếu thông tin',
+                description: 'Vui lòng nhập đầy đủ email và mật khẩu.',
                 status: 'warning',
                 duration: 4000,
                 isClosable: true,
@@ -52,18 +52,17 @@ const SignIn = () => {
                 if (data.mfaRequired) {
                     setMfaStep(true);
                     toast({
-                        title: 'MFA Required',
-                        description: data.message || 'Check your email for the confirmation code.',
+                        title: 'Yêu cầu xác thực đa lớp',
+                        description: data.message || 'Vui lòng kiểm tra email để lấy mã xác thực.',
                         status: 'info',
                         duration: 6000,
                         isClosable: true,
                         position: 'top',
                     });
                 } else {
-                    // fallback, should not happen
                     toast({
-                        title: 'Unexpected response',
-                        description: 'Please contact support.',
+                        title: 'Phản hồi không mong đợi',
+                        description: 'Vui lòng liên hệ hỗ trợ.',
                         status: 'error',
                         duration: 5000,
                         isClosable: true,
@@ -73,7 +72,7 @@ const SignIn = () => {
             })
             .catch((error) => {
                 toast({
-                    title: 'Sign in failed',
+                    title: 'Đăng nhập thất bại',
                     description: error.response?.data?.message || error.message,
                     status: 'error',
                     duration: 5000,
@@ -89,8 +88,8 @@ const SignIn = () => {
         event.preventDefault();
         if (!mfaCode) {
             toast({
-                title: 'Missing code',
-                description: 'Please enter the code sent to your email.',
+                title: 'Thiếu mã xác thực',
+                description: 'Vui lòng nhập mã xác thực đã gửi tới email.',
                 status: 'warning',
                 duration: 4000,
                 isClosable: true,
@@ -101,7 +100,6 @@ const SignIn = () => {
         setLoading(true);
         api.post('/api/auth/verify-mfa', { email, code: mfaCode })
             .then(({ data }) => {
-                // data: { token, username, role }
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('username', data.username);
                 localStorage.setItem('role', data.role);
@@ -109,7 +107,7 @@ const SignIn = () => {
             })
             .catch((error) => {
                 toast({
-                    title: 'Verification failed',
+                    title: 'Xác thực thất bại',
                     description: error.response?.data?.message || error.message,
                     status: 'error',
                     duration: 5000,
@@ -120,6 +118,7 @@ const SignIn = () => {
             })
             .finally(() => setLoading(false));
     };
+
     return (
         <Flex
             minH="100vh"
