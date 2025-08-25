@@ -75,7 +75,7 @@ const EmailSender = () => {
 </body>
 </html>`;
 
-    const N8N_WEBHOOK_URL = 'https://103226109.flown8n.com/webhook/45ea06ab-70ff-413c-9464-f07e8e8652ad';
+    const N8N_WEBHOOK_URL = 'https://103226109.flown8n.com/webhook-test/45ea06ab-70ff-413c-9464-f07e8e8652ad';
 
     try {
       const response = await fetch(N8N_WEBHOOK_URL, {
@@ -99,8 +99,9 @@ const EmailSender = () => {
       } else {
         throw new Error('Server báo lỗi.');
       }
-    } catch (error: any) {
-      setStatus({ message: `Gửi yêu cầu thất bại: ${error.message}`, type: 'error' });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Lỗi không xác định';
+      setStatus({ message: `Gửi yêu cầu thất bại: ${errorMessage}`, type: 'error' });
     }
   };
 
@@ -139,22 +140,29 @@ const EmailSender = () => {
 
   // Convert markdown to HTML
   const markdownToHtml = (markdown: string) => {
-    return markdown
-      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-      .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-      .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-      .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
-      .replace(/_([^_]+)_/gim, '<em>$1</em>')
-      .replace(/<u>(.*?)<\/u>/gim, '<u>$1</u>')
-      .replace(/!\[.*?\]\((.*?)\)/gim, '<img src="$1" style="max-width: 100%; height: auto; margin: 10px 0;" />')
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" style="color: #1e88e5;">$1</a>')
-      .replace(/^---$/gim, '<hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;" />')
-      .replace(/\n\n/g, '</p><p>')
-      .replace(/^(.+)$/gim, '<p>$1</p>')
-      .replace(/<p><\/p>/g, '')
-      .replace(/<p>(<h[1-6]>.*?<\/h[1-6]>)<\/p>/g, '$1')
-      .replace(/<p>(<hr.*?>)<\/p>/g, '$1')
-      .replace(/<p>(<img.*?>)<\/p>/g, '$1');
+    if (!markdown || markdown.trim() === '') return '';
+    
+    // Chỉ chuyển đổi cú pháp Markdown, giữ nguyên các biến {{...}}
+    let html = markdown
+      .replace(/^### (.*$)/gm, '<h3 style="color: #1e40af; margin: 20px 0 10px 0;">$1</h3>')
+      .replace(/^## (.*$)/gm, '<h2 style="color: #1e40af; margin: 25px 0 15px 0;">$1</h2>')
+      .replace(/^# (.*$)/gm, '<h1 style="color: #1e40af; margin: 30px 0 20px 0;">$1</h1>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/_(.*?)_/g, '<em>$1</em>')
+      .replace(/<u>(.*?)<\/u>/g, '<u>$1</u>')
+      .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" style="max-width: 100%;" />')
+      .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>')
+      .replace(/^---$/gm, '<hr />')
+      .replace(/\n\s*\n/g, '</p><p>')
+      .replace(/\n/g, '<br />');
+
+    // Logic dọn dẹp và bao bọc thẻ <p>
+    if (!html.startsWith('<h') && !html.startsWith('<hr') && !html.startsWith('<img')) {
+      html = `<p>${html}</p>`;
+    }
+    html = html.replace(/<p><\/p>/g, '');
+    
+    return html;
   };
 
   return (
@@ -295,7 +303,10 @@ const EmailSender = () => {
             </div>
           )}
           
-          <p className="text-xs text-gray-500 mt-1">Mẹo: Dùng {`{{ $json.full_name }}`} để cá nhân hóa tên. Hỗ trợ Markdown: **đậm**, _nghiêng_, # tiêu đề</p>
+          <p className="text-xs text-gray-500 mt-1">
+            <strong>Mẹo:</strong> Dùng <code className="bg-gray-100 px-1 rounded">{`{{ full_name }}`}</code> để cá nhân hóa tên.<br/>
+            <strong>Markdown:</strong> <code className="bg-gray-100 px-1 rounded">**đậm**</code>, <code className="bg-gray-100 px-1 rounded">_nghiêng_</code>, <code className="bg-gray-100 px-1 rounded"># tiêu đề</code>
+          </p>
         </div>
       </div>
       
