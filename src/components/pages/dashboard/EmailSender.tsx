@@ -75,7 +75,7 @@ const EmailSender = () => {
 </body>
 </html>`;
 
-    const N8N_WEBHOOK_URL = 'https://103226109.flown8n.com/webhook-test/45ea06ab-70ff-413c-9464-f07e8e8652ad';
+    const N8N_WEBHOOK_URL = 'https://103226109.flown8n.com/webhook/45ea06ab-70ff-413c-9464-f07e8e8652ad';
 
     try {
       const response = await fetch(N8N_WEBHOOK_URL, {
