@@ -128,11 +128,11 @@ export const ordersApi = createApi({
       }),
       invalidatesTags: ['Order'],
     }),
-    processRefund: builder.mutation<RefundRequest, { id: number }>({
-      query: ({ id }) => ({
+    processRefund: builder.mutation<RefundRequest, { id: number }>( {
+      query: ({ id }) => ( {
         url: `/orders/refund-requests/${id}/process-refund`,
-        method: 'POST',
-      }),
+        method: 'PATCH', // <-- Change to PATCH
+      } ),
       invalidatesTags: ['Order'],
     }),
     cancelOversoldOrders: builder.mutation<{ status: string }, void>({

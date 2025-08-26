@@ -8,8 +8,10 @@ import {
   useSetStatusVoucherMutation,
   useUpdateVoucherMutation,
   useDeleteVoucherMutation,
-  type Voucher,
+  type Voucher as BaseVoucher,
 } from '../../../redux/api/vounchersApi'
+
+type Voucher = Omit<BaseVoucher, "id"> & { id?: number };
 import Loading from "../../../components/widgets/loading";
 import { useToast } from "@chakra-ui/react";
 import VoucherTable from "./VoucherTable";
@@ -85,7 +87,7 @@ const VoucherPage = () => {
     if (!editVoucher) return;
     // Ensure all required fields are present and not undefined
     const payload: Voucher = {
-      id: editVoucher.id ?? 0, // 0 for new, will be ignored by backend
+      id: editVoucher.id !== undefined ? editVoucher.id : 0, // 0 for new, will be ignored by backend
       code: editVoucher.code ?? "",
       description: editVoucher.description ?? "",
       usageLimit: Number(editVoucher.usageLimit ?? 0),
@@ -101,8 +103,8 @@ const VoucherPage = () => {
           : Number(editVoucher.milestonePoints),
     };
     try {
-      if (editVoucher.id) {
-        await updateVoucher(payload);
+      if (editVoucher.id !== undefined) {
+        await updateVoucher(payload as Required<Voucher>);
         toast({
           title: "Đã cập nhật voucher",
           status: "success",
@@ -111,7 +113,8 @@ const VoucherPage = () => {
         });
       } else {
         // Remove id for creation
-        const { id, ...createPayload } = payload;
+        const createPayload = { ...payload };
+        delete createPayload.id;
         await addVoucher(createPayload as Omit<Voucher, "id">);
         toast({
           title: "Đã tạo voucher",
