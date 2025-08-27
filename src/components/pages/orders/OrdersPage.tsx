@@ -156,7 +156,7 @@ const OrdersPage = () => {
 
     // Handle invoice viewing (opens PDF in new tab)
     const handleViewInvoice = (orderId: number) => {
-        window.open(`${import.meta.env.VITE_BASE_API || "https://pengoo-back-end.vercel.app/"}/invoices/${orderId}`, "_blank");
+        window.open(`${import.meta.env.VITE_BASE_API || "https://pengoo-back-end.vercel.app"}/invoices/${orderId}`, "_blank");
     };
 
     // Handle order deletion

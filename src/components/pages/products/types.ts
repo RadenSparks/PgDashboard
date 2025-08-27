@@ -12,11 +12,13 @@ export type Tag = {
   id: number;
   name: string;
   type: string;
+  deletedAt?: string | null; // <-- Add this line
 };
 
 export type Category = {
   id: number;
   name: string;
+  deletedAt: string | null; // <-- Make this required, not optional
 };
 
 export type Publisher = {
@@ -36,7 +38,9 @@ export interface Product {
   quantity_sold: number;
   quantity_stock: number;
   status: string;
-  category_ID: { id: number; name: string };
+  category_ID: {
+      deletedAt: unknown; id: number; name: string 
+};
   publisherID: { id: number; name: string }; // unified publisher field
   tags: unknown[];
   images: unknown[];

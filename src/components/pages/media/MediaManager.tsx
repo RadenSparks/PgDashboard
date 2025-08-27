@@ -238,7 +238,7 @@ const MediaManager: React.FC = () => {
     try {
       const publicId = getCloudinaryPublicId(item.url);
       if (publicId) {
-        const baseApi = (import.meta.env.VITE_BASE_API || "https://https://pengoo-back-end.vercel.app/").replace(/\/+$/, "");
+        const baseApi = (import.meta.env.VITE_BASE_API || "https://pengoo-back-end.vercel.app").replace(/\/+$/, "");
         await fetch(
           `${baseApi}/images/delete-cloudinary`,
           {

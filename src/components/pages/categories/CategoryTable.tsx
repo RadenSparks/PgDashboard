@@ -6,6 +6,7 @@ interface Category {
   id: number;
   name: string;
   description: string;
+  deletedAt?: string | null;
 }
 
 interface CategoryTableProps {
@@ -18,6 +19,7 @@ interface CategoryTableProps {
   handleEdit: (id: number, name: string, description: string) => void;
   handleEditSave: (id: number) => void;
   handleDelete: (id: number) => void;
+  handleRestore: (id: number) => void;
 }
 
 const CategoryTable: React.FC<CategoryTableProps> = ({
@@ -30,6 +32,7 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
   handleEdit,
   handleEditSave,
   handleDelete,
+  handleRestore,
 }) => (
   <table className="min-w-full text-sm rounded-xl overflow-hidden shadow border border-blue-100">
     <thead>
@@ -77,32 +80,45 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
             )}
           </td>
           <td className="py-3 px-4 flex gap-2">
-            <Button
-              size="sm"
-              className="bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200"
-              onClick={() => handleEdit(cat.id, cat.name, cat.description)}
-              type="button"
-            >
-              <FaEdit style={{ marginRight: 6 }} />
-              Sửa
-            </Button>
-            <Button
-              size="sm"
-              className="bg-red-100 text-red-700 border border-red-300 hover:bg-red-200"
-              onClick={() => handleDelete(cat.id)}
-              type="button"
-            >
-              <FaTrash style={{ marginRight: 6 }} />
-              Xóa
-            </Button>
-            {editId === cat.id && (
+            {!cat.deletedAt ? (
+              <>
+                <Button
+                  size="sm"
+                  className="bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200"
+                  onClick={() => handleEdit(cat.id, cat.name, cat.description)}
+                  type="button"
+                >
+                  <FaEdit style={{ marginRight: 6 }} />
+                  Sửa
+                </Button>
+                <Button
+                  size="sm"
+                  className="bg-red-100 text-red-700 border border-red-300 hover:bg-red-200"
+                  onClick={() => handleDelete(cat.id)}
+                  type="button"
+                >
+                  <FaTrash style={{ marginRight: 6 }} />
+                  Xóa
+                </Button>
+                {editId === cat.id && (
+                  <Button
+                    size="sm"
+                    className="bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200"
+                    onClick={() => handleEditSave(cat.id)}
+                    type="button"
+                  >
+                    Lưu
+                  </Button>
+                )}
+              </>
+            ) : (
               <Button
                 size="sm"
-                className="bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200"
-                onClick={() => handleEditSave(cat.id)}
+                className="bg-green-100 text-green-800 border border-green-300 hover:bg-green-200"
+                onClick={() => handleRestore(cat.id)}
                 type="button"
               >
-                Lưu
+                Khôi phục
               </Button>
             )}
           </td>

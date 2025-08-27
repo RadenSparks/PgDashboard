@@ -5,16 +5,29 @@ import {
   Divider,
   useDisclosure,
   useToast,
+  Switch,
+  FormLabel,
+  Flex,
 } from "@chakra-ui/react";
 import { FaPlus, FaTags } from "react-icons/fa";
 import { Button } from "../../widgets/button";
-import { useAddCategoryMutation, useDeleteCategoryMutation, useGetCategoriesQuery, useUpdateCategoryMutation } from "../../../redux/api/categoryApi";
+import {
+  useAddCategoryMutation,
+  useDeleteCategoryMutation,
+  useGetCategoriesQuery,
+  useGetDeletedCategoriesQuery,
+  useUpdateCategoryMutation,
+  useRestoreCategoryMutation,
+} from "../../../redux/api/categoryApi";
 import Loading from "../../widgets/loading";
 import CategoryTable from "./CategoryTable";
 import CategoryModal from "./CategoryModal";
 
 const CategoriesPage = () => {
+  const [showDeleted, setShowDeleted] = useState(false);
+
   const { data: categories, isLoading } = useGetCategoriesQuery();
+  const { data: deletedCategories, isLoading: loadingDeleted } = useGetDeletedCategoriesQuery();
   const [editId, setEditId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState("");
   const [editDescription, setEditDescription] = useState("");
@@ -25,6 +38,7 @@ const CategoriesPage = () => {
   const [addCategory] = useAddCategoryMutation();
   const [updateCategory] = useUpdateCategoryMutation();
   const [deleteCategory] = useDeleteCategoryMutation();
+  const [restoreCategory] = useRestoreCategoryMutation();
 
   const handleAdd = async () => {
     if (newCategory.trim()) {
@@ -94,7 +108,7 @@ const CategoriesPage = () => {
     try {
       await deleteCategory(id).unwrap();
       toast({
-        title: "Đã xóa danh mục.",
+        title: "Đã xóa (ẩn) danh mục.",
         status: "info",
         duration: 2000,
         isClosable: true,
@@ -111,7 +125,39 @@ const CategoriesPage = () => {
     }
   };
 
-  if (isLoading) return <Loading />;
+  const handleRestore = async (id: number) => {
+    try {
+      await restoreCategory(id).unwrap();
+      toast({
+        title: "Đã khôi phục danh mục.",
+        status: "success",
+        duration: 2000,
+        isClosable: true,
+        position: "bottom",
+      });
+    } catch {
+      toast({
+        title: "Có lỗi khi khôi phục danh mục.",
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+        position: "bottom",
+      });
+    }
+  };
+
+  if (isLoading || loadingDeleted) return <Loading />;
+
+  // Only show deleted categories when toggled
+  const rawCategories = showDeleted
+    ? (deletedCategories ?? []).filter(cat => !!cat.deletedAt)
+    : (categories ?? []).filter(cat => !cat.deletedAt);
+
+  // Ensure description is always a string
+  const tableCategories = rawCategories.map(cat => ({
+    ...cat,
+    description: cat.description ?? "",
+  }));
 
   return (
     <Box minH="100vh" bgGradient="linear(to-br, blue.50, white)" py={10} px={2}>
@@ -133,22 +179,30 @@ const CategoriesPage = () => {
             </div>
             <p className="text-gray-500 ml-1">Quản lý các danh mục sản phẩm bên dưới.</p>
           </Box>
-          <Button
-            className="bg-blue-600 text-white hover:bg-blue-700 px-6 py-2 rounded-lg font-bold shadow-md flex items-center gap-2 transition"
-            onClick={onOpen}
-            type="button"
-          >
-            <FaPlus />
-            Thêm danh mục
-          </Button>
+          <Flex align="center" gap={4}>
+            <FormLabel htmlFor="showDeleted" mb="0" fontWeight="bold" color="gray.700">
+              Hiển thị đã xóa
+            </FormLabel>
+            <Switch
+              id="showDeleted"
+              isChecked={showDeleted}
+              onChange={() => setShowDeleted(v => !v)}
+              colorScheme="red"
+            />
+            <Button
+              className="bg-blue-600 text-white hover:bg-blue-700 px-6 py-2 rounded-lg font-bold shadow-md flex items-center gap-2 transition"
+              onClick={onOpen}
+              type="button"
+            >
+              <FaPlus />
+              Thêm danh mục
+            </Button>
+          </Flex>
         </Stack>
         <Divider mb={6} />
         <Box overflowX="auto" className="rounded-lg border border-gray-100 shadow-sm bg-gray-50">
           <CategoryTable
-            categories={(categories ?? []).map(cat => ({
-              ...cat,
-              description: cat.description ?? ""
-            }))}
+            categories={tableCategories}
             editId={editId}
             editValue={editValue}
             editDescription={editDescription}
@@ -157,6 +211,7 @@ const CategoriesPage = () => {
             handleEdit={handleEdit}
             handleEditSave={handleEditSave}
             handleDelete={handleDelete}
+            handleRestore={handleRestore}
           />
         </Box>
       </Box>

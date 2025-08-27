@@ -63,9 +63,16 @@ const ProductsPage = () => {
                     if (found) publisherObj = found;
                 }
             }
+            // Ensure category_ID includes deletedAt (not optional)
+            let categoryObj = p.category_ID;
+            categoryObj = {
+                id: categoryObj?.id ?? 0,
+                name: categoryObj?.name ?? "",
+                deletedAt: categoryObj?.deletedAt !== undefined ? categoryObj.deletedAt : null, // always present
+            };
             return {
                 ...p,
-                category_ID: p.category_ID ?? { id: 0, name: "" },
+                category_ID: categoryObj as { id: number; name: string; deletedAt: string | null },
                 publisherID: publisherObj,
                 images: p.images ?? [],
             };
@@ -126,13 +133,15 @@ const ProductsPage = () => {
     // Helper to get correct status based on quantity_stock, but keep "Coming Soon" and "Discontinued"
     function getAutoStatus(product: Product): string {
         if (
+            product.status === "Coming Soon" ||
             product.status === "Sắp ra mắt" ||
+            product.status === "Discontinued" ||
             product.status === "Ngừng kinh doanh"
         ) {
             return product.status;
         }
-        if (product.quantity_stock > 0) return "Cỏn hàng";
-        return "Hêt Hàng";
+        if (product.quantity_stock > 0) return "Available";
+        return "Unavailable";
     }
 
     // CREATE
@@ -149,7 +158,10 @@ const ProductsPage = () => {
             quantity_sold: 0,
             quantity_stock: 0,
             status: "Available",
-            category_ID: { id: 0, name: "" },
+            category_ID: {
+                id: 0, name: "",
+                deletedAt: undefined
+            },
             publisherID: { id: 0, name: "" },
             tags: [],
             images: [],

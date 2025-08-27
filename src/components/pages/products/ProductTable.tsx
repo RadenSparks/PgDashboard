@@ -49,7 +49,9 @@ const ProductTable = ({
                         {products.map((prod) => {
                             // Cast images and tags to the correct types
                             const images = (prod.images as { name?: string; url?: string }[]) || [];
-                            const tags = (prod.tags as { name?: string; type?: string }[]) || [];
+                            const tags = (prod.tags as {
+                                deletedAt?: Date | string | null; name?: string; type?: string 
+}[]) || [];
 
                             const mainImage = images.find((img) => img?.name === "main")?.url;
                             const genres = tags.filter((t) => t.type === "genre");
@@ -72,16 +74,29 @@ const ProductTable = ({
                                             {prod.description}
                                         </span>
                                     </td>
-                                    <td className="py-4 px-3 align-middle text-gray-700">{prod.category_ID.name}</td>
+                                    <td className="py-4 px-3 align-middle text-gray-700">
+                                        {prod.category_ID
+                                            ? (
+                                                <span>
+                                                    {prod.category_ID.name}
+                                                    {(prod.category_ID as { deletedAt?: Date | string | null })?.deletedAt && (
+                                                        <span className="ml-2 text-xs text-red-500">(Đã xóa)</span>
+                                                    )}
+                                                </span>
+                                            )
+                                            : <span className="text-gray-400">-</span>
+                                        }
+                                    </td>
                                     <td className="py-4 px-3 align-middle">
                                         {genres.length > 0 ? (
                                             <div className="flex flex-wrap gap-1">
                                                 {genres.map((tag, idx) => (
                                                     <span
                                                         key={idx}
-                                                        className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs whitespace-nowrap"
+                                                        className={`bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs whitespace-nowrap ${tag.deletedAt ? 'line-through text-red-500' : ''}`}
                                                     >
                                                         {tag.name}
+                                                        {tag.deletedAt && <span className="ml-1">(Đã xóa)</span>}
                                                     </span>
                                                 ))}
                                             </div>
@@ -135,7 +150,13 @@ const ProductTable = ({
                                             className={
                                                 prod.status === "Available"
                                                     ? "text-green-600 font-semibold"
-                                                    : "text-red-500 font-semibold"
+                                                    : prod.status === "Unavailable"
+                                                    ? "text-red-500 font-semibold"
+                                                    : prod.status === "Coming Soon"
+                                                    ? "text-yellow-500 font-semibold"
+                                                    : prod.status === "Discontinued"
+                                                    ? "text-gray-500 font-semibold"
+                                                    : "text-blue-600 font-semibold"
                                             }
                                         >
                                             {prod.status === "Available"

@@ -323,7 +323,11 @@ const ProductFormModal = ({
                     onChange={e => {
                       const selectedCat = (initialCategories || []).find(cat => cat.id === Number(e.target.value));
                       if (selectedCat) {
-                        onChange({ ...product, category_ID: selectedCat });
+                        onChange({ ...product, category_ID: {
+                          id: selectedCat.id,
+                          name: selectedCat.name,
+                          deletedAt: selectedCat.deletedAt ?? null, // Always set deletedAt
+                        } });
                       }
                     }}
                     required

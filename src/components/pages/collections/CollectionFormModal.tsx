@@ -12,7 +12,12 @@ import { Badge } from "../../widgets/badge";
 function normalizeProducts(products: ApiProduct[]): ApiProduct[] {
   return products.map(p => ({
     ...p,
-    category_ID: p.category_ID ?? { id: 0, name: "Unknown" },
+    category_ID: p.category_ID
+      ? {
+          ...p.category_ID,
+          deletedAt: p.category_ID.deletedAt ?? null,
+        }
+      : { id: 0, name: "Unknown", deletedAt: null },
     tags: Array.isArray(p.tags) ? p.tags : [],
   }));
 }

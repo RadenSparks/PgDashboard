@@ -5,6 +5,15 @@ export interface Category {
   id: number
   name: string
   description?: string
+  deletedAt?: string | null
+}
+
+// Interface for soft-deleted category recovery
+export interface RecoverCategory {
+  id: number
+  name: string
+  description?: string
+  deletedAt: string // ISO date string
 }
 
 export const categoryApi = createApi({
@@ -14,6 +23,10 @@ export const categoryApi = createApi({
   endpoints: (builder) => ({
     getCategories: builder.query<Category[], void>({
       query: () => ({ url: '/categories', method: 'GET' }),
+      providesTags: ['Category'],
+    }),
+    getDeletedCategories: builder.query<RecoverCategory[], void>({ // <-- Add this endpoint
+      query: () => ({ url: '/categories?deleted=true', method: 'GET' }),
       providesTags: ['Category'],
     }),
     addCategory: builder.mutation<Category, Partial<Category>>({
@@ -32,10 +45,17 @@ export const categoryApi = createApi({
       }),
       invalidatesTags: ['Category'],
     }),
-    deleteCategory: builder.mutation<void, number>({
+    deleteCategory: builder.mutation<{ message: string }, number>({
       query: (id) => ({
         url: `/categories/${id}`,
         method: 'DELETE',
+      }),
+      invalidatesTags: ['Category'],
+    }),
+    restoreCategory: builder.mutation<{ message: string }, number>({
+      query: (id) => ({
+        url: `/categories/${id}/restore`,
+        method: 'PUT',
       }),
       invalidatesTags: ['Category'],
     }),
@@ -44,7 +64,9 @@ export const categoryApi = createApi({
 
 export const {
   useGetCategoriesQuery,
+  useGetDeletedCategoriesQuery, // <-- Export this hook
   useAddCategoryMutation,
   useDeleteCategoryMutation,
-  useUpdateCategoryMutation
+  useUpdateCategoryMutation,
+  useRestoreCategoryMutation
 } = categoryApi

@@ -10,15 +10,19 @@ export type Product = {
   meta_description: string;
   quantity_sold: number;
   status: string;
-  publisherID: { id: number; name: string }; // <-- unified
+  publisherID: { id: number; name: string };
   tags: never[];
   id: number;
   product_name: string;
   product_price: number;
   quantity_stock: number;
   images?: { url: string; name?: string }[];
-  category_ID?: { id: number; name: string };
-   deletedAt?: string | null;
+  category_ID?: {
+    deletedAt?: string | null; // <-- Only one deletedAt, type string|null
+    id: number;
+    name: string;
+  };
+  deletedAt?: string | null; // <-- Only one deletedAt, type string|null
 };
 
 export type PaginatedProducts = {
