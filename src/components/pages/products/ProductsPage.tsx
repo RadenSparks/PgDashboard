@@ -7,12 +7,13 @@ import ProductFormModal from "./ProductFormModal";
 import ProductCmsModal from "./ProductCmsModal";
 import type { Product, CmsContent, Tag } from "./types";
 import {
+    useGetAllProductsQuery,
     useAddProductMutation,
-    useGetProductsQuery,
     useUpdateProductMutation,
     useDeleteProductMutation,
     useGetProductCmsQuery,
     useUpdateProductCmsMutation,
+    useRestoreProductMutation, // <-- Import restore mutation
 } from "../../../redux/api/productsApi";
 import { useGetTagsQuery } from "../../../redux/api/tagsApi";
 import { useGetCategoriesQuery } from "../../../redux/api/categoryApi";
@@ -26,6 +27,7 @@ const ProductsPage = () => {
     const [addProduct, { isLoading: isAdding }] = useAddProductMutation();
     const [updateProduct] = useUpdateProductMutation();
     const [deleteProduct] = useDeleteProductMutation();
+    const [restoreProduct] = useRestoreProductMutation(); // <-- Add restore mutation hook
     const [currentPage, setCurrentPage] = useState(1);
     const PAGE_SIZE = 10;
     const [searchTerm, setSearchTerm] = useState("");
@@ -46,37 +48,50 @@ const ProductsPage = () => {
 
     // Fetch categories for dropdown
     const { data: allCategories = [] } = useGetCategoriesQuery();
-    const { data: allProductsData, isLoading: isLoadingAll } = useGetProductsQuery({
-        page: 1,
-        limit: 1000, // or higher if needed
-        name: undefined,
-    });
-    const products = Array.isArray(allProductsData?.data)
-        ? allProductsData.data.map((p) => {
-            // If publisherID is a number or missing, find the full object from publishers list
-            let publisherObj = p.publisherID;
-            if (publishers) {
-                if (typeof publisherObj === "number") {
-                    publisherObj = publishers.find(pub => pub.id === (p.publisherID as unknown as number)) || { id: 0, name: "" };
-                } else if (typeof publisherObj === "object" && publisherObj) {
-                    const found = publishers.find(pub => pub.id === publisherObj.id);
-                    if (found) publisherObj = found;
+    // Add a toggle to show/hide deleted products
+    const [showDeleted, setShowDeleted] = useState(false);
+
+    // Always use useGetAllProductsQuery for all products (including deleted)
+    const {
+        data: allProductsData,
+        isLoading: isLoadingAll,
+    } = useGetAllProductsQuery({ page: 1, limit: 1000, name: undefined });
+
+    // Filter products based on showDeleted toggle
+    const products: Product[] = Array.isArray(allProductsData?.data)
+        ? (allProductsData.data as unknown[])
+            .map(p => p as Product)
+            .filter((p: Product) =>
+                showDeleted ? p.deletedAt !== null : p.deletedAt === null
+            )
+            .map((p: Product) => {
+                let publisherObj = p.publisherID;
+                if (publishers) {
+                    if (typeof publisherObj === "number") {
+                        publisherObj = publishers.find(pub => pub.id === (p.publisherID as number)) || { id: 0, name: "" };
+                    } else if (typeof publisherObj === "object" && publisherObj) {
+                        if (typeof publisherObj === "object" && publisherObj !== null && "id" in publisherObj) {
+                            if (typeof publisherObj === "object" && publisherObj !== null && "id" in publisherObj) {
+                                if (typeof publisherObj === "object" && publisherObj !== null && "id" in publisherObj) {
+                                    const found = publishers.find(pub => pub.id === (publisherObj as { id: number }).id);
+                                    if (found) publisherObj = found;
+                                }
+                            }
+                        }
+                    }
                 }
-            }
-            // Ensure category_ID includes deletedAt (not optional)
-            let categoryObj = p.category_ID;
-            categoryObj = {
-                id: categoryObj?.id ?? 0,
-                name: categoryObj?.name ?? "",
-                deletedAt: categoryObj?.deletedAt !== undefined ? categoryObj.deletedAt : null, // always present
-            };
-            return {
-                ...p,
-                category_ID: categoryObj as { id: number; name: string; deletedAt: string | null },
-                publisherID: publisherObj,
-                images: p.images ?? [],
-            };
-        })
+                const categoryObj = {
+                    id: p.category_ID?.id ?? 0,
+                    name: p.category_ID?.name ?? "",
+                    deletedAt: p.category_ID?.deletedAt ?? null,
+                };
+                return {
+                    ...p,
+                    category_ID: categoryObj,
+                    publisherID: publisherObj,
+                    images: p.images ?? [],
+                };
+            })
         : [];
 
     // Filter states
@@ -193,7 +208,7 @@ const ProductsPage = () => {
                 formData.append("quantity_sold", editProduct.quantity_sold.toString());
                 formData.append("quantity_stock", editProduct.quantity_stock.toString());
                 formData.append("status", autoStatus);
-                formData.append("category_ID", editProduct.category_ID.id.toString());
+                formData.append("category_ID", editProduct.category_ID?.id?.toString() || "");
                 formData.append("publisherID", publisherId?.toString() || "");
                 formData.append(
                     "tags",
@@ -233,8 +248,10 @@ const ProductsPage = () => {
             if (typeof publisherObj === "number") {
                 publisherObj = publishers.find(pub => pub.id === (prod.publisherID as unknown as number)) || { id: 0, name: "" };
             } else if (typeof publisherObj === "object" && publisherObj) {
-                const found = publishers.find(pub => pub.id === publisherObj.id);
-                if (found) publisherObj = found;
+                if (typeof publisherObj === "object" && publisherObj !== null && "id" in publisherObj) {
+                    const found = publishers.find(pub => pub.id === (publisherObj as { id: number }).id);
+                    if (found) publisherObj = found;
+                }
             }
         }
         setEditProduct({
@@ -271,7 +288,7 @@ const ProductsPage = () => {
                 formData.append("quantity_sold", editProduct.quantity_sold.toString());
                 formData.append("quantity_stock", editProduct.quantity_stock.toString());
                 formData.append("status", autoStatus);
-                formData.append("category_ID", editProduct.category_ID.id.toString());
+                formData.append("category_ID", editProduct.category_ID?.id?.toString() || "");
                 formData.append("publisherID", publisherId?.toString() || "");
                 formData.append(
                     "tags",
@@ -317,6 +334,14 @@ const ProductsPage = () => {
         }
     };
 
+    // Restore handler
+    const handleRestore = async (id: number) => {
+        if (window.confirm("Khôi phục sản phẩm này?")) {
+            await restoreProduct(id);
+            toaster.show({ title: "Đã khôi phục sản phẩm.", type: "success" });
+        }
+    };
+
     // FORM HANDLER
     const handleChange = (product: Product) => {
         setEditProduct(product);
@@ -348,7 +373,7 @@ const ProductsPage = () => {
     };
 
     // --- Filtering and search logic ---
-    const filteredProducts = products.filter(prod => {
+    const filteredProducts = products.filter((prod: Product) => {
         // Category filter
         if (categoryFilter && prod.category_ID?.id !== categoryFilter) return false;
 
@@ -385,6 +410,16 @@ const ProductsPage = () => {
 
     return (
         <div className="p-8">
+            {/* Add toggle for deleted products */}
+            <div className="flex items-center mb-4">
+                <label className="mr-2 font-semibold text-blue-700">Hiển thị sản phẩm đã xóa</label>
+                <input
+                    type="checkbox"
+                    checked={showDeleted}
+                    onChange={() => setShowDeleted(v => !v)}
+                    className="w-5 h-5 accent-red-500"
+                />
+            </div>
             {/* Filter Bar */}
             <div className="flex flex-wrap gap-6 mb-10 items-end bg-white rounded-xl shadow-sm px-6 py-5 border border-gray-100">
                 {/* Category Dropdown */}
@@ -516,6 +551,8 @@ const ProductsPage = () => {
                 onDelete={handleDelete}
                 onShowDetails={setDetailProduct}
                 onOpenCms={handleOpenProductCms}
+                onRestore={handleRestore} // <-- Pass restore handler
+                showDeleted={showDeleted} // <-- Pass toggle state
             />
 
             {/* Product Details Modal */}
@@ -548,7 +585,7 @@ const ProductsPage = () => {
             {/* Per-Product CMS Modal */}
             {cmsProductId !== null && cmsProductContent && (
                 <ProductCmsModal
-                    product={products.find(p => p.id === cmsProductId)!}
+                    product={products.find((p: Product) => p.id === cmsProductId)!}
                     cmsContent={cmsProductContent}
                     onChange={setCmsProductContent}
                     onSave={handleSaveProductCms}

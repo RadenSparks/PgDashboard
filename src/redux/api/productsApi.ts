@@ -32,6 +32,13 @@ export type PaginatedProducts = {
   limit: number;
 };
 
+export interface RestoreProduct {
+  id: number;
+  product_name: string;
+  deletedAt: string | null;
+}
+
+// Add a query to get only soft deleted products (optional, for restoration UI)
 export const productsApi = createApi({
   reducerPath: 'productsApi',
   baseQuery: axiosBaseQuery,
@@ -40,6 +47,14 @@ export const productsApi = createApi({
     getProducts: builder.query<PaginatedProducts, { page?: number; limit?: number; search?: string; name?: string }>({
       query: ({ page = 1, limit = 10, search, name } = {}) => ({
         url: '/products',
+        method: 'GET',
+        params: { page, limit, search, name },
+      }),
+      providesTags: ['Product'],
+    }),
+    getAllProducts: builder.query<PaginatedProducts, { page?: number; limit?: number; search?: string; name?: string }>({
+      query: ({ page = 1, limit = 10, search, name } = {}) => ({
+        url: '/products/all',
         method: 'GET',
         params: { page, limit, search, name },
       }),
@@ -91,11 +106,28 @@ export const productsApi = createApi({
       query: (id) => ({ url: `/products/${id}`, method: 'GET' }),
       providesTags: (_result, _error, id) => [{ type: 'Product', id }],
     }),
+    getDeletedProducts: builder.query<RestoreProduct[], void>({
+      query: () => ({
+        url: '/products/all',
+        method: 'GET',
+        params: { deleted: true },
+      }),
+      transformResponse: (response: PaginatedProducts) =>
+        response.data.filter((p: Product) => p.deletedAt !== null)
+          .map((p: Product) => ({
+            id: p.id,
+            product_name: p.product_name,
+            deletedAt: p.deletedAt ?? null,
+          })),
+      providesTags: ['Product'],
+    }),
   }),
 })
 
 export const {
   useGetProductsQuery,
+  useGetAllProductsQuery,
+  useGetDeletedProductsQuery, // <-- Export this hook for restoration UI
   useAddProductMutation,
   useDeleteProductMutation,
   useUpdateProductMutation,

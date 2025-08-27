@@ -69,7 +69,11 @@ const ProductDetailsModal = ({ product, onClose }: ProductDetailsModalProps) => 
                             </div>
                             <div>
                                 <div className="font-semibold text-gray-600 mb-1">Nhà phát hành</div>
-                                <div className="text-blue-700 font-medium">{product.publisherID?.name || "-"}</div>
+                                <div className="text-blue-700 font-medium">
+                                    {typeof product.publisherID === "object" && product.publisherID !== null
+                                        ? product.publisherID.name
+                                        : "-"}
+                                </div>
                             </div>
                             <div>
                                 <div className="font-semibold text-gray-600 mb-1">Slug</div>

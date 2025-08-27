@@ -38,15 +38,17 @@ export interface Product {
   quantity_sold: number;
   quantity_stock: number;
   status: string;
-  category_ID: {
-      deletedAt: unknown; id: number; name: string 
-};
-  publisherID: { id: number; name: string }; // unified publisher field
-  tags: unknown[];
+  category_ID?: {
+      id: number;
+      name: string;
+      deletedAt?: string | null;
+  };
+  publisherID: { id: number; name: string } | number;
+  tags: Tag[];
   images: unknown[];
-  mainImage?: File | string;
+  deletedAt?: string | null;
+  mainImage?: File;
   deleteImages?: unknown[];
-   deletedAt?: string | null;
 }
 
 export interface FeaturedSection {

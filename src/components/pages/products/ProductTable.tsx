@@ -2,16 +2,18 @@ import type { Product } from "./types";
 import { Button } from "../../widgets/button";
 import { formatCurrencyVND } from "./formatCurrencyVND";
 import Pagination from "./Pagination";
-type ProductTableProps = {
+export interface ProductTableProps {
     products: Product[];
     currentPage: number;
     totalPages: number;
     onPageChange: (page: number) => void;
-    onEdit: (product: Product) => void;
+    onEdit: (prod: Product) => void;
     onDelete: (id: number) => void;
-    onShowDetails: (product: Product) => void;
-    onOpenCms: (productId: number) => void;
-};
+    onShowDetails: (prod: Product) => void;
+    onOpenCms: (id: number) => void;
+    onRestore: (id: number) => void;
+    showDeleted: boolean;
+}
 
 const ProductTable = ({
     products,
@@ -22,6 +24,8 @@ const ProductTable = ({
     onDelete,
     onShowDetails,
     onOpenCms,
+    onRestore,
+    showDeleted,
 }: ProductTableProps) => {
     return (
         <div className="bg-white rounded-2xl shadow-lg p-8">
@@ -172,34 +176,47 @@ const ProductTable = ({
                                     </td>
                                     <td className="py-4 px-3 align-middle">
                                         <div className="flex flex-wrap gap-2 items-center">
-                                            <Button
-                                                size="sm"
-                                                className="bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 px-3 py-1 rounded-lg font-semibold"
-                                                onClick={() => onShowDetails(prod)}
-                                            >
-                                                Chi tiết
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                className="bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200 px-3 py-1 rounded-lg font-semibold"
-                                                onClick={() => onEdit(prod)}
-                                            >
-                                                Sửa
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                className="bg-green-100 text-green-800 border border-green-300 hover:bg-green-200 px-3 py-1 rounded-lg font-semibold"
-                                                onClick={() => onOpenCms(prod.id)}
-                                            >
-                                                CMS
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                className="bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 px-3 py-1 rounded-lg font-semibold"
-                                                onClick={() => onDelete(prod.id)}
-                                            >
-                                                Xóa
-                                            </Button>
+                                            {!showDeleted && (
+                                                <>
+                                                    <Button
+                                                        size="sm"
+                                                        className="bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 px-3 py-1 rounded-lg font-semibold"
+                                                        onClick={() => onShowDetails(prod)}
+                                                    >
+                                                        Chi tiết
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        className="bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200 px-3 py-1 rounded-lg font-semibold"
+                                                        onClick={() => onEdit(prod)}
+                                                    >
+                                                        Sửa
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        className="bg-green-100 text-green-800 border border-green-300 hover:bg-green-200 px-3 py-1 rounded-lg font-semibold"
+                                                        onClick={() => onOpenCms(prod.id)}
+                                                    >
+                                                        CMS
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        className="bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 px-3 py-1 rounded-lg font-semibold"
+                                                        onClick={() => onDelete(prod.id)}
+                                                    >
+                                                        Xóa
+                                                    </Button>
+                                                </>
+                                            )}
+                                            {showDeleted && (
+                                                <Button
+                                                    size="sm"
+                                                    className="bg-purple-100 text-purple-800 border border-purple-300 hover:bg-purple-200 px-3 py-1 rounded-lg font-semibold"
+                                                    onClick={() => onRestore(prod.id)}
+                                                >
+                                                    Khôi phục
+                                                </Button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
