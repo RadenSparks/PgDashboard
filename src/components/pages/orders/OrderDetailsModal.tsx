@@ -116,7 +116,7 @@ const OrderDetailsModal: React.FC<Props> = ({ order, onClose, onProductDetail })
                             className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
                             onClick={() =>
                                 window.open(
-                                    `${import.meta.env.VITE_BASE_API || "http://localhost:3000"}/invoices/${order.id}`,
+                                    `${import.meta.env.VITE_BASE_API || "https://pengoo-back-end.vercel.app"}/invoices/${order.id}`,
                                     "_blank"
                                 )
                             }

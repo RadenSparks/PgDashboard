@@ -34,7 +34,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ productId, onCl
     const handleViewInvoice = () => {
         const invoiceId = orderId ?? productId;
         window.open(
-            `${import.meta.env.VITE_BASE_API || "http://localhost:3000"}/invoices/${invoiceId}`,
+            `${import.meta.env.VITE_BASE_API || "https://pengoo-back-end.vercel.app"}/invoices/${invoiceId}`,
             "_blank"
         );
     };
