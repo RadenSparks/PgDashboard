@@ -23,6 +23,19 @@ import {
 import { useGetUserByIdQuery } from "../../redux/api/usersApi";
 import { getCurrentUserId } from "../../utils/auth";
 
+// --- Add these imports ---
+import { useGetOrdersQuery, useGetRefundRequestsQuery } from "../../redux/api/ordersApi";
+
+// --- Helper for today count ---
+function getTodayCount(items: { created_at?: string; order_date?: string }[]) {
+  const today = new Date().toISOString().slice(0, 10);
+  return items.filter(
+    i =>
+      (i.created_at && i.created_at.slice(0, 10) === today) ||
+      (i.order_date && i.order_date.slice(0, 10) === today)
+  ).length;
+}
+
 const Navbar = ({
   collapsed,
   setCollapsed,
@@ -33,11 +46,37 @@ const Navbar = ({
   const [menuOpen, setMenuOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
-  const [notifications, setNotifications] = useState([
-    { id: 1, text: "New order received", read: false },
-    { id: 2, text: "Product out of stock", read: false },
-    { id: 3, text: "User signed up", read: false },
-  ]);
+
+  // --- Fetch orders and refund requests ---
+  const { data: orders = [] } = useGetOrdersQuery();
+  const { data: refundRequests = [] } = useGetRefundRequestsQuery();
+  const todayOrders = getTodayCount(orders);
+  const todayRefunds = getTodayCount(refundRequests);
+
+  // --- Notification state ---
+  const [notifications, setNotifications] = useState<
+    { id: number; text: string; read: boolean }[]
+  >([]);
+
+  // --- Update notifications when new orders/refunds arrive ---
+  useEffect(() => {
+    const newNotifications: { id: number; text: string; read: boolean }[] = [];
+    if (todayOrders > 0) {
+      newNotifications.push({
+        id: 1001,
+        text: `Có ${todayOrders} đơn hàng mới hôm nay`,
+        read: false,
+      });
+    }
+    if (todayRefunds > 0) {
+      newNotifications.push({
+        id: 1002,
+        text: `Có ${todayRefunds} yêu cầu hoàn tiền mới hôm nay`,
+        read: false,
+      });
+    }
+    setNotifications(newNotifications);
+  }, [todayOrders, todayRefunds]);
 
   const menuRef = useRef<HTMLDivElement>(null);
   const calendarRef = useRef<HTMLDivElement>(null);

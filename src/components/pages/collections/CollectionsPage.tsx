@@ -3,15 +3,28 @@ import { Button, SimpleGrid, useDisclosure, useToast } from '@chakra-ui/react';
 import { Plus } from 'lucide-react';
 import { useGetProductsQuery } from '../../../redux/api/productsApi';
 import { useGetCollectionsQuery, useAddCollectionMutation, useDeleteCollectionMutation, useUpdateCollectionMutation } from '../../../redux/api/collectionsApi';
+import { useGetVouchersQuery } from '../../../redux/api/vounchersApi';
 import Loading from '../../../components/widgets/loading';
 import CollectionCard from './CollectionCard';
 import CollectionFormModal from './CollectionFormModal';
+import { normalizeProducts } from './normalizeProducts';
 import type { Product as ApiProduct } from "../../../redux/api/productsApi";
 import type { Collection as ApiCollection } from "../../../redux/api/collectionsApi";
 
 // Use the API types throughout your component
 type Product = ApiProduct;
 type Collection = ApiCollection;
+
+type CollectionFormData = {
+    name: string;
+    description: string;
+    image_url: string;
+    products: Product[];
+    hasSpecialCoupon: boolean;
+    baseDiscountPercent: number;
+    incrementPerExpansion: number;
+    specialCouponId: number | undefined;
+};
 
 const CollectionsPage: React.FC = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
@@ -25,13 +38,20 @@ const CollectionsPage: React.FC = () => {
     const [addCollection, { isLoading: addLoading }] = useAddCollectionMutation();
     const [deleteCollection, { isLoading: deleteLoading }] = useDeleteCollectionMutation();
     const [updateCollection, { isLoading: updateLoading }] = useUpdateCollectionMutation();
+    const { data: vouchers = [] } = useGetVouchersQuery();
 
-    const [formData, setFormData] = useState({
+    const initialFormData: CollectionFormData = {
         name: '',
         description: '',
         image_url: '',
-        products: [] as Product[]
-    });
+        products: [] as Product[],
+        hasSpecialCoupon: false,
+        baseDiscountPercent: 10,
+        incrementPerExpansion: 5,
+        specialCouponId: undefined as number | undefined,
+    };
+
+    const [formData, setFormData] = useState<CollectionFormData>(initialFormData);
 
     const [editingId, setEditingId] = useState<number | null>(null); // number, not string
     const [productSearch, setProductSearch] = useState('');
@@ -49,40 +69,52 @@ const CollectionsPage: React.FC = () => {
         ),
     ];
 
+    // Extract all unique categories from availableProducts
+    const allCategories = Array.from(
+      new Map(
+        availableProducts
+          .filter(p => typeof p.category_ID === "object" && p.category_ID !== null)
+          .map(p => [p.category_ID!.id, p.category_ID!]) // '!' because filter guarantees it's not undefined
+      ).values()
+    );
+
     const filteredProducts = availableProducts.filter(product => {
         const matchesSearch = product.product_name.toLowerCase().includes(productSearch.toLowerCase());
         const matchesCategory = selectedCategory === '' || selectedCategory === 'All' || product.category_ID?.name === selectedCategory;
         return matchesSearch && matchesCategory;
     });
 
-    const handleOpenModal = (collection?: Collection) => {
+    // Extend Collection type to include optional specialCouponId and incrementPerExpansion
+    type ExtendedCollection = Collection & {
+        specialCouponId?: number;
+        incrementPerExpansion?: number;
+    };
+
+    const handleOpenModal = (collection?: ExtendedCollection) => {
         if (collection) {
+            const specialCouponId = collection.specialCouponId ?? undefined;
+            const selectedVoucher = vouchers.find(v => v.id === specialCouponId);
             setFormData({
                 name: collection.name,
                 description: collection.description,
                 image_url: collection.image_url,
-                products: collection.products as Product[]
+                // Normalize here:
+                products: normalizeProducts(collection.products as Product[], allCategories),
+                specialCouponId,
+                baseDiscountPercent: selectedVoucher?.discountPercent ?? 0,
+                incrementPerExpansion: collection.incrementPerExpansion ?? 5,
+                hasSpecialCoupon: !!specialCouponId,
             });
-            setEditingId(collection.id); // number
+            setEditingId(Number(collection.id));
         } else {
-            setFormData({
-                name: '',
-                description: '',
-                image_url: '',
-                products: []
-            });
+            setFormData(initialFormData);
             setEditingId(null);
         }
         onOpen();
     };
 
     const handleCloseModal = () => {
-        setFormData({
-            name: '',
-            description: '',
-            image_url: '',
-            products: []
-        });
+        setFormData(initialFormData);
         setEditingId(null);
         setProductSearch('');
         setSelectedCategory('');
@@ -101,7 +133,10 @@ const CollectionsPage: React.FC = () => {
         if (!formData.products.find(p => p.id === product.id)) {
             setFormData({
                 ...formData,
-                products: [...formData.products, product]
+                products: [
+                    ...formData.products,
+                    ...normalizeProducts([product], allCategories)
+                ]
             });
         }
     };
@@ -142,6 +177,10 @@ const CollectionsPage: React.FC = () => {
             description: formData.description,
             image_url: formData.image_url,
             productIds,
+            hasSpecialCoupon: formData.hasSpecialCoupon,
+            baseDiscountPercent: formData.baseDiscountPercent,
+            incrementPerExpansion: formData.incrementPerExpansion,
+            specialCouponId: formData.hasSpecialCoupon ? formData.specialCouponId : undefined,
         };
 
         try {
@@ -214,8 +253,11 @@ const CollectionsPage: React.FC = () => {
                     {(collections ?? []).map((collection) => (
                         <CollectionCard
                             key={collection.id}
-                            collection={collection}
-                            onEdit={handleOpenModal}
+                            collection={{
+                                ...collection,
+                                products: normalizeProducts(collection.products as Product[], allCategories), // <-- normalize here
+                            }}
+                            onEdit={(col) => handleOpenModal(col as ExtendedCollection)}
                             onDelete={(id: string) => handleDelete(Number(id))}
                         />
                     ))}
@@ -227,6 +269,7 @@ const CollectionsPage: React.FC = () => {
                     setFormData={setFormData}
                     editingId={editingId !== null ? String(editingId) : null}
                     categories={categories}
+                    allCategories={allCategories}
                     productSearch={productSearch}
                     setProductSearch={setProductSearch}
                     selectedCategory={selectedCategory}
@@ -237,8 +280,7 @@ const CollectionsPage: React.FC = () => {
                     showMediaPicker={showMediaPicker}
                     setShowMediaPicker={setShowMediaPicker}
                     handleSave={handleSave}
-                    handleCloseModal={handleCloseModal}
-                />
+                    handleCloseModal={handleCloseModal} specialCoupons={vouchers.filter(v => !v.collectionId || v.collectionId === editingId)}                />
             </div>
         </div>
     );

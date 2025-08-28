@@ -87,11 +87,11 @@ const CatalogueManager: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      <h3 className="font-bold mb-4 text-lg text-blue-700 flex items-center gap-2 sticky top-0 bg-white z-10 py-2">
-        <span className="inline-block bg-blue-100 text-blue-700 rounded-full px-2 py-1 text-sm">Danh mục bài viết</span>
+    <div className="w-full max-w-3xl mx-auto">
+      <h3 className="font-bold mb-4 text-xl text-blue-700 flex items-center gap-2 sticky top-0 bg-white z-10 py-4 border-b">
+        <span className="inline-block bg-blue-100 text-blue-700 rounded-full px-2 py-1 text-base">Danh mục bài viết</span>
       </h3>
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-2 mb-6">
         <input
           value={newName}
           onChange={e => setNewName(e.target.value)}
@@ -101,19 +101,19 @@ const CatalogueManager: React.FC = () => {
         />
         <button
           onClick={handleAdd}
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition shadow text-base"
+          className="bg-blue-600 text-white px-8 py-2 rounded-lg font-semibold hover:bg-blue-700 transition shadow text-base"
         >
           Thêm
         </button>
       </div>
-      <ul className="max-h-[500px] min-h-[300px] overflow-y-auto divide-y bg-gray-50 rounded-xl shadow-inner">
+      <ul className="max-h-[600px] min-h-[300px] overflow-y-auto divide-y bg-gray-50 rounded-xl shadow-inner">
         {catalogues.length === 0 && (
-          <li className="py-6 text-center text-gray-400">Chưa có danh mục nào.</li>
+          <li className="py-8 text-center text-gray-400 text-lg">Chưa có danh mục nào.</li>
         )}
         {catalogues.map(cat => (
           <li
             key={cat.id}
-            className="flex flex-wrap items-center gap-3 py-3 px-3 group hover:bg-blue-50 transition rounded-lg"
+            className="flex flex-wrap items-center gap-3 py-4 px-4 group hover:bg-blue-50 transition rounded-lg"
           >
             {editId === cat.id ? (
               <>
@@ -174,7 +174,7 @@ const CatalogueManager: React.FC = () => {
           </li>
         ))}
       </ul>
-      <div className="mt-4 text-xs text-gray-400">
+      <div className="mt-6 text-sm text-gray-400">
         <b>Mẹo:</b> Nhấn <span className="text-blue-600">Sửa</span> để đổi tên hoặc canonical. Danh mục đang sử dụng sẽ không thể xóa.
       </div>
     </div>

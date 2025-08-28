@@ -11,7 +11,7 @@ import {
   type Voucher as BaseVoucher,
 } from '../../../redux/api/vounchersApi'
 
-type Voucher = Omit<BaseVoucher, "id"> & { id?: number };
+type Voucher = Omit<BaseVoucher, "id"> & { id?: number; collectionName: string };
 import Loading from "../../../components/widgets/loading";
 import { useToast } from "@chakra-ui/react";
 import VoucherTable from "./VoucherTable";
@@ -28,7 +28,8 @@ const emptyVoucher: Omit<Voucher, "id"> = {
   discountPercent: 0,
   status: "active",
   milestonePoints: null,
-  description: ''
+  description: '',
+  collectionName: ""
 };
 
 const VoucherPage = () => {
@@ -101,6 +102,7 @@ const VoucherPage = () => {
         editVoucher.milestonePoints === null || editVoucher.milestonePoints === undefined
           ? null
           : Number(editVoucher.milestonePoints),
+      collectionName: editVoucher.collectionName ?? "",
     };
     try {
       if (editVoucher.id !== undefined) {

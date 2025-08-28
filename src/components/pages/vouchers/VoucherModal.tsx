@@ -157,6 +157,12 @@ const VoucherModal: React.FC<VoucherModalProps> = ({
               onChange={e => onChange("description", e.target.value)}
             />
           </label>
+          {editVoucher?.collectionId && (
+            <div className="mb-2 text-sm text-blue-700">
+              <b>Áp dụng cho bộ sưu tập:</b> {`#${editVoucher.collectionId}`}
+              <span className="ml-2 text-red-500">(Không thể dùng cho đơn hàng thông thường)</span>
+            </div>
+          )}
           <div className="flex justify-end gap-2 mt-4">
             <Button
               type="button"

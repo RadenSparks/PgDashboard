@@ -6,12 +6,14 @@ type DeleteVoucherModalProps = {
   show: boolean;
   onCancel: () => void;
   onConfirm: () => void;
+  assignedToCollection?: boolean;
 };
 
 const DeleteVoucherModal: React.FC<DeleteVoucherModalProps> = ({
   show,
   onCancel,
   onConfirm,
+  assignedToCollection,
 }) => {
   if (!show) return null;
   return (
@@ -26,6 +28,11 @@ const DeleteVoucherModal: React.FC<DeleteVoucherModalProps> = ({
           <br />
           <span className="text-sm text-gray-500">Hành động này không thể hoàn tác.</span>
         </p>
+        {assignedToCollection && (
+          <div className="mb-2 text-red-600 font-semibold">
+            Không thể xóa voucher này vì đang được gán cho một bộ sưu tập.
+          </div>
+        )}
         <div className="flex justify-end gap-2">
           <Button
             className="bg-gray-200 px-6 py-2 rounded hover:bg-gray-300"
@@ -38,6 +45,7 @@ const DeleteVoucherModal: React.FC<DeleteVoucherModalProps> = ({
             className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 shadow"
             type="button"
             onClick={onConfirm}
+            disabled={assignedToCollection}
           >
             Delete
           </Button>

@@ -2,6 +2,7 @@ import { createApi } from '@reduxjs/toolkit/query/react'
 import { axiosBaseQuery } from '../axiosBaseQuery'
 
 export interface Voucher {
+  collectionName: string;
   id: number;
   code: string;
   startDate: string;
@@ -12,7 +13,8 @@ export interface Voucher {
   discountPercent: number;
   status: "active" | "inactive" | "expired";
   milestonePoints?: number | null;
-  description: string
+  description: string;
+  collectionId?: number | null; // <-- add this line
 }
 
 export const vouchersApi = createApi({
@@ -26,7 +28,7 @@ export const vouchersApi = createApi({
     }),
     addVoucher: builder.mutation<Voucher, Omit<Voucher, "id">>({
       query: (body) => ({
-        url: '/vouchers',
+        url: '/coupons', // <-- CORRECT
         method: 'POST',
         data: body,
       }),

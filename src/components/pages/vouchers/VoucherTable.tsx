@@ -40,6 +40,7 @@ const VoucherTable: React.FC<VoucherTableProps> = ({
             <th className="py-2 px-2">Trạng thái</th>
             <th className="py-2 px-2">Điểm mốc</th>
             <th className="py-2 px-2">Thao tác</th>
+            <th className="py-2 px-2">Loại voucher</th>
           </tr>
         </thead>
         <tbody>
@@ -100,15 +101,22 @@ const VoucherTable: React.FC<VoucherTableProps> = ({
                       : "bg-green-100 text-green-800 border border-green-300 hover:bg-green-200"
                   }
                   onClick={() => onStatusToggle(voucher.id)}
+                  disabled={!!voucher.collectionId}
                 >
                   {voucher.status === "active" ? "Chuyển tạm ngưng" : "Chuyển hoạt động"}
                 </Button>
+              </td>
+              <td className="py-2 px-2">
+                {voucher.collectionId
+                  ? <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-semibold">Bộ sưu tập</span>
+                  : <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-semibold">Thông thường</span>
+                }
               </td>
             </tr>
           ))}
           {paginatedVouchers.length === 0 && (
             <tr>
-              <td colSpan={10} className="py-6 text-center text-gray-400">
+              <td colSpan={11} className="py-6 text-center text-gray-400">
                 Không tìm thấy voucher nào.
               </td>
             </tr>

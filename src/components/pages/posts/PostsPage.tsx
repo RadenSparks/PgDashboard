@@ -116,51 +116,58 @@ const PostsPage = () => {
                 <th className="py-3 px-3 font-semibold text-gray-700">Tiêu đề</th>
                 <th className="py-3 px-3 font-semibold text-gray-700">Đường dẫn</th>
                 <th className="py-3 px-3 font-semibold text-gray-700">Danh mục</th>
+                <th className="py-3 px-3 font-semibold text-gray-700">Thứ tự</th> {/* Add this */}
                 <th className="py-3 px-3 font-semibold text-gray-700">Ngày tạo</th>
                 <th className="py-3 px-3 font-semibold text-gray-700">Thao tác</th>
               </tr>
             </thead>
             <tbody>
-              {posts.map((post) => (
-                <tr key={post.id} className="border-b hover:bg-blue-50 transition">
-                  <td className="py-2 px-3 font-semibold text-gray-900">{post.name}</td>
-                  <td className="py-2 px-3 text-blue-700">{post.canonical}</td>
-                  <td className="py-2 px-3">
-                    <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">
-                      {typeof post.catalogue === 'object' && post.catalogue !== null && 'name' in post.catalogue
-                        ? (post.catalogue as { name: string }).name
-                        : '-'}
-                    </span>
-                  </td>
-                  <td className="py-2 px-3 text-gray-500">{post.created_at?.slice(0, 10)}</td>
-                  <td className="py-2 px-3 flex gap-2">
-                    <Button
-                      size="sm"
-                      className="bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 px-3 py-1 rounded-lg font-semibold"
-                      onClick={() => setPreviewPost(post)}
-                    >
-                      Xem trước
-                    </Button>
-                    <Button
-                      size="sm"
-                      className="bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200 px-3 py-1 rounded-lg font-semibold"
-                      onClick={() => { setEditPost(post); setShowForm(true); }}
-                    >
-                      Sửa
-                    </Button>
-                    <Button
-                      size="sm"
-                      className="bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 px-3 py-1 rounded-lg font-semibold"
-                      onClick={() => handleDelete(post.id)}
-                    >
-                      Xóa
-                    </Button>
-                  </td>
-                </tr>
-              ))}
+              {posts
+                .slice()
+                .sort((a, b) => (a.order ?? 9999) - (b.order ?? 9999))
+                .map((post) => (
+                  <tr key={post.id} className="border-b hover:bg-blue-50 transition">
+                    <td className="py-2 px-3 font-semibold text-gray-900">{post.name}</td>
+                    <td className="py-2 px-3 text-blue-700">{post.canonical}</td>
+                    <td className="py-2 px-3">
+                      <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">
+                        {typeof post.catalogue === 'object' && post.catalogue !== null && 'name' in post.catalogue
+                          ? (post.catalogue as { name: string }).name
+                          : '-'}
+                      </span>
+                    </td>
+                    <td className="py-2 px-3 text-blue-900 font-bold">
+                      {post.order === 1 ? "1 (Nổi bật)" : post.order ?? "-"}
+                    </td>
+                    <td className="py-2 px-3 text-gray-500">{post.created_at?.slice(0, 10)}</td>
+                    <td className="py-2 px-3 flex gap-2">
+                      <Button
+                        size="sm"
+                        className="bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 px-3 py-1 rounded-lg font-semibold"
+                        onClick={() => setPreviewPost(post)}
+                      >
+                        Xem trước
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200 px-3 py-1 rounded-lg font-semibold"
+                        onClick={() => { setEditPost(post); setShowForm(true); }}
+                      >
+                        Sửa
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 px-3 py-1 rounded-lg font-semibold"
+                        onClick={() => handleDelete(post.id)}
+                      >
+                        Xóa
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
               {posts.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-gray-400 text-lg">
+                  <td colSpan={6} className="py-8 text-center text-gray-400 text-lg">
                     Không tìm thấy bài viết nào.
                   </td>
                 </tr>
@@ -203,9 +210,9 @@ const PostsPage = () => {
       {/* Catalogue Manager Modal */}
       {showCatalogueManager && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-6 relative">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-10 relative">
             <button
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl"
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl"
               onClick={() => setShowCatalogueManager(false)}
               aria-label="Đóng quản lý danh mục"
             >

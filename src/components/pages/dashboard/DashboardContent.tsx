@@ -30,7 +30,9 @@ const DashboardContent = () => {
 
   // Fetch real data
   const { data: users = [], isLoading: usersLoading } = useGetUsersQuery();
-  const { data: allReviews = [], isLoading: reviewsLoading } = useGetAllReviewsQuery();
+  const { data: allReviews = [], isLoading: reviewsLoading } = useGetAllReviewsQuery(undefined, {
+    pollingInterval: 15000, // Poll every 15 seconds (adjust as needed)
+  });
   const { data: orders = [], isLoading: ordersLoading } = useGetOrdersQuery();
   const { data: products = [], isLoading: productsLoading } = useGetProductsQuery({ page: 1, limit: 100 });
 

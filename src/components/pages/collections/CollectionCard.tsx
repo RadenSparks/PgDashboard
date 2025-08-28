@@ -66,7 +66,20 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ collection, onEdit, onD
           <Text className="text-sm font-semibold text-gray-700 mb-2">Sản phẩm:</Text>
           <div className="flex flex-wrap gap-2">
             {(collection.products as unknown as Product[]).slice(0, 3).map((product) => (
-              <Badge key={product.id} colorScheme="blue" variant="subtle" className="rounded-lg px-2 py-1 text-xs line-clamp-2">
+              <Badge
+                key={product.id}
+                colorScheme={
+                  product.category_ID?.name === "Boardgame"
+                    ? "blue"
+                    : product.category_ID?.name === "Expansions"
+                      ? "purple"
+                      : "gray"
+                }
+                variant="solid"
+                fontWeight="bold"
+                fontSize="xs"
+                className="rounded-lg px-2 py-1 text-xs line-clamp-2"
+              >
                 {product.product_name}
               </Badge>
             ))}
@@ -77,6 +90,9 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ collection, onEdit, onD
             )}
           </div>
         </div>
+        {collection.hasSpecialCoupon && (
+          <Badge colorScheme="green" className="ml-2">Coupon đặc biệt</Badge>
+        )}
       </div>
     </CardBody>
   </Card>

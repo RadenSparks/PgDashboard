@@ -58,6 +58,10 @@ const BlogPostPreview: React.FC<BlogPostPreviewProps> = ({
   bgColor = '#fff',
   onApplySeo,
   onContentGenerated,
+  meta_title,
+  meta_description,
+  meta_keyword,
+  publish,
 }) => {
   const [showSeoModal, setShowSeoModal] = useState(false);
   const [showGeneratorModal, setShowGeneratorModal] = useState(false);
@@ -162,16 +166,16 @@ const BlogPostPreview: React.FC<BlogPostPreviewProps> = ({
 
   return (
     <article className="rounded-3xl overflow-hidden border max-w-2xl mx-auto shadow-2xl bg-white animate-fade-in"
-    style={{
-      fontFamily,
-      background: bgColor,
-      color: textColor,
-      transition: 'background 0.2s, color 0.2s',
-      minHeight: 200,
-      maxHeight: 700,
-      display: 'flex',
-      flexDirection: 'column',
-    }}>
+      style={{
+        fontFamily,
+        background: bgColor,
+        color: textColor,
+        transition: 'background 0.2s, color 0.2s',
+        minHeight: 200,
+        maxHeight: 700,
+        display: 'flex',
+        flexDirection: 'column',
+      }}>
       <div className="p-3 border-b flex justify-end gap-2 bg-gray-50/70 flex-shrink-0">
         <button
           onClick={() => setShowGeneratorModal(true)}
@@ -192,6 +196,14 @@ const BlogPostPreview: React.FC<BlogPostPreviewProps> = ({
 
       <div className="p-6 sm:p-8 overflow-y-auto flex-grow">
         <h1 className="text-3xl sm:text-4xl font-extrabold mb-3">{title || "Tiêu đề sẽ hiện ở đây"}</h1>
+        {/* --- Add meta/canonical/publish --- */}
+        <div className="mb-2 flex flex-wrap gap-3 items-center text-xs text-gray-500">
+          {canonical && <span className="bg-gray-100 px-2 py-0.5 rounded">/{canonical}</span>}
+          {meta_title && <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Meta Title: {meta_title}</span>}
+          {meta_description && <span className="bg-green-50 text-green-700 px-2 py-0.5 rounded">Meta Desc: {meta_description}</span>}
+          {meta_keyword && <span className="bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded">Keyword: {meta_keyword}</span>}
+          {publish === false && <span className="bg-red-100 text-red-700 px-2 py-0.5 rounded">Chưa công khai</span>}
+        </div>
         <div className="prose prose-blue max-w-none">
           <ReactMarkdown>{content}</ReactMarkdown>
         </div>

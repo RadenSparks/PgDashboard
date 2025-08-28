@@ -15,9 +15,11 @@ import {
   MdFeedback,
 } from "react-icons/md";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Drawer, DrawerOverlay, DrawerContent, DrawerCloseButton, useBreakpointValue, Tooltip } from "@chakra-ui/react";
+import { Drawer, DrawerOverlay, DrawerContent, DrawerCloseButton, useBreakpointValue, Tooltip, Badge } from "@chakra-ui/react";
 import { useGetUserByIdQuery } from "../../redux/api/usersApi";
 import { getCurrentUserId } from "../../utils/auth";
+import { useGetOrdersQuery } from "../../redux/api/ordersApi";
+import { useGetRefundRequestsQuery } from "../../redux/api/ordersApi";
 
 const Logo = ({ size = 80 }: { size?: number }) => (
   <img
@@ -35,6 +37,17 @@ const Logo = ({ size = 80 }: { size?: number }) => (
   />
 );
 
+// --- Helper for today count ---
+function getTodayCount(items: { created_at?: string; order_date?: string }[]) {
+  const today = new Date().toISOString().slice(0, 10);
+  return items.filter(
+    i =>
+      (i.created_at && i.created_at.slice(0, 10) === today) ||
+      (i.order_date && i.order_date.slice(0, 10) === today)
+  ).length;
+}
+
+// --- Sidebar tabs, rearranged ---
 const tabs = [
   { label: "Bảng điều khiển", icon: <MdDashboard size={22} />, route: "/" },
   { label: "Sản phẩm", icon: <MdInventory2 size={22} />, route: "/products" },
@@ -42,6 +55,7 @@ const tabs = [
   { label: "Voucher", icon: <MdLocalOffer size={22} />, route: "/voucher" },
   { label: "Bài viết", icon: <MdPostAdd size={22} />, route: "/posts" },
   { label: "Đơn hàng", icon: <MdShoppingCart size={22} />, route: "/orders" },
+  { label: "Yêu cầu", icon: <MdFeedback size={22} />, route: "/feedback" }, // <-- moved here
   { label: "Bình luận", icon: <MdComment size={22} />, route: "/comments" },
   { label: "Thư viện", icon: <MdPhotoLibrary size={22} />, route: "/media" },
   { label: "Thẻ", icon: <MdLabel size={22} />, route: "/tags" },
@@ -49,7 +63,6 @@ const tabs = [
   { label: "Người dùng", icon: <MdPeople size={22} />, route: "/users" },
   { label: "Bộ sưu tập", icon: <MdCollectionsBookmark size={22} />, route: "/collections" },
   { label: "Nhà phát hành", icon: <MdAdminPanelSettings size={22} />, route: "/publishers" },
-  { label: "Yêu cầu", icon: <MdFeedback size={22} />, route: "/feedback" },
 ];
 
 type SidebarContentProps = {
@@ -68,6 +81,12 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
 }) => {
   const userId = getCurrentUserId();
   const { data: currentUser } = useGetUserByIdQuery(userId!, { skip: !userId });
+
+  // --- Get today's orders and feedback counts ---
+  const { data: orders = [] } = useGetOrdersQuery();
+  const { data: feedbacks = [] } = useGetRefundRequestsQuery();
+  const todayOrders = getTodayCount(orders);
+  const todayFeedbacks = getTodayCount(feedbacks);
 
   return (
     <div
@@ -125,37 +144,61 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
       </section>
       {/* Tabs */}
       <ul className={`flex flex-col gap-1 py-6 w-full px-2 ${collapsed ? "items-center" : ""}`}>
-        {tabs.map((tab) => (
-          <li key={tab.label} className="w-full">
-            <Tooltip label={collapsed ? tab.label : ""} placement="right" hasArrow>
-              <button
-                className={`flex items-center gap-3 w-full px-2 py-2 rounded-xl transition-all duration-300
-                ${collapsed ? "justify-center" : ""}
-                ${activeTab === tab.label
-                  ? "bg-blue-300 border-l-4 border-blue-600 text-blue-900 font-semibold shadow"
-                  : "hover:bg-blue-50 text-blue-700"}
-              `}
-                onClick={() => {
-                  setActiveTab(tab.label);
-                  navigate(tab.route);
-                }}
-                aria-current={activeTab === tab.label ? "page" : undefined}
-                aria-label={tab.label}
-                tabIndex={0}
-                aria-expanded={activeTab === tab.label}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' || e.key === ' ') {
+        {tabs.map((tab) => {
+          // Show badge for orders and feedback
+          let badge = null;
+          if (tab.route === "/orders" && todayOrders > 0) {
+            badge = (
+              <Badge colorScheme="blue" ml={2} fontSize="xs" borderRadius="full">
+                {todayOrders}
+              </Badge>
+            );
+          }
+          if (tab.route === "/feedback" && todayFeedbacks > 0) {
+            badge = (
+              <Badge colorScheme="red" ml={2} fontSize="xs" borderRadius="full">
+                {todayFeedbacks}
+              </Badge>
+            );
+          }
+          return (
+            <li key={tab.label} className="w-full">
+              <Tooltip label={collapsed ? tab.label : ""} placement="right" hasArrow>
+                <button
+                  className={`flex items-center gap-3 w-full px-2 py-2 rounded-xl transition-all duration-300
+                  ${collapsed ? "justify-center" : ""}
+                  ${activeTab === tab.label
+                    ? "bg-blue-300 border-l-4 border-blue-600 text-blue-900 font-semibold shadow"
+                    : "hover:bg-blue-50 text-blue-700"}
+                `}
+                  onClick={() => {
                     setActiveTab(tab.label);
                     navigate(tab.route);
-                  }
-                }}
-              >
-                {tab.icon}
-                {!collapsed && <span className="truncate">{tab.label}</span>}
-              </button>
-            </Tooltip>
-          </li>
-        ))}
+                  }}
+                  aria-current={activeTab === tab.label ? "page" : undefined}
+                  aria-label={tab.label}
+                  tabIndex={0}
+                  aria-expanded={activeTab === tab.label}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      setActiveTab(tab.label);
+                      navigate(tab.route);
+                    }
+                  }}
+                >
+                  {tab.icon}
+                  {!collapsed && (
+                    <>
+                      <span className="truncate">{tab.label}</span>
+                      {badge}
+                    </>
+                  )}
+                  {collapsed && badge}
+                </button>
+              </Tooltip>
+            </li>
+          );
+        })}
         <hr className="bg-blue-200 h-[1px] mt-6 w-full" />
       </ul>
     </div>

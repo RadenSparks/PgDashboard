@@ -60,6 +60,13 @@ export const postsApi = createApi({
       }),
       invalidatesTags: ['Post'],
     }),
+    getPostsByCatalogue: builder.query<Post[], number>({
+      query: (catalogueId) => ({
+        url: `/posts?catalogueId=${catalogueId}`,
+        method: 'GET',
+      }),
+      providesTags: ['Post'],
+    }),
   }),
 });
 
@@ -69,4 +76,5 @@ export const {
   useCreatePostMutation,
   useUpdatePostMutation,
   useDeletePostMutation,
+  useGetPostsByCatalogueQuery,
 } = postsApi;

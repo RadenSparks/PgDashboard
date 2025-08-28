@@ -1,15 +1,20 @@
 import { createApi } from '@reduxjs/toolkit/query/react'
 import { axiosBaseQuery } from '../axiosBaseQuery'
-import type { Product } from '../../components/pages/products/types'
+import type { Product } from '../api/productsApi'
+import type { Voucher } from './vounchersApi';
 
 export interface Collection {
-  description: string
-  id: number
-  name: string
-  slug: string
-  image_url: string
-  products: Product[]
-  createdAt: string // <-- Add this line
+  id: number;
+  name: string;
+  description: string;
+  image_url: string;
+  products: Product[];
+  createdAt?: string;
+  hasSpecialCoupon?: boolean;
+  baseDiscountPercent?: number;
+  incrementPerExpansion?: number;
+  specialCouponId?: number | null;
+  specialCoupon?: Voucher | null;
 }
 
 export const collectionsApi = createApi({

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useCreatePostMutation, useUpdatePostMutation, type Post } from '../../../redux/postsApi';
+import { useCreatePostMutation, useUpdatePostMutation, type Post, useGetPostsByCatalogueQuery } from '../../../redux/postsApi';
 import api from '../../../api/axios-client';
 import PostFormToolbar from './PostFormToolbar';
 import PostFormSidebar from './PostFormSidebar';
@@ -74,7 +74,19 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
   const [showBgColorPicker, setShowBgColorPicker] = useState(false);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [showMediaPicker, setShowMediaPicker] = useState<"cover" | "insert" | "gallery" | null>(null);
-  const [cataloguePosts, setCataloguePosts] = useState<PostFormType[]>([]);
+
+  const catalogueIdNum = form.catalogueId
+    ? typeof form.catalogueId === 'string'
+      ? Number(form.catalogueId)
+      : form.catalogueId
+    : form.catalogue?.id;
+
+  const { data: cataloguePosts = [] } = useGetPostsByCatalogueQuery(
+    catalogueIdNum !== undefined ? catalogueIdNum : 0,
+    {
+      skip: catalogueIdNum === undefined,
+    }
+  );
 
   // AI Content Generation handlers
   const handleContentGenerated = (newContent: string) => {
@@ -98,29 +110,33 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
     }
   }, [initialData]);
 
-  useEffect(() => {
-    if (form.catalogueId) {
-      api.get(`/posts?catalogueId=${form.catalogueId}`).then(res => setCataloguePosts(res.data));
-    } else {
-      setCataloguePosts([]);
-    }
-  }, [form.catalogueId]);
-
-  // Compute order options
-  const usedOrders = cataloguePosts
-    .filter(p => !form.id || p.id !== form.id)
-    .map(p => Number(p.order))
-    .filter(Boolean);
-
-  const maxOrder = Math.max(2, cataloguePosts.length + (form.id ? 0 : 1)); // Always at least 2 options
-  const orderOptions = [];
+  // Compute order options: standard CMS logic
+  const totalPosts = cataloguePosts.length;
+  const isEditing = !!form.id;
+  const maxOrder = isEditing ? totalPosts : totalPosts + 1;
+  const orderOptions: number[] = [];
   for (let i = 1; i <= maxOrder; i++) {
     orderOptions.push(i);
   }
-  if (form.order && !orderOptions.includes(Number(form.order))) {
-    orderOptions.push(Number(form.order));
-  }
-  orderOptions.sort((a, b) => a - b);
+
+  // Set default order when creating (not editing)
+  useEffect(() => {
+    if (!form.id && catalogueIdNum && !form.order) {
+      setForm(f => ({ ...f, order: totalPosts + 1 }));
+    }
+    // When editing, always set order from initialData (handled by initialData effect)
+    // eslint-disable-next-line
+  }, [catalogueIdNum, totalPosts]);
+
+  // When initialData changes (editing), always set order from initialData
+  useEffect(() => {
+    setForm(initialData as PostFormType);
+    if (initialData && Array.isArray(initialData.galleryImages)) {
+      setGalleryImages(initialData.galleryImages);
+    } else {
+      setGalleryImages([]);
+    }
+  }, [initialData]);
 
   // Markdown helpers
   const insertMarkdown = (before: string, after: string = '', placeholder: string = '') => {
@@ -286,15 +302,15 @@ const PostForm: React.FC<Props> = ({ initialData = {}, onSuccess }) => {
                     <label className="block font-semibold mb-1 text-blue-900">Thứ tự hiển thị</label>
                     <select
                       name="order"
-                      value={form.order || ''}
+                      value={form.order ?? ''} // <-- Updated line
                       onChange={handleChange}
                       className="w-full border border-blue-100 rounded-lg p-3 text-lg bg-blue-50 focus:ring-2 focus:ring-blue-300 transition"
+                      required
                     >
                       <option value="">Chọn thứ tự</option>
                       {orderOptions.map(i => (
                         <option key={i} value={i}>
                           {i === 1 ? "1 (Nổi bật)" : i}
-                          {usedOrders.includes(i) && form.order !== i ? " (Đã dùng)" : ""}
                         </option>
                       ))}
                     </select>

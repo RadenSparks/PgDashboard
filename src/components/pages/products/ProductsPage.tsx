@@ -51,7 +51,7 @@ const ProductsPage = () => {
     // Add a toggle to show/hide deleted products
     const [showDeleted, setShowDeleted] = useState(false);
 
-    // Always use useGetAllProductsQuery for all products (including deleted)
+    // Only use useGetAllProductsQuery for dashboard list
     const {
         data: allProductsData,
         isLoading: isLoadingAll,
