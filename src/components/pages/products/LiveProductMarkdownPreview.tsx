@@ -34,30 +34,7 @@ const LiveProductMarkdownPreview: React.FC<Props> = ({
       </h1>
       <h2 className="text-xl text-gray-600 mb-4">{cmsContent.heroSubtitle}</h2>
       <div className="flex gap-2 mb-6 flex-wrap">
-        {(cmsContent.heroImages || []).map((img, idx) =>
-          img ? (
-            <img
-              key={idx}
-              src={img}
-              alt={`Ảnh chính ${idx + 1}`}
-              className="w-24 h-24 object-cover rounded border"
-            />
-          ) : null
-        )}
-      </div>
-      <h3 className="text-2xl font-semibold mb-2">{cmsContent.aboutTitle}</h3>
-      <p className="mb-4">{cmsContent.aboutText}</p>
-      <div className="flex gap-2 mb-6 flex-wrap">
-        {(cmsContent.aboutImages || []).map((img, idx) =>
-          img ? (
-            <img
-              key={idx}
-              src={img}
-              alt={`Ảnh giới thiệu ${idx + 1}`}
-              className="w-20 h-20 object-cover rounded border"
-            />
-          ) : null
-        )}
+       
       </div>
       {(cmsContent.sliderImages && cmsContent.sliderImages.length > 0) && (
         <div className="mb-6">

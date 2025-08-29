@@ -19,7 +19,7 @@ interface Props {
   BG_COLORS: string[];
 }
 
-const VIET_TITLES = ["Nội dung", "Cách chơi", "Tài liệu tham khảo"];
+const VIET_TITLES = ["Nội dung", "Cách chơi", "Tham Khảo"];
 
 const ProductCmsSidebar: React.FC<Props> = ({
   cmsContent, product,
@@ -45,17 +45,15 @@ const ProductCmsSidebar: React.FC<Props> = ({
           bgColor={previewBgColor}
         />
         {/* HERO SECTION */}
-        {(cmsContent.heroTitle || cmsContent.heroSubtitle || (cmsContent.heroImages && cmsContent.heroImages.length > 0)) && (
+        {(cmsContent.heroTitle || cmsContent.heroSubtitle) && (
           <section className="mb-6 mt-6">
             <h5 className="text-lg font-semibold mb-2" style={{ color: previewTextColor }}>Phần ảnh chính</h5>
-            {cmsContent.heroImages && cmsContent.heroImages.length > 0 && (
-              <img src={cmsContent.heroImages[0]} alt="Ảnh chính" className="w-32 h-32 object-cover rounded-lg border shadow mb-2" />
-            )}
             <div className="font-bold text-xl mb-1" style={{ color: previewTextColor }}>{cmsContent.heroTitle}</div>
             <div className="text-gray-600" style={{ color: previewTextColor }}>{cmsContent.heroSubtitle}</div>
           </section>
         )}
         {/* ABOUT SECTION */}
+        {/*
         {(cmsContent.aboutTitle || cmsContent.aboutText || (cmsContent.aboutImages && cmsContent.aboutImages.length > 0)) && (
           <section className="mb-6">
             <h5 className="text-lg font-semibold mb-2" style={{ color: previewTextColor }}>Phần giới thiệu</h5>
@@ -75,6 +73,7 @@ const ProductCmsSidebar: React.FC<Props> = ({
             </div>
           </section>
         )}
+        */}
         {/* SLIDER SECTION */}
         {cmsContent.sliderImages && cmsContent.sliderImages.length > 0 && (
           <section className="mb-6">
@@ -109,7 +108,11 @@ const ProductCmsSidebar: React.FC<Props> = ({
             <h5 className="text-lg font-semibold mb-2" style={{ color: previewTextColor }}>Thông tin sản phẩm</h5>
             {VIET_TITLES.map((fixedTitle) => {
               const tab = cmsContent.tabs?.find(
-                t => t.title.trim().toLowerCase() === fixedTitle.trim().toLowerCase()
+                t =>
+                  t.title.trim().toLowerCase() === fixedTitle.trim().toLowerCase() ||
+                  (fixedTitle === "Tham Khảo" &&
+                    (t.title.trim().toLowerCase() === "reference" ||
+                     t.title.trim().toLowerCase() === "tài liệu tham khảo"))
               );
               if (!tab) return null;
 
@@ -148,7 +151,7 @@ const ProductCmsSidebar: React.FC<Props> = ({
                         </div>
                       )}
                     </div>
-                  ) : fixedTitle === "Tài liệu tham khảo" ? (
+                  ) : fixedTitle === "Tham Khảo" ? (
                     <div className="mb-1" style={{ color: previewTextColor }}>
                       {(tab.references || []).length > 0 ? (
                         <ul className="list-disc pl-5">

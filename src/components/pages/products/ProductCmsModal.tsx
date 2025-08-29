@@ -1,9 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
+
 import { useState } from "react";
+import ProductCmsSidebar from "./ProductCmsSidebar";
+import MediaPicker from "../../media/MediaPicker";
 import type { Product, CmsContent, TabSection, FeaturedSection } from "./types";
 import { Button } from "../../widgets/button";
-import MediaPicker from "../../media/MediaPicker";
-import ProductCmsSidebar from "./ProductCmsSidebar";
 
 const FONT_FAMILIES = [
   { label: "Sans-serif", value: "sans-serif" },
@@ -92,12 +93,16 @@ const ProductCmsModal = ({
   };
 
   // Update tab names
-  const TAB_TITLES = ["Nội dung", "Cách chơi", "Tài liệu tham khảo"];
+  const TAB_TITLES = ["Nội dung", "Cách chơi", "Tham Khảo"];
 
   // Reference tab helpers
   const updateReferenceTab = (references: { title: string; link: string }[]) => {
-    const tabIdx = tabs.findIndex(t => t.title.trim().toLowerCase() === "reference");
-    const newTab: TabSection = { title: "Tài liệu tham khảo", content: "", images: [], references };
+    const tabIdx = tabs.findIndex(
+      t => t.title.trim().toLowerCase() === "tham khảo"
+        || t.title.trim().toLowerCase() === "reference"
+        || t.title.trim().toLowerCase() === "tài liệu tham khảo"
+    );
+    const newTab: TabSection = { title: "Tham Khảo", content: "", images: [], references };
     if (tabIdx >= 0) updateTab(tabIdx, newTab);
     else onChange({ ...cmsContent, tabs: [...tabs, newTab] });
   };
@@ -136,101 +141,6 @@ const ProductCmsModal = ({
             <span className="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-base font-semibold">CMS</span>
             <span>Quản lý chi tiết trang: <span className="text-blue-700">{product.product_name}</span></span>
           </h2>
-          {/* HERO SECTION */}
-          <section className="mb-8">
-            <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide flex items-center gap-2">
-              <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" /> Phần ảnh chính
-            </div>
-            <input
-              className="w-full border rounded px-4 py-3 mb-2 text-lg focus:ring-2 focus:ring-blue-300"
-              value={cmsContent.heroTitle || ""}
-              onChange={e => onChange({ ...cmsContent, heroTitle: e.target.value })}
-              placeholder="Tiêu đề ảnh chính"
-            />
-            <input
-              className="w-full border rounded px-4 py-3 mb-2 text-lg focus:ring-2 focus:ring-blue-300"
-              value={cmsContent.heroSubtitle || ""}
-              onChange={e => onChange({ ...cmsContent, heroSubtitle: e.target.value })}
-              placeholder="Mô tả ảnh chính"
-            />
-            <div className="flex items-center gap-3 mt-2">
-              {cmsContent.heroImages && cmsContent.heroImages[0] && (
-                <img src={cmsContent.heroImages[0]} alt="Ảnh chính" className="w-32 h-32 object-cover rounded-lg border shadow" />
-              )}
-              <button
-                type="button"
-                className="bg-blue-100 text-blue-700 rounded px-4 py-2 hover:bg-blue-200 font-semibold transition"
-                onClick={() => setShowMediaPicker({ field: "heroImages", idx: 0 })}
-              >
-                {cmsContent.heroImages && cmsContent.heroImages[0] ? "Đổi" : "Chọn"} ảnh
-              </button>
-              {cmsContent.heroImages && cmsContent.heroImages[0] && (
-                <button
-                  type="button"
-                  className="text-red-500 hover:text-red-700 text-xl"
-                  onClick={() => {
-                    const arr = [...cmsContent.heroImages!];
-                    arr[0] = "";
-                    onChange({ ...cmsContent, heroImages: arr });
-                  }}
-                  aria-label="Xóa ảnh"
-                  title="Xóa ảnh chính"
-                >
-                  &times;
-                </button>
-              )}
-            </div>
-          </section>
-          {/* ABOUT SECTION */}
-          <section className="mb-8">
-            <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide flex items-center gap-2">
-              <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" /> Phần giới thiệu
-            </div>
-            <input
-              className="w-full border rounded px-4 py-3 mb-2 text-lg focus:ring-2 focus:ring-blue-300"
-              value={cmsContent.aboutTitle || ""}
-              onChange={e => onChange({ ...cmsContent, aboutTitle: e.target.value })}
-              placeholder="Tiêu đề giới thiệu"
-            />
-            <textarea
-              className="w-full border rounded px-4 py-3 mb-2 text-lg focus:ring-2 focus:ring-blue-300"
-              value={cmsContent.aboutText || ""}
-              onChange={e => onChange({ ...cmsContent, aboutText: e.target.value })}
-              placeholder="Nội dung giới thiệu"
-              rows={4}
-            />
-            <div className="flex flex-col gap-2">
-              {(cmsContent.aboutImages || []).map((img, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  {img && (
-                    <img src={img} alt={`Ảnh giới thiệu ${idx + 1}`} className="w-20 h-20 object-cover rounded border shadow" />
-                  )}
-                  <button
-                    type="button"
-                    className="bg-blue-100 text-blue-700 rounded px-4 py-2 hover:bg-blue-200 font-semibold"
-                    onClick={() => setShowMediaPicker({ field: "aboutImages", idx })}
-                  >
-                    {img ? "Đổi" : "Chọn"} ảnh
-                  </button>
-                  <button
-                    type="button"
-                    className="text-red-500 hover:text-red-700 text-lg"
-                    onClick={() => removeArrayItem("aboutImages", idx)}
-                    aria-label="Xóa ảnh"
-                  >
-                    &times;
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                className="mt-2 px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-base font-semibold w-fit"
-                onClick={() => addArrayItem("aboutImages")}
-              >
-                + Thêm ảnh giới thiệu
-              </button>
-            </div>
-          </section>
           {/* SLIDER SECTION */}
           <section className="mb-8">
             <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide flex items-center gap-2">
@@ -295,12 +205,17 @@ const ProductCmsModal = ({
             <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide flex items-center gap-2">
               <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" /> Thông tin sản phẩm
             </div>
-            {TAB_TITLES.map((fixedTitle, _fixedIdx) => {
-              const tabIdx = tabs.findIndex(t => t.title.trim().toLowerCase() === fixedTitle.toLowerCase());
+            {TAB_TITLES.map((fixedTitle) => {
+              const tabIdx = tabs.findIndex(
+                t => t.title.trim().toLowerCase() === fixedTitle.toLowerCase() ||
+                  (fixedTitle === "Tham Khảo" &&
+                    (t.title.trim().toLowerCase() === "reference" ||
+                     t.title.trim().toLowerCase() === "tài liệu tham khảo"))
+              );
               const tab: TabSection = tabIdx >= 0
                 ? tabs[tabIdx]
-                : fixedTitle === "Tài liệu tham khảo"
-                  ? { title: "Tài liệu tham khảo", content: "", images: [], references: [] }
+                : fixedTitle === "Tham Khảo"
+                  ? { title: "Tham Khảo", content: "", images: [], references: [] }
                   : { title: fixedTitle, content: "", images: [] };
 
               return (
@@ -327,7 +242,7 @@ const ProductCmsModal = ({
                       type="url"
                       pattern="https?://.+"
                     />
-                  ) : fixedTitle === "Tài liệu tham khảo" ? (
+                  ) : fixedTitle === "Tham Khảo" ? (
                     <>
                       <div className="flex flex-col gap-2">
                         {(tab.references || []).map((ref: { title: string; link: string }, refIdx: number) => (
@@ -676,38 +591,37 @@ const ProductCmsModal = ({
           multiple={false}
           onSelect={img => {
             if (showMediaPicker) {
-              if (showMediaPicker.field === "heroImages" && typeof showMediaPicker.idx === "number") {
-                const arr = [...(cmsContent.heroImages || [])];
-                arr[showMediaPicker.idx] = Array.isArray(img) ? img[0]?.url ?? "" : img.url;
-                onChange({ ...cmsContent, heroImages: arr });
-              } else if (
+              // --- Remove heroImages logic ---
+              // Only handle tabImages, featuredSections, sliderImages
+              if (
                 showMediaPicker.field === "tabImages" &&
                 showMediaPicker.tabIdx !== undefined &&
                 showMediaPicker.imgIdx !== undefined
               ) {
-                // Save the selected image to the correct tab image slot
-                const tabIdx = showMediaPicker.tabIdx;
-                const imgIdx = showMediaPicker.imgIdx;
-                const url = Array.isArray(img) ? img[0]?.url ?? "" : img.url;
-                const tab = { ...tabs[tabIdx] };
-                const images = [...(tab.images || [])];
-                images[imgIdx] = url;
-                tab.images = images;
-                updateTab(tabIdx, tab);
-              } else if (showMediaPicker.field === "featuredSections" && typeof showMediaPicker.idx === "number") {
+                const tabs = [...(cmsContent.tabs || [])];
+                const tab = tabs[showMediaPicker.tabIdx];
+                if (tab) {
+                  const images = [...(tab.images || [])];
+                  images[showMediaPicker.imgIdx] = Array.isArray(img) ? img[0]?.url ?? "" : img.url;
+                  tab.images = images;
+                  tabs[showMediaPicker.tabIdx] = tab;
+                  onChange({ ...cmsContent, tabs });
+                }
+              } else if (
+                showMediaPicker.field === "featuredSections" &&
+                typeof showMediaPicker.idx === "number"
+              ) {
                 const arr = [...(cmsContent.featuredSections || [])];
-                arr[showMediaPicker.idx] = { ...arr[showMediaPicker.idx], imageSrc: Array.isArray(img) ? img[0]?.url ?? "" : img.url };
+                arr[showMediaPicker.idx].imageSrc = Array.isArray(img) ? img[0]?.url ?? "" : img.url;
                 onChange({ ...cmsContent, featuredSections: arr });
               } else if (
-                showMediaPicker.field &&
-                typeof showMediaPicker.idx === "number" &&
-                ["aboutImages", "sliderImages"].includes(showMediaPicker.field)
+                showMediaPicker.field === "sliderImages" &&
+                typeof showMediaPicker.idx === "number"
               ) {
-                const arr = [...(cmsContent[showMediaPicker.field as keyof CmsContent] as string[] || [])];
+                const arr = [...(cmsContent.sliderImages || [])];
                 arr[showMediaPicker.idx] = Array.isArray(img) ? img[0]?.url ?? "" : img.url;
-                onChange({ ...cmsContent, [showMediaPicker.field]: arr });
+                onChange({ ...cmsContent, sliderImages: arr });
               }
-              setShowMediaPicker(null);
             }
           }}
           onClose={() => setShowMediaPicker(null)}

@@ -1,7 +1,6 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import type { Product, CmsContent } from "./types";
-import GallerySlider from "./GallerySlider";
 
 interface Props {
   product: Product;
@@ -19,6 +18,8 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
   const textColor = cmsContent.textColor || "#222";
   const bgColor = cmsContent.bgColor || "#fff";
 
+  const VIET_TITLES = ["Nội dung", "Cách chơi", "Tham Khảo"];
+
   return (
     <div
       className="max-w-5xl mx-auto py-10 px-4"
@@ -34,6 +35,7 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
       {/* HERO SECTION */}
       <section className="flex flex-col md:flex-row gap-8 mb-10">
         <div className="flex-1 flex flex-col items-center">
+          {/* REMOVE THIS BLOCK:
           {cmsContent.heroImages && cmsContent.heroImages.length > 0 ? (
             <GallerySlider images={cmsContent.heroImages} />
           ) : (
@@ -41,6 +43,7 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
               <span className="text-gray-400">Không có ảnh nào</span>
             </div>
           )}
+          */}
         </div>
         <div className="flex-1 flex flex-col justify-center">
           <h1 className="text-4xl font-bold mb-2" style={{ color: textColor, fontFamily }}>{cmsContent.heroTitle || product.product_name}</h1>
@@ -49,6 +52,7 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
       </section>
 
       {/* ABOUT SECTION */}
+      {/*
       {(cmsContent.aboutTitle || cmsContent.aboutText || (cmsContent.aboutImages && cmsContent.aboutImages.length > 0)) && (
         <section className="mb-10">
           <h3 className="text-2xl font-semibold mb-2" style={{ color: textColor, fontFamily }}>{cmsContent.aboutTitle}</h3>
@@ -69,6 +73,7 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
           )}
         </section>
       )}
+      */}
 
       {/* SLIDER SECTION */}
       {cmsContent.sliderImages && cmsContent.sliderImages.length > 0 && (
@@ -141,7 +146,7 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
       {/* PRODUCT TABS SECTION - Fixed Tabs: Specifications, How To Play, Contents */}
       <section className="mb-10">
         <h4 className="text-xl font-semibold mb-2" style={{ color: textColor, fontFamily }}>Thông tin sản phẩm</h4>
-        {["Nội dung", "Cách chơi", "Tham Khảo"].map((fixedTitle) => {
+        {VIET_TITLES.map((fixedTitle) => {
           const tab = cmsContent.tabs?.find(
             t => t.title.trim().toLowerCase() === fixedTitle.trim().toLowerCase()
           );

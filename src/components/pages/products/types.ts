@@ -70,10 +70,6 @@ export type TabSection = {
 export interface CmsContent {
   heroTitle?: string;
   heroSubtitle?: string;
-  heroImages?: string[]; // array, not string
-  aboutTitle?: string;
-  aboutText?: string;
-  aboutImages?: string[];
   sliderImages?: string[];
   detailsTitle?: string;
   detailsContent?: string;
@@ -82,7 +78,7 @@ export interface CmsContent {
   fontSize?: string;
   textColor?: string;
   bgColor?: string;
-  featuredSections?: FeaturedSection[]; //
+  featuredSections?: FeaturedSection[];
 }
 
 export function getBaseSlug(slug: string): string {
