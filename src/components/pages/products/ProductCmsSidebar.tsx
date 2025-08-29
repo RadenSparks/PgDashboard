@@ -21,6 +21,32 @@ interface Props {
 
 const VIET_TITLES = ["Nội dung", "Cách chơi", "Tham Khảo"];
 
+// Helper to get YouTube/Vimeo embed URL
+function getEmbedUrl(url: string): string | null {
+  if (!url) return null;
+  // YouTube
+  if (url.includes("youtube.com") || url.includes("youtu.be")) {
+    let videoId = "";
+    if (url.includes("watch?v=")) {
+      videoId = url.split("watch?v=")[1].split("&")[0];
+    } else if (url.includes("youtu.be/")) {
+      videoId = url.split("youtu.be/")[1].split("?")[0];
+    }
+    if (videoId) {
+      let embedUrl = `https://www.youtube.com/embed/${videoId}`;
+      const tMatch = url.match(/[?&]t=(\d+)s?/);
+      if (tMatch) embedUrl += `?start=${tMatch[1]}`;
+      return embedUrl;
+    }
+  }
+  // Vimeo
+  if (url.includes("vimeo.com")) {
+    const match = url.match(/vimeo\.com\/(\d+)/);
+    if (match) return `https://player.vimeo.com/video/${match[1]}`;
+  }
+  return null;
+}
+
 const ProductCmsSidebar: React.FC<Props> = ({
   cmsContent, product,
   fontFamily, setFontFamily,
@@ -129,20 +155,17 @@ const ProductCmsSidebar: React.FC<Props> = ({
                         </a>
                       )}
                       {/* Embed video if YouTube/Vimeo */}
-                      {tab.content && (tab.content.includes("youtube.com") || tab.content.includes("youtu.be") || tab.content.includes("vimeo.com")) && (
+                      {tab.content && getEmbedUrl(tab.content) && (
                         <div className="mt-2">
                           <iframe
-                            width="320"
-                            height="180"
-                            src={
-                              tab.content.includes("youtube.com") || tab.content.includes("youtu.be")
-                                ? tab.content.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/")
-                                : tab.content
-                            }
+                            width="480"
+                            height="270"
+                            src={getEmbedUrl(tab.content) as string}
                             title="Video hướng dẫn chơi"
                             frameBorder={0}
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
+                            className="rounded-xl border shadow w-full max-w-2xl aspect-video min-h-[180px] min-w-[180px]"
                           />
                         </div>
                       )}

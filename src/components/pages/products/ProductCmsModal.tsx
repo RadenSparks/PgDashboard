@@ -228,18 +228,45 @@ const ProductCmsModal = ({
                   </div>
                   {/* How To Play: only video link input */}
                   {fixedTitle === "Cách chơi" ? (
-                    <input
-                      className="w-full border rounded px-4 py-3 mb-2 focus:ring-2 focus:ring-blue-300"
-                      value={tab.content}
-                      onChange={e => {
-                        const newTab: TabSection = { ...tab, content: e.target.value, images: tab.images || [] };
-                        if (tabIdx >= 0) updateTab(tabIdx, newTab);
-                        else onChange({ ...cmsContent, tabs: [...tabs, newTab] });
-                      }}
-                      placeholder="Dán link video (YouTube, Vimeo, ...)"
-                      type="url"
-                      pattern="https?://.+"
-                    />
+                    <>
+                      <input
+                        className="w-full border rounded px-4 py-3 mb-2 focus:ring-2 focus:ring-blue-300"
+                        value={tab.content}
+                        onChange={e => {
+                          const newTab: TabSection = { ...tab, content: e.target.value, images: tab.images || [] };
+                          if (tabIdx >= 0) updateTab(tabIdx, newTab);
+                          else onChange({ ...cmsContent, tabs: [...tabs, newTab] });
+                        }}
+                        placeholder="Dán link video (YouTube, Vimeo, ...)"
+                        type="url"
+                        pattern="https?://.+"
+                      />
+                      {tab.content && (
+                        <>
+                          <a
+                            href={tab.content}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 underline break-all"
+                          >
+                            {tab.content}
+                          </a>
+                          {getYouTubeEmbedUrl(tab.content) && (
+                            <div className="mt-2">
+                              <iframe
+                                width="420"
+                                height="236"
+                                src={getYouTubeEmbedUrl(tab.content) as string}
+                                title="Video hướng dẫn chơi"
+                                frameBorder={0}
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                              />
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </>
                   ) : fixedTitle === "Tham Khảo" ? (
                     <>
                       <div className="flex flex-col gap-2">
@@ -335,31 +362,6 @@ const ProductCmsModal = ({
                           + Thêm ảnh
                         </button>
                       </div>
-                    </>
-                  )}
-                  {tab.content && (
-                    <>
-                      <a
-                        href={tab.content}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 underline break-all"
-                      >
-                        {tab.content}
-                      </a>
-                      {getYouTubeEmbedUrl(tab.content) && (
-                        <div className="mt-2">
-                          <iframe
-                            width="420"
-                            height="236"
-                            src={getYouTubeEmbedUrl(tab.content) as string}
-                            title="Video hướng dẫn chơi"
-                            frameBorder={0}
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          />
-                        </div>
-                      )}
                     </>
                   )}
                 </div>
