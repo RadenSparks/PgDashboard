@@ -26,7 +26,7 @@ import { useToast } from "@chakra-ui/react"; // <-- Use Chakra Toast
 const statusCycle = ["pending", "shipped", "delivered", "cancelled"];
 const STATUS_LABELS: { [key: string]: string } = {
     pending: "Đang chờ xử lý",
-    shipped: "Đã giao hàng",
+    shipped: "Đang giao hàng",
     delivered: "Đã giao",
     cancelled: "Đã hủy",
 };
