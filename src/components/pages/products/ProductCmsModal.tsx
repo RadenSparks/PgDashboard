@@ -337,6 +337,31 @@ const ProductCmsModal = ({
                       </div>
                     </>
                   )}
+                  {tab.content && (
+                    <>
+                      <a
+                        href={tab.content}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline break-all"
+                      >
+                        {tab.content}
+                      </a>
+                      {getYouTubeEmbedUrl(tab.content) && (
+                        <div className="mt-2">
+                          <iframe
+                            width="420"
+                            height="236"
+                            src={getYouTubeEmbedUrl(tab.content) as string}
+                            title="Video hướng dẫn chơi"
+                            frameBorder={0}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               );
             })}
@@ -489,21 +514,8 @@ const ProductCmsModal = ({
           {/* ABOUT SECTION */}
           <section className="mb-8">
             <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide flex items-center gap-2">
-              <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" /> Phần giới thiệu sản phẩm
+              <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" /> Ảnh giới thiệu sản phẩm
             </div>
-            <input
-              className="w-full border rounded px-4 py-3 mb-2 text-lg focus:ring-2 focus:ring-blue-300"
-              value={cmsContent.aboutTitle || ""}
-              onChange={e => onChange({ ...cmsContent, aboutTitle: e.target.value })}
-              placeholder="Tiêu đề giới thiệu"
-            />
-            <textarea
-              className="w-full border rounded px-4 py-3 font-mono text-lg focus:ring-2 focus:ring-blue-300"
-              value={cmsContent.aboutText || ""}
-              onChange={e => onChange({ ...cmsContent, aboutText: e.target.value })}
-              placeholder="Nội dung giới thiệu (hỗ trợ Markdown)"
-              rows={4}
-            />
             <div className="flex flex-col gap-2 mt-2">
               {(cmsContent.aboutImages || []).map((img, idx) => (
                 <div key={idx} className="flex items-center gap-2 relative">
@@ -688,5 +700,16 @@ const ProductCmsModal = ({
     </div>
   );
 };
+
+function getYouTubeEmbedUrl(url: string): string | null {
+  // Match standard YouTube URL
+  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+  if (!match) return null;
+  const videoId = match[1];
+  // Extract start time if present
+  const timeMatch = url.match(/[?&]t=(\d+)s?/);
+  const start = timeMatch ? `?start=${timeMatch[1]}` : "";
+  return `https://www.youtube.com/embed/${videoId}${start}`;
+}
 
 export default ProductCmsModal;

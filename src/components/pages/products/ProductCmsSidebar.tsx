@@ -52,14 +52,12 @@ const ProductCmsSidebar: React.FC<Props> = ({
             <div className="text-gray-600" style={{ color: previewTextColor }}>{cmsContent.heroSubtitle}</div>
           </section>
         )}
-        {/* ABOUT SECTION */}
-        {(cmsContent.aboutTitle || cmsContent.aboutText || (cmsContent.aboutImages && cmsContent.aboutImages.length > 0)) && (
+        {/* ABOUT SECTION - Only images */}
+        {cmsContent.aboutImages && cmsContent.aboutImages.length > 0 && (
           <section className="mb-6">
-            <h5 className="text-lg font-semibold mb-2" style={{ color: previewTextColor }}>Phần giới thiệu</h5>
-            <div className="font-bold mb-1" style={{ color: previewTextColor }}>{cmsContent.aboutTitle}</div>
-            <div className="mb-2" style={{ color: previewTextColor }}>{cmsContent.aboutText}</div>
+            <h5 className="text-lg font-semibold mb-2" style={{ color: previewTextColor }}>Ảnh giới thiệu</h5>
             <div className="flex gap-2 flex-wrap">
-              {cmsContent.aboutImages?.map((img, idx) =>
+              {cmsContent.aboutImages.map((img, idx) =>
                 img ? (
                   <img
                     key={idx}

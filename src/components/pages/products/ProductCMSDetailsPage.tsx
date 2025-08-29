@@ -35,15 +35,7 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
       {/* HERO SECTION */}
       <section className="flex flex-col md:flex-row gap-8 mb-10">
         <div className="flex-1 flex flex-col items-center">
-          {/* REMOVE THIS BLOCK:
-          {cmsContent.heroImages && cmsContent.heroImages.length > 0 ? (
-            <GallerySlider images={cmsContent.heroImages} />
-          ) : (
-            <div className="w-full h-64 bg-gray-100 flex items-center justify-center rounded">
-              <span className="text-gray-400">Không có ảnh nào</span>
-            </div>
-          )}
-          */}
+          {/* No heroImages */}
         </div>
         <div className="flex-1 flex flex-col justify-center">
           <h1 className="text-4xl font-bold mb-2" style={{ color: textColor, fontFamily }}>{cmsContent.heroTitle || product.product_name}</h1>
@@ -52,24 +44,21 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
       </section>
 
       {/* ABOUT SECTION */}
-      {(cmsContent.aboutTitle || cmsContent.aboutText || (cmsContent.aboutImages && cmsContent.aboutImages.length > 0)) && (
+      {cmsContent.aboutImages && cmsContent.aboutImages.length > 0 && (
         <section className="mb-10">
-          <h3 className="text-2xl font-semibold mb-2" style={{ color: textColor, fontFamily }}>{cmsContent.aboutTitle}</h3>
-          <div className="mb-4" style={{ color: textColor }}>{cmsContent.aboutText}</div>
-          {cmsContent.aboutImages && cmsContent.aboutImages.length > 0 && (
-            <div className="flex gap-3 flex-wrap">
-              {cmsContent.aboutImages.map((img, idx) =>
-                img ? (
-                  <img
-                    key={idx}
-                    src={img}
-                    alt={`Ảnh giới thiệu ${idx + 1}`}
-                    className="w-28 h-28 object-cover rounded border"
-                  />
-                ) : null
-              )}
-            </div>
-          )}
+          <h3 className="text-2xl font-semibold mb-2" style={{ color: textColor, fontFamily }}>Ảnh giới thiệu</h3>
+          <div className="flex gap-3 flex-wrap">
+            {cmsContent.aboutImages.map((img, idx) =>
+              img ? (
+                <img
+                  key={idx}
+                  src={img}
+                  alt={`Ảnh giới thiệu ${idx + 1}`}
+                  className="w-28 h-28 object-cover rounded border"
+                />
+              ) : null
+            )}
+          </div>
         </section>
       )}
 
