@@ -52,7 +52,6 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
       </section>
 
       {/* ABOUT SECTION */}
-      {/*
       {(cmsContent.aboutTitle || cmsContent.aboutText || (cmsContent.aboutImages && cmsContent.aboutImages.length > 0)) && (
         <section className="mb-10">
           <h3 className="text-2xl font-semibold mb-2" style={{ color: textColor, fontFamily }}>{cmsContent.aboutTitle}</h3>
@@ -73,7 +72,6 @@ const ProductDetailsPage: React.FC<Props> = ({ product, cmsContent }) => {
           )}
         </section>
       )}
-      */}
 
       {/* SLIDER SECTION */}
       {cmsContent.sliderImages && cmsContent.sliderImages.length > 0 && (

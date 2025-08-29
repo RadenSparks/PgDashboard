@@ -1,5 +1,3 @@
-
-
 import { useState } from "react";
 import ProductCmsSidebar from "./ProductCmsSidebar";
 import MediaPicker from "../../media/MediaPicker";
@@ -488,6 +486,59 @@ const ProductCmsModal = ({
               </div>
             ))}
           </section>
+          {/* ABOUT SECTION */}
+          <section className="mb-8">
+            <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide flex items-center gap-2">
+              <span className="inline-block w-2 h-2 bg-blue-600 rounded-full" /> Phần giới thiệu sản phẩm
+            </div>
+            <input
+              className="w-full border rounded px-4 py-3 mb-2 text-lg focus:ring-2 focus:ring-blue-300"
+              value={cmsContent.aboutTitle || ""}
+              onChange={e => onChange({ ...cmsContent, aboutTitle: e.target.value })}
+              placeholder="Tiêu đề giới thiệu"
+            />
+            <textarea
+              className="w-full border rounded px-4 py-3 font-mono text-lg focus:ring-2 focus:ring-blue-300"
+              value={cmsContent.aboutText || ""}
+              onChange={e => onChange({ ...cmsContent, aboutText: e.target.value })}
+              placeholder="Nội dung giới thiệu (hỗ trợ Markdown)"
+              rows={4}
+            />
+            <div className="flex flex-col gap-2 mt-2">
+              {(cmsContent.aboutImages || []).map((img, idx) => (
+                <div key={idx} className="flex items-center gap-2 relative">
+                  <span className="absolute -left-6 top-1/2 -translate-y-1/2 bg-blue-600 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center shadow">
+                    {idx + 1}
+                  </span>
+                  {img && (
+                    <img src={img} alt={`Giới thiệu ${idx + 1}`} className="w-20 h-20 object-cover rounded border shadow" />
+                  )}
+                  <button
+                    type="button"
+                    className="bg-blue-100 text-blue-700 rounded px-4 py-2 hover:bg-blue-200 font-semibold"
+                    onClick={() => setShowMediaPicker({ field: "aboutImages", idx })}
+                  >
+                    {img ? "Đổi" : "Chọn"} ảnh
+                  </button>
+                  <button
+                    type="button"
+                    className="text-red-500 hover:text-red-700 text-lg"
+                    onClick={() => removeArrayItem("aboutImages", idx)}
+                    aria-label="Xóa ảnh"
+                  >
+                    &times;
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                className="mt-2 px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-base font-semibold w-fit"
+                onClick={() => addArrayItem("aboutImages")}
+              >
+                + Thêm ảnh giới thiệu
+              </button>
+            </div>
+          </section>
           {/* Preview Customization */}
           <section className="mt-10">
             <div className="font-semibold mb-3 text-blue-700 text-base uppercase tracking-wide flex items-center gap-2">
@@ -621,6 +672,13 @@ const ProductCmsModal = ({
                 const arr = [...(cmsContent.sliderImages || [])];
                 arr[showMediaPicker.idx] = Array.isArray(img) ? img[0]?.url ?? "" : img.url;
                 onChange({ ...cmsContent, sliderImages: arr });
+              } else if (
+                showMediaPicker.field === "aboutImages" &&
+                typeof showMediaPicker.idx === "number"
+              ) {
+                const arr = [...(cmsContent.aboutImages || [])];
+                arr[showMediaPicker.idx] = Array.isArray(img) ? img[0]?.url ?? "" : img.url;
+                onChange({ ...cmsContent, aboutImages: arr });
               }
             }
           }}

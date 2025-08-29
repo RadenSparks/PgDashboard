@@ -53,7 +53,6 @@ const ProductCmsSidebar: React.FC<Props> = ({
           </section>
         )}
         {/* ABOUT SECTION */}
-        {/*
         {(cmsContent.aboutTitle || cmsContent.aboutText || (cmsContent.aboutImages && cmsContent.aboutImages.length > 0)) && (
           <section className="mb-6">
             <h5 className="text-lg font-semibold mb-2" style={{ color: previewTextColor }}>Phần giới thiệu</h5>
@@ -73,7 +72,6 @@ const ProductCmsSidebar: React.FC<Props> = ({
             </div>
           </section>
         )}
-        */}
         {/* SLIDER SECTION */}
         {cmsContent.sliderImages && cmsContent.sliderImages.length > 0 && (
           <section className="mb-6">

@@ -79,6 +79,9 @@ export interface CmsContent {
   textColor?: string;
   bgColor?: string;
   featuredSections?: FeaturedSection[];
+  aboutTitle?: string;
+  aboutText?: string;
+  aboutImages?: string[];
 }
 
 export function getBaseSlug(slug: string): string {
