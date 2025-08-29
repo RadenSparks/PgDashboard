@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "../../widgets/button";
 import { FaPlus, FaArrowLeft } from "react-icons/fa";
@@ -6,16 +6,13 @@ import type { User } from "../../../redux/api/usersApi";
 import {
   useGetUsersQuery,
   useAddUserMutation,
-  useDeleteUserMutation,
   useSetUserStatusMutation,
 } from "../../../redux/api/usersApi";
 import { useToast } from "@chakra-ui/react";
 import RecentlyJoinedUsers from "./RecentlyJoinedUsers";
 import UsersTable from "./UsersTable";
 import AddUserModal from "./AddUserModal";
-import UndoDeleteModal from "./UndoDeleteModal";
 
-const UNDO_TIMEOUT = 8000;
 const RECENT_USER_COUNT = 5;
 const PAGE_SIZE = 10;
 const emptyUser: User = {
@@ -34,12 +31,9 @@ const emptyUser: User = {
 const UsersPage: React.FC = () => {
   const { data: users = [], refetch } = useGetUsersQuery();
   const [addUser] = useAddUserMutation();
-  const [deleteUser] = useDeleteUserMutation();
   const [setUserStatus] = useSetUserStatusMutation();
   const toast = useToast();
 
-  const [pendingDelete, setPendingDelete] = useState<{ user: User; timeLeft: number } | null>(null);
-  const [fadingUserId, setFadingUserId] = useState<number | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newUser, setNewUser] = useState<User>({ ...emptyUser });
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "suspended">("all");
@@ -73,45 +67,6 @@ const UsersPage: React.FC = () => {
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
   );
-
-  // Delete timer/fade logic
-  useEffect(() => {
-    if (!pendingDelete) return;
-    const fadeOutTime = UNDO_TIMEOUT * 0.8;
-    let fadeTimeout: NodeJS.Timeout | null = null;
-    let interval: NodeJS.Timeout | null = null;
-    let timeout: NodeJS.Timeout | null = null;
-
-    fadeTimeout = setTimeout(() => {
-      setFadingUserId(pendingDelete.user.id);
-    }, fadeOutTime);
-
-    interval = setInterval(() => {
-      setPendingDelete(prev =>
-        prev ? { ...prev, timeLeft: prev.timeLeft - 100 } : null
-      );
-    }, 100);
-
-    timeout = setTimeout(async () => {
-      await deleteUser(pendingDelete.user.id);
-      setPendingDelete(null);
-      setFadingUserId(null);
-      refetch();
-      toast({
-        title: "Đã xóa người dùng",
-        description: `Người dùng "${pendingDelete.user.full_name}" đã bị xóa.`,
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-    }, pendingDelete.timeLeft);
-
-    return () => {
-      if (fadeTimeout) clearTimeout(fadeTimeout);
-      if (interval) clearInterval(interval);
-      if (timeout) clearTimeout(timeout);
-    };
-  }, [pendingDelete, deleteUser, refetch, toast]);
 
   // Add user modal logic
   const handleAddUser = () => {
@@ -156,17 +111,6 @@ const UsersPage: React.FC = () => {
     if (!user) return;
     await setUserStatus({ id, status: !user.status });
     refetch();
-  };
-
-  const handleDelete = (id: number) => {
-    const user = users.find(u => u.id === id);
-    if (!user) return;
-    setPendingDelete({ user, timeLeft: UNDO_TIMEOUT });
-  };
-
-  const handleUndoDelete = () => {
-    setPendingDelete(null);
-    setFadingUserId(null);
   };
 
   return (
@@ -254,10 +198,10 @@ const UsersPage: React.FC = () => {
 
       <UsersTable
         users={paginatedUsers}
-        fadingUserId={fadingUserId}
-        pendingDelete={pendingDelete}
+        fadingUserId={null} // No fading logic
+        pendingDelete={null} // No pending delete
         onToggleStatus={handleToggleStatus}
-        onDelete={handleDelete}
+        onDelete={() => {}} // No-op delete handler
       />
 
       {/* Pagination Controls */}
@@ -299,25 +243,6 @@ const UsersPage: React.FC = () => {
         onChange={handleChangeNewUser}
         onSave={handleSaveNewUser}
         onClose={() => setShowAddModal(false)}
-      />
-
-      <UndoDeleteModal
-        pendingDelete={pendingDelete}
-        UNDO_TIMEOUT={UNDO_TIMEOUT}
-        onUndo={handleUndoDelete}
-        onToast={({
-          title,
-          description,
-          status,
-        }: { title: string; description?: string; status: "success" | "error" | "info" | "warning" }) =>
-          toast({
-            title,
-            description,
-            status,
-            duration: 3000,
-            isClosable: true,
-          })
-        }
       />
 
       <div className="mt-8 text-gray-500 text-sm bg-white rounded-xl shadow p-6">

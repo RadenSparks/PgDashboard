@@ -67,6 +67,12 @@ export interface Order {
 }
 
 export interface RefundRequest {
+  uploadFiles: unknown;
+  paymentMethod: unknown;
+  toAccountNumber: unknown;
+  toBin: unknown;
+  bank: unknown;
+  times: unknown;
   id: number;
   user: User;
   order: Order;

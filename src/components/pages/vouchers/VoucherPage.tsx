@@ -184,7 +184,7 @@ const VoucherPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white p-0 sm:p-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6x2 mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
           <div>
             <div className="flex items-center gap-3 mb-1">

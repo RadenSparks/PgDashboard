@@ -1,6 +1,5 @@
 import React from "react";
 import { Button } from "../../widgets/button";
-import { FaTrash } from "react-icons/fa";
 import clsx from "clsx";
 import type { User } from "../../../redux/api/usersApi";
 
@@ -17,7 +16,6 @@ const UsersTable: React.FC<UsersTableProps> = ({
   fadingUserId,
   pendingDelete,
   onToggleStatus,
-  onDelete,
 }) => (
   <div className="bg-white rounded-xl shadow p-6">
     <div className="overflow-x-auto">
@@ -93,16 +91,6 @@ const UsersTable: React.FC<UsersTableProps> = ({
                     disabled={!!pendingDelete}
                   >
                     {user.status ? "Chuyển tạm khóa" : "Chuyển hoạt động"}
-                  </Button>
-                  <Button
-                    size="sm"
-                    className="bg-red-100 text-red-700 border border-red-300 hover:bg-red-200"
-                    onClick={() => onDelete(user.id)}
-                    disabled={!!pendingDelete || user.role === "Admin"}
-                    title={user.role === "Admin" ? "Không thể xóa tài khoản Admin" : "Xóa"}
-                  >
-                    <FaTrash className="inline mr-1" />
-                    Xóa
                   </Button>
                 </td>
               </tr>

@@ -7,8 +7,7 @@ import { formatCurrencyVND } from "../products/formatCurrencyVND";
 import {
     useGetOrdersQuery,
     useUpdateStatusMutation,
-    useDeleteOrderMutation,
-    useCancelOversoldOrdersMutation, // <-- Add this import
+    useCancelOversoldOrdersMutation,
     type Order,
 } from "../../../redux/api/ordersApi";
 import {
@@ -57,7 +56,8 @@ type SortDirection = "asc" | "desc";
 
 const OrdersPage = () => {
     const [updateStatus, { isLoading: updatingStatus }] = useUpdateStatusMutation();
-    const [deleteOrder] = useDeleteOrderMutation();
+    const [cancelOversoldOrders, { isLoading: cancelingOversold }] = useCancelOversoldOrdersMutation(); // <-- Mutation for oversold cancellation
+
     const { data: orders = [], isLoading, refetch } = useGetOrdersQuery();
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [editOrder, setEditOrder] = useState<Order | null>(null);
@@ -73,7 +73,6 @@ const OrdersPage = () => {
     // Payment mutations (match backend logic)
     const [markOrderAsPaid, { isLoading: markingPaid }] = useMarkOrderAsPaidMutation();
     const [cancelOrder, { isLoading: canceling }] = useCancelOrderMutation();
-    const [cancelOversoldOrders, { isLoading: cancelingOversold }] = useCancelOversoldOrdersMutation(); // <-- Mutation for oversold cancellation
 
     const navigate = useNavigate();
     const userId = getCurrentUserId() ?? 0;
@@ -157,13 +156,6 @@ const OrdersPage = () => {
     // Handle invoice viewing (opens PDF in new tab)
     const handleViewInvoice = (orderId: number) => {
         window.open(`${import.meta.env.VITE_BASE_API || "https://pengoo-back-end.vercel.app"}/invoices/${orderId}`, "_blank");
-    };
-
-    // Handle order deletion
-    const handleDeleteOrder = async (orderId: number) => {
-        if (window.confirm("Bạn có chắc chắn muốn xóa đơn hàng này?")) {
-            await deleteOrder(orderId);
-        }
     };
 
     // Detect oversold orders
@@ -439,14 +431,6 @@ const OrdersPage = () => {
                                                 title="Chỉnh sửa đơn"
                                             >
                                                 <FaEdit />
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                className="bg-red-100 text-red-800 border border-red-300 hover:bg-red-200 px-2 py-1 rounded transition"
-                                                onClick={() => handleDeleteOrder(order.id)}
-                                                title="Xóa đơn"
-                                            >
-                                                &times;
                                             </Button>
                                         </td>
                                         <td className="py-2 px-3">
