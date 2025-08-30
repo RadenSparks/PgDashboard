@@ -7,7 +7,7 @@ import {
 } from "react-icons/fa";
 import type { RefundRequest } from "./types";
 
-// Use the same status labels/colors as table
+// Status, payment, and method Vietnamese labels
 const statusColors: Record<string, string> = {
   PENDING: "yellow",
   APPROVED: "green",
@@ -20,6 +20,29 @@ const statusLabels: Record<string, string> = {
   APPROVED: "Đã duyệt",
   REJECTED: "Từ chối",
   REFUNDED: "Đã hoàn tiền",
+};
+
+const paymentStatusLabels: Record<string, string> = {
+  paid: "Đã thanh toán",
+  pending: "Chờ thanh toán",
+  pending_on_delivery: "Chờ khi giao hàng",
+  refunded: "Đã hoàn tiền",
+  success: "Thành công",
+  canceled: "Đã hủy",
+};
+
+const orderStatusLabels: Record<string, string> = {
+  pending: "Đang chờ xử lý",
+  shipped: "Đang giao hàng",
+  delivered: "Đã giao",
+  cancelled: "Đã hủy",
+};
+
+// Update paymentMethodLabels to match backend PaymentMethod enum and possible frontend values
+const paymentMethodLabels: Record<string, string> = {
+  on_delivery: "Thanh toán khi nhận hàng",
+  payos: "Thanh toán PayOS",
+  paypal: "Thanh toán PayPal",
 };
 
 interface Props {
@@ -96,7 +119,16 @@ const FeedbackRefundDetailModal: React.FC<Props> = ({
             <Flex align="center" gap={2}>
               <FaCreditCard className="text-blue-400" />
               <Text fontWeight="semibold">Phương thức thanh toán:</Text>
-              <Text ml={1}>{selected.paymentMethod || selected.order?.payment_type || "—"}</Text>
+              <Text ml={1}>
+                {
+                  paymentMethodLabels[
+                    (selected.paymentMethod || selected.order?.payment_type || "").toLowerCase()
+                  ] ||
+                  selected.paymentMethod ||
+                  selected.order?.payment_type ||
+                  "—"
+                }
+              </Text>
             </Flex>
             <Flex align="center" gap={2}>
               <FaMoneyBillWave className="text-green-400" />
@@ -140,11 +172,19 @@ const FeedbackRefundDetailModal: React.FC<Props> = ({
             </Flex>
             <Flex align="center" gap={2}>
               <Text fontWeight="semibold">Trạng thái sản phẩm:</Text>
-              <Text ml={1}>{selected.order?.productStatus || "—"}</Text>
+              <Text ml={1}>
+                {orderStatusLabels[(selected.order?.productStatus || "").toLowerCase()] ||
+                  selected.order?.productStatus ||
+                  "—"}
+              </Text>
             </Flex>
             <Flex align="center" gap={2}>
               <Text fontWeight="semibold">Trạng thái thanh toán:</Text>
-              <Text ml={1}>{selected.order?.payment_status || "—"}</Text>
+              <Text ml={1}>
+                {paymentStatusLabels[(selected.order?.payment_status || "").toLowerCase()] ||
+                  selected.order?.payment_status ||
+                  "—"}
+              </Text>
             </Flex>
           </Stack>
         </GridItem>
